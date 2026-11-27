@@ -461,6 +461,7 @@ window.runMermaid = runMermaid;</script>
             <li><a href="explanation/how-locations-are-stored-and-protected.html">How locations are stored and protected</a></li>
             <li><a href="explanation/dataset-publication-dois-and-datacite-metadata.html">Dataset publication, DOIs and DataCite metadata</a></li>
             <li><a href="reference/glossary.html">Glossary</a></li>
+            <li><a href="reference/contributor-roles.html">Contributor roles</a></li>
             <li><a href="contributing/index.html">Framework Contributors</a></li>
             <li><a href="adr/index.html">Architecture Decision Records</a></li>
             <li><a href="ROADMAP.html">Roadmap — FairDM</a></li>
@@ -535,6 +536,7 @@ window.runMermaid = runMermaid;</script>
                 <li><a href="explanation/how-locations-are-stored-and-protected.html">How locations are stored and protected</a></li>
                 <li><a href="explanation/dataset-publication-dois-and-datacite-metadata.html">Dataset publication, DOIs and DataCite metadata</a></li>
                 <li><a href="reference/glossary.html">Glossary</a></li>
+                <li><a href="reference/contributor-roles.html">Contributor roles</a></li>
                 <li><a href="contributing/index.html">Framework Contributors</a></li>
                 <li><a href="adr/index.html">Architecture Decision Records</a></li>
                 <li><a href="ROADMAP.html">Roadmap — FairDM</a></li>
@@ -662,6 +664,8 @@ window.runMermaid = runMermaid;</script>
       </ul></li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionPage.access">access() (ContributionPage method)</a>
 </li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_base.html#fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.access_from_above">access_from_above() (ContributorsBase method)</a>
+</li>
       <li><a href="developers/reference/api/fairdm/fairdm.core.managers.html#fairdm.core.managers.RecordLevelMixin.accessible_to">accessible_to() (RecordLevelMixin method)</a>
 </li>
       <li><a href="reference/glossary.html#term-Account-state"><strong>Account state</strong></a>
@@ -734,6 +738,8 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.profiles.html#fairdm.contrib.contributors.profiles.active_then_recent">active_then_recent() (in module fairdm.contrib.contributors.profiles)</a>
 </li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.services.registries.html#fairdm.contrib.contributors.services.registries.Orcid.ACTIVITIES">ACTIVITIES (Orcid attribute)</a>
+</li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.activity.apps.html#fairdm.contrib.activity.apps.ActivityConfig">ActivityConfig (class in fairdm.contrib.activity.apps)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.activity.lines.html#fairdm.contrib.activity.lines.ActivityLines">ActivityLines (class in fairdm.contrib.activity.lines)</a>
@@ -744,23 +750,13 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.models.html#fairdm.contrib.import_export.models.ImportJob.Mode.ADD">ADD (ImportJob.Mode attribute)</a>
 </li>
-      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionAdd.add">add() (ContributionAdd method)</a>
-
-      <ul>
-        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.services.crediting.html#fairdm.contrib.contributors.services.crediting.Crediting.add">(Crediting method)</a>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.services.crediting.html#fairdm.contrib.contributors.services.crediting.Crediting.add">add() (Crediting method)</a>
 </li>
-      </ul></li>
       <li><a href="developers/reference/api/fairdm/fairdm.backups.management.commands.backup.html#fairdm.backups.management.commands.backup.Command.add_arguments">add_arguments() (Command method)</a>, <a href="developers/reference/api/fairdm/fairdm.management.commands.generate_fake_data.html#fairdm.management.commands.generate_fake_data.Command.add_arguments">[1]</a>, <a href="developers/reference/api/fairdm/fairdm.management.commands.show_config.html#fairdm.management.commands.show_config.Command.add_arguments">[2]</a>, <a href="developers/reference/api/fairdm/fairdm.management.commands.upgrade_vocabularies.html#fairdm.management.commands.upgrade_vocabularies.Command.add_arguments">[3]</a>
-</li>
-      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionAdd.add_by_hand">add_by_hand() (ContributionAdd method)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.core.abstract.html#fairdm.core.abstract.BaseModel.add_contributor">add_contributor() (BaseModel method)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.admin.html#fairdm.contrib.contributors.admin.UserAdmin.add_fieldsets">add_fieldsets (UserAdmin attribute)</a>
-</li>
-      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionAdd.add_from_portal">add_from_portal() (ContributionAdd method)</a>
-</li>
-      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionAdd.add_from_registry">add_from_registry() (ContributionAdd method)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.conf.html#fairdm.conf.Provenance.add_layer">add_layer() (Provenance method)</a>
 </li>
@@ -792,6 +788,12 @@ window.runMermaid = runMermaid;</script>
       </ul></li>
       <li><a href="developers/reference/api/fairdm/fairdm.conf.addons.html#fairdm.conf.addons.addon_urls">addon_urls (in module fairdm.conf.addons)</a>
 </li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_organizations.html#fairdm.contrib.contributors.plugins.tab_organizations.AddOrganization">AddOrganization (class in fairdm.contrib.contributors.plugins.tab_organizations)</a>
+</li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_people.html#fairdm.contrib.contributors.plugins.tab_people.AddPerson">AddPerson (class in fairdm.contrib.contributors.plugins.tab_people)</a>
+</li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_people.html#fairdm.contrib.contributors.plugins.tab_people.AddPersonStep">AddPersonStep (class in fairdm.contrib.contributors.plugins.tab_people)</a>
+</li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.models.html#fairdm.contrib.contributors.models.Affiliation.MembershipType.ADMIN">ADMIN (Affiliation.MembershipType attribute)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.registry.config.html#fairdm.registry.config.ModelConfiguration.admin_class">admin_class (ModelConfiguration attribute)</a>
@@ -815,11 +817,11 @@ window.runMermaid = runMermaid;</script>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.undo.html#fairdm.contrib.import_export.undo.ImportUndo.advance">advance() (ImportUndo method)</a>
 </li>
       <li><a href="reference/glossary.html#term-Affiliation"><strong>Affiliation</strong></a>
+
+      <ul>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.models.html#fairdm.contrib.contributors.models.Affiliation">(class in fairdm.contrib.contributors.models)</a>
 </li>
-      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.AffiliationChoice.affiliation">affiliation (AffiliationChoice attribute)</a>
-</li>
-      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.models.html#fairdm.contrib.contributors.models.Affiliation">Affiliation (class in fairdm.contrib.contributors.models)</a>
-</li>
+      </ul></li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.models.html#fairdm.contrib.contributors.models.Contribution.affiliation">affiliation (Contribution attribute)</a>
 
       <ul>
@@ -838,15 +840,21 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.models.html#fairdm.contrib.contributors.models.Affiliation.Meta">Affiliation.Meta (class in fairdm.contrib.contributors.models)</a>
 </li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_base.html#fairdm.contrib.contributors.plugins.tab_base.affiliation_choices">affiliation_choices() (in module fairdm.contrib.contributors.plugins.tab_base)</a>
+</li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_people.html#fairdm.contrib.contributors.plugins.tab_people.AddPersonStep.affiliation_flow">affiliation_flow() (AddPersonStep method)</a>
+</li>
       <li><a href="developers/reference/api/fairdm/fairdm.api.serializers.html#fairdm.api.serializers.CreditAffiliationSerializer.affiliation_identifier">affiliation_identifier (CreditAffiliationSerializer attribute)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.api.serializers.html#fairdm.api.serializers.CreditAffiliationSerializer.affiliation_identifier_scheme">affiliation_identifier_scheme (CreditAffiliationSerializer attribute)</a>
 </li>
-      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.AffiliationChoice.affiliation_name">affiliation_name (AffiliationChoice attribute)</a>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_people.html#fairdm.contrib.contributors.plugins.tab_people.AddPersonStep.AFFILIATION_KEYS">AFFILIATION_KEYS (AddPersonStep attribute)</a>
+</li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_people.html#fairdm.contrib.contributors.plugins.tab_people.AddPersonStep.affiliation_results">affiliation_results() (AddPersonStep method)</a>
+</li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.services.registries.html#fairdm.contrib.contributors.services.registries.Orcid.AFFILIATION_SECTIONS">AFFILIATION_SECTIONS (Orcid attribute)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.admin.html#fairdm.contrib.contributors.admin.AffiliationAdmin">AffiliationAdmin (class in fairdm.contrib.contributors.admin)</a>
-</li>
-      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.AffiliationChoice">AffiliationChoice (class in fairdm.contrib.contributors.plugins.shared)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.factories.contributors.html#fairdm.factories.contributors.AffiliationFactory">AffiliationFactory (class in fairdm.factories.contributors)</a>
 </li>
@@ -876,6 +884,10 @@ window.runMermaid = runMermaid;</script>
         <li><a href="developers/reference/api/fairdm/fairdm.api.serializers.html#fairdm.api.serializers.PersonSerializer.affiliations">(PersonSerializer attribute)</a>
 </li>
       </ul></li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.services.registries.html#fairdm.contrib.contributors.services.registries.Orcid.affiliations">affiliations() (Orcid method)</a>
+</li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.services.registries.html#fairdm.contrib.contributors.services.registries.Orcid.affiliations_from">affiliations_from() (Orcid method)</a>
+</li>
       <li><a href="developers/reference/api/fairdm/fairdm.api.serializers.html#fairdm.api.serializers.AffiliationSerializer">AffiliationSerializer (class in fairdm.api.serializers)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.api.serializers.html#fairdm.api.serializers.AffiliationTypeField">AffiliationTypeField (class in fairdm.api.serializers)</a>
@@ -887,6 +899,8 @@ window.runMermaid = runMermaid;</script>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.definitions.html#fairdm.contrib.import_export.definitions.ImportDefinitions.all">all() (ImportDefinitions method)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.core.dataset.models.html#fairdm.core.dataset.models.Dataset.all_objects">all_objects (Dataset attribute)</a>
+</li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.services.registries.html#fairdm.contrib.contributors.services.registries.Orcid.all_words">all_words() (Orcid class method)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.autocomplete.views.html#fairdm.contrib.autocomplete.views.LimitedAutocompleteMixin.allow_anonymous">allow_anonymous (LimitedAutocompleteMixin attribute)</a>
 </li>
@@ -1262,6 +1276,8 @@ window.runMermaid = runMermaid;</script>
         <li><a href="developers/reference/api/fairdm/fairdm.conf.settings.control_room.html#fairdm.conf.settings.control_room.CACHES">(in module fairdm.conf.settings.control_room)</a>
 </li>
       </ul></li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_base.html#fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.can_change">can_change (ContributorsBase property)</a>
+</li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.plugins.html#fairdm.contrib.import_export.plugins.can_import">can_import() (in module fairdm.contrib.import_export.plugins)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.access.html#fairdm.contrib.contributors.access.RecordAccess.can_manage">can_manage() (RecordAccess method)</a>
@@ -1410,10 +1426,6 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.profiles.html#fairdm.contrib.contributors.profiles.checklist">checklist() (in module fairdm.contrib.contributors.profiles)</a>
 </li>
-      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.AffiliationChoice.choice">choice() (AffiliationChoice method)</a>
-</li>
-      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionAdd.choice_for">choice_for() (ContributionAdd method)</a>
-</li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.widgets.html#fairdm.contrib.import_export.widgets.ChoiceCellWidget">ChoiceCellWidget (class in fairdm.contrib.import_export.widgets)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.widgets.html#fairdm.contrib.import_export.widgets.CHOICES_SHOWN">CHOICES_SHOWN (in module fairdm.contrib.import_export.widgets)</a>
@@ -1424,7 +1436,11 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.forms.html#fairdm.contrib.import_export.forms.ImportOptionsForm.chosen">chosen() (ImportOptionsForm method)</a>
 </li>
-      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionAdd.chosen_record">chosen_record() (ContributionAdd method)</a>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_credits.html#fairdm.contrib.contributors.plugins.tab_credits.EditCredit.chosen_affiliation">chosen_affiliation() (EditCredit method)</a>
+</li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_credits.html#fairdm.contrib.contributors.plugins.tab_credits.EditCredit.chosen_level">chosen_level() (EditCredit method)</a>
+</li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_base.html#fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.chosen_roles">chosen_roles() (ContributorsBase method)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.runner.html#fairdm.contrib.import_export.runner.ImportRun.CHUNK">CHUNK (ImportRun attribute)</a>
 
@@ -1456,11 +1472,9 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.core.citation.html#fairdm.core.citation.CitedName">CitedName (class in fairdm.core.citation)</a>
 </li>
-      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.NewOrganizationForm.city">city (NewOrganizationForm attribute)</a>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.models.html#fairdm.contrib.contributors.models.Organization.city">city (Organization attribute)</a>
 
       <ul>
-        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.models.html#fairdm.contrib.contributors.models.Organization.city">(Organization attribute)</a>
-</li>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.filters.html#fairdm.contrib.contributors.filters.OrganizationFilter.city">(OrganizationFilter attribute)</a>
 </li>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.filters.html#fairdm.contrib.contributors.filters.PersonFilter.city">(PersonFilter attribute)</a>
@@ -1507,8 +1521,6 @@ window.runMermaid = runMermaid;</script>
       <ul>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.models.html#fairdm.contrib.contributors.models.Affiliation.clean">(Affiliation method)</a>
 </li>
-        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.AffiliationChoice.clean">(AffiliationChoice method)</a>
-</li>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.admin.html#fairdm.contrib.contributors.admin.AffiliationForm.clean">(AffiliationForm method)</a>
 </li>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.widgets.html#fairdm.contrib.import_export.widgets.BooleanCellWidget.clean">(BooleanCellWidget method)</a>
@@ -1536,10 +1548,6 @@ window.runMermaid = runMermaid;</script>
         <li><a href="developers/reference/api/fairdm/fairdm.core.measurement.forms.html#fairdm.core.measurement.forms.MeasurementForm.clean">(MeasurementForm method)</a>
 </li>
         <li><a href="developers/reference/api/fairdm/fairdm.utils.location.resources.html#fairdm.utils.location.resources.MeasureWidget.clean">(MeasureWidget method)</a>
-</li>
-        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.NewOrganizationForm.clean">(NewOrganizationForm method)</a>
-</li>
-        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.NewPersonForm.clean">(NewPersonForm method)</a>
 </li>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.widgets.html#fairdm.contrib.import_export.widgets.NumberCellWidget.clean">(NumberCellWidget method)</a>
 </li>
@@ -1582,16 +1590,10 @@ window.runMermaid = runMermaid;</script>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.forms.account.html#fairdm.contrib.contributors.forms.account.UserTokenForm.clean">(UserTokenForm method)</a>
 </li>
       </ul></li>
-      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.AffiliationChoice.clean_affiliation">clean_affiliation() (AffiliationChoice method)</a>
-</li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.forms.contribution.html#fairdm.contrib.contributors.forms.contribution.PersonCreateForm.clean_affiliations">clean_affiliations() (PersonCreateForm method)</a>
 </li>
-      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.NewOrganizationForm.clean_country">clean_country() (NewOrganizationForm method)</a>
-
-      <ul>
-        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.forms.organization.html#fairdm.contrib.contributors.forms.organization.OrganizationCreateForm.clean_country">(OrganizationCreateForm method)</a>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.forms.organization.html#fairdm.contrib.contributors.forms.organization.OrganizationCreateForm.clean_country">clean_country() (OrganizationCreateForm method)</a>
 </li>
-      </ul></li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.forms.html#fairdm.contrib.import_export.forms.UploadForm.clean_file">clean_file() (UploadForm method)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.forms.contribution.html#fairdm.contrib.contributors.forms.contribution.PersonCreateForm.clean_first_name">clean_first_name() (PersonCreateForm method)</a>
@@ -1646,10 +1648,10 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.models.html#fairdm.contrib.import_export.models.ImportJob.column_map">column_map (ImportJob attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.schema.html#fairdm.contrib.import_export.schema.TableSchema.columns">columns (TableSchema attribute)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="developers/reference/api/fairdm/fairdm.backups.management.commands.backup.html#fairdm.backups.management.commands.backup.Command">Command (class in fairdm.backups.management.commands.backup)</a>
 
       <ul>
@@ -1730,7 +1732,7 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.admin.sites.html#fairdm.contrib.admin.sites.PortalAdminAuthenticationForm.confirm_login_allowed">confirm_login_allowed() (PortalAdminAuthenticationForm method)</a>
 </li>
-      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.NewPersonForm.confirmed">confirmed (NewPersonForm attribute)</a>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_people.html#fairdm.contrib.contributors.plugins.tab_people.AddPersonStep.confirm_name_step">confirm_name_step() (AddPersonStep method)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.undo.html#fairdm.contrib.import_export.undo.ImportUndo.conflicts">conflicts() (ImportUndo method)</a>
 </li>
@@ -1790,14 +1792,6 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.models.html#fairdm.contrib.contributors.models.CONTRIBUTION_UNIQUE_PAIRING_MESSAGE">CONTRIBUTION_UNIQUE_PAIRING_MESSAGE (in module fairdm.contrib.contributors.models)</a>
 </li>
-      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionAdd">ContributionAdd (class in fairdm.contrib.contributors.plugins.shared)</a>
-</li>
-      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionAddOrganization">ContributionAddOrganization (class in fairdm.contrib.contributors.plugins.shared)</a>
-</li>
-      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionAddPerson">ContributionAddPerson (class in fairdm.contrib.contributors.plugins.shared)</a>
-</li>
-      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionEdit">ContributionEdit (class in fairdm.contrib.contributors.plugins.shared)</a>
-</li>
       <li><a href="developers/reference/api/fairdm/fairdm.factories.contributors.html#fairdm.factories.contributors.ContributionFactory">ContributionFactory (class in fairdm.factories.contributors)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.factories.contributors.html#fairdm.factories.contributors.ContributionFactory.Meta">ContributionFactory.Meta (class in fairdm.factories.contributors)</a>
@@ -1806,19 +1800,17 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.choices.html#fairdm.contrib.contributors.choices.ContributionLevel">ContributionLevel (class in fairdm.contrib.contributors.choices)</a>
 </li>
-      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionList">ContributionList (class in fairdm.contrib.contributors.plugins.shared)</a>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab.html#fairdm.contrib.contributors.plugins.tab.ContributionList">ContributionList (class in fairdm.contrib.contributors.plugins.tab)</a>
+</li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab.html#fairdm.contrib.contributors.plugins.tab.ContributionList.Media">ContributionList.Media (class in fairdm.contrib.contributors.plugins.tab)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.api.serializers.html#fairdm.api.serializers.ContributionListSerializer">ContributionListSerializer (class in fairdm.api.serializers)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.managers.html#fairdm.contrib.contributors.managers.ContributionManager">ContributionManager (class in fairdm.contrib.contributors.managers)</a>
 </li>
-      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionMove">ContributionMove (class in fairdm.contrib.contributors.plugins.shared)</a>
-</li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionPage">ContributionPage (class in fairdm.contrib.contributors.plugins.shared)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.managers.html#fairdm.contrib.contributors.managers.ContributionQuerySet">ContributionQuerySet (class in fairdm.contrib.contributors.managers)</a>
-</li>
-      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionRemove">ContributionRemove (class in fairdm.contrib.contributors.plugins.shared)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.api.serializers.html#fairdm.api.serializers.ContributionSerializer">ContributionSerializer (class in fairdm.api.serializers)</a>
 </li>
@@ -1916,6 +1908,8 @@ window.runMermaid = runMermaid;</script>
         <li><a href="developers/reference/api/fairdm/fairdm.core.sample.models.html#fairdm.core.sample.models.Sample.contributors">(Sample attribute)</a>
 </li>
       </ul></li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_base.html#fairdm.contrib.contributors.plugins.tab_base.ContributorsBase">ContributorsBase (class in fairdm.contrib.contributors.plugins.tab_base)</a>
+</li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.apps.html#fairdm.contrib.contributors.apps.ContributorsConfig">ContributorsConfig (class in fairdm.contrib.contributors.apps)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.admin.urls.html#fairdm.contrib.admin.urls.CONTROL_ROOM_PANELS">CONTROL_ROOM_PANELS (in module fairdm.contrib.admin.urls)</a>
@@ -1946,15 +1940,15 @@ window.runMermaid = runMermaid;</script>
       </ul></li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.activity.lines.html#fairdm.contrib.activity.lines.ActivityLines.count_row">count_row() (ActivityLines method)</a>
 </li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.services.registries.html#fairdm.contrib.contributors.services.registries.count_search">count_search() (in module fairdm.contrib.contributors.services.registries)</a>
+</li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.autocomplete.fields.html#fairdm.contrib.autocomplete.fields.RecordFieldMixin.count_text">count_text (RecordFieldMixin attribute)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.activity.lines.html#fairdm.contrib.activity.lines.ActivityLines.counted">counted() (ActivityLines method)</a>
 </li>
-      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.NewOrganizationForm.country">country (NewOrganizationForm attribute)</a>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.models.html#fairdm.contrib.contributors.models.Organization.country">country (Organization attribute)</a>
 
       <ul>
-        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.models.html#fairdm.contrib.contributors.models.Organization.country">(Organization attribute)</a>
-</li>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.forms.organization.html#fairdm.contrib.contributors.forms.organization.OrganizationCreateForm.country">(OrganizationCreateForm attribute)</a>
 </li>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.filters.html#fairdm.contrib.contributors.filters.OrganizationFilter.country">(OrganizationFilter attribute)</a>
@@ -1998,17 +1992,15 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.api.serializers.html#fairdm.api.serializers.CreditAffiliationSerializer">CreditAffiliationSerializer (class in fairdm.api.serializers)</a>
 </li>
-      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionPage.credited_from">credited_from() (ContributionPage method)</a>
-
-      <ul>
-        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.services.crediting.html#fairdm.contrib.contributors.services.crediting.Crediting.credited_from">(Crediting method)</a>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.services.crediting.html#fairdm.contrib.contributors.services.crediting.Crediting.credited_from">credited_from() (Crediting method)</a>
 </li>
-      </ul></li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.models.html#fairdm.contrib.contributors.models.Contributor.credited_object_ids">credited_object_ids() (Contributor method)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.autocomplete.views.html#fairdm.contrib.autocomplete.views.RecordAutocompleteView.credited_to">credited_to() (RecordAutocompleteView method)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.services.crediting.html#fairdm.contrib.contributors.services.crediting.Crediting">Crediting (class in fairdm.contrib.contributors.services.crediting)</a>
+</li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_credits.html#fairdm.contrib.contributors.plugins.tab_credits.CreditOrganization">CreditOrganization (class in fairdm.contrib.contributors.plugins.tab_credits)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.conf.settings.apps.html#fairdm.conf.settings.apps.CRISPY_ALLOWED_TEMPLATE_PACKS">CRISPY_ALLOWED_TEMPLATE_PACKS (in module fairdm.conf.settings.apps)</a>
 </li>
@@ -2035,6 +2027,8 @@ window.runMermaid = runMermaid;</script>
 </li>
       </ul></li>
       <li><a href="developers/reference/api/fairdm/fairdm.conf.settings.security.html#fairdm.conf.settings.security.CSRF_TRUSTED_ORIGINS">CSRF_TRUSTED_ORIGINS (in module fairdm.conf.settings.security)</a>
+</li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab.html#fairdm.contrib.contributors.plugins.tab.ContributionList.Media.css">css (ContributionList.Media attribute)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.core.measurement.admin.html#fairdm.core.measurement.admin.MeasurementContributionInline.ct_field">ct_field (MeasurementContributionInline attribute)</a>
 
@@ -2374,10 +2368,10 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.templatetags.fairdm.html#fairdm.templatetags.fairdm.MyFormatter.default_format">default_format (MyFormatter attribute)</a>
 </li>
-      <li><a href="developers/reference/api/fairdm/fairdm.conf.settings.email.html#fairdm.conf.settings.email.DEFAULT_FROM_EMAIL">DEFAULT_FROM_EMAIL (in module fairdm.conf.settings.email)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="developers/reference/api/fairdm/fairdm.conf.settings.email.html#fairdm.conf.settings.email.DEFAULT_FROM_EMAIL">DEFAULT_FROM_EMAIL (in module fairdm.conf.settings.email)</a>
+</li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.models.html#fairdm.contrib.contributors.models.Contributor.default_identifier">default_identifier (Contributor property)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.models.html#fairdm.contrib.contributors.models.Organization.DEFAULT_IDENTIFIER">DEFAULT_IDENTIFIER (Organization attribute)</a>
@@ -2472,11 +2466,9 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.conf.checks.html#fairdm.conf.checks.DeployTags">DeployTags (class in fairdm.conf.checks)</a>
 </li>
-      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionPage.describe">describe() (ContributionPage method)</a>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.autocomplete.views.html#fairdm.contrib.autocomplete.views.ContributorAutocompleteView.describe">describe() (ContributorAutocompleteView method)</a>
 
       <ul>
-        <li><a href="developers/reference/api/fairdm/fairdm.contrib.autocomplete.views.html#fairdm.contrib.autocomplete.views.ContributorAutocompleteView.describe">(ContributorAutocompleteView method)</a>
-</li>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.autocomplete.views.html#fairdm.contrib.autocomplete.views.DatasetAutocompleteView.describe">(DatasetAutocompleteView method)</a>
 </li>
         <li><a href="developers/reference/api/fairdm/fairdm.search.html#fairdm.search.DatasetKind.describe">(DatasetKind method)</a>
@@ -2704,6 +2696,8 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.templatetags.fairdm.html#fairdm.templatetags.fairdm.edit_url">edit_url() (in module fairdm.templatetags.fairdm)</a>
 </li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_credits.html#fairdm.contrib.contributors.plugins.tab_credits.EditCredit">EditCredit (class in fairdm.contrib.contributors.plugins.tab_credits)</a>
+</li>
       <li><a href="developers/reference/api/fairdm/fairdm.core.editing.html#fairdm.core.editing.EditDescriptions">EditDescriptions (class in fairdm.core.editing)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.core.editing.html#fairdm.core.editing.EditDetails">EditDetails (class in fairdm.core.editing)</a>
@@ -2914,6 +2908,8 @@ window.runMermaid = runMermaid;</script>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.exports.html#fairdm.contrib.import_export.exports.ExportFormat.extension">(ExportFormat attribute)</a>
 </li>
       </ul></li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.services.registries.html#fairdm.contrib.contributors.services.registries.Ror.EXTERNAL_IDS">EXTERNAL_IDS (Ror attribute)</a>
+</li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.admin.html#fairdm.contrib.contributors.admin.AccountEmailInline.extra">extra (AccountEmailInline attribute)</a>
 
       <ul>
@@ -2960,7 +2956,7 @@ window.runMermaid = runMermaid;</script>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.plugins.html#fairdm.contrib.import_export.plugins.JobPage.extra_crumbs">(JobPage method)</a>
 </li>
       </ul></li>
-      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionList.extra_views">extra_views (ContributionList attribute)</a>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab.html#fairdm.contrib.contributors.plugins.tab.ContributionList.extra_views">extra_views (ContributionList attribute)</a>
 
       <ul>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.overview.html#fairdm.contrib.contributors.plugins.overview.Overview.extra_views">(Overview attribute)</a>, <a href="developers/reference/api/fairdm/fairdm.core.sample.plugins.html#fairdm.core.sample.plugins.Overview.extra_views">[1]</a>
@@ -3664,6 +3660,41 @@ window.runMermaid = runMermaid;</script>
 
       <ul>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#module-fairdm.contrib.contributors.plugins.shared">module</a>
+</li>
+      </ul></li>
+      <li>
+    fairdm.contrib.contributors.plugins.tab
+
+      <ul>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab.html#module-fairdm.contrib.contributors.plugins.tab">module</a>
+</li>
+      </ul></li>
+      <li>
+    fairdm.contrib.contributors.plugins.tab_base
+
+      <ul>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_base.html#module-fairdm.contrib.contributors.plugins.tab_base">module</a>
+</li>
+      </ul></li>
+      <li>
+    fairdm.contrib.contributors.plugins.tab_credits
+
+      <ul>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_credits.html#module-fairdm.contrib.contributors.plugins.tab_credits">module</a>
+</li>
+      </ul></li>
+      <li>
+    fairdm.contrib.contributors.plugins.tab_organizations
+
+      <ul>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_organizations.html#module-fairdm.contrib.contributors.plugins.tab_organizations">module</a>
+</li>
+      </ul></li>
+      <li>
+    fairdm.contrib.contributors.plugins.tab_people
+
+      <ul>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_people.html#module-fairdm.contrib.contributors.plugins.tab_people">module</a>
 </li>
       </ul></li>
       <li>
@@ -4429,6 +4460,8 @@ window.runMermaid = runMermaid;</script>
         <li><a href="developers/reference/api/fairdm/fairdm.core.project.plugins.html#module-fairdm.core.project.plugins">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     fairdm.core.project.receivers
 
@@ -4450,8 +4483,6 @@ window.runMermaid = runMermaid;</script>
         <li><a href="developers/reference/api/fairdm/fairdm.core.project.transforms.html#module-fairdm.core.project.transforms">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     fairdm.core.project.urls
 
@@ -5040,8 +5071,6 @@ window.runMermaid = runMermaid;</script>
       <li><a href="developers/reference/api/fairdm/fairdm.core.citation.html#fairdm.core.citation.CitedName.family">family (CitedName attribute)</a>
 
       <ul>
-        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.NewPersonForm.family">(NewPersonForm attribute)</a>
-</li>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.models.html#fairdm.contrib.contributors.models.Person.family">(Person property)</a>
 </li>
       </ul></li>
@@ -5337,6 +5366,8 @@ window.runMermaid = runMermaid;</script>
         <li><a href="developers/reference/api/fairdm/fairdm.factories.contributors.html#fairdm.factories.contributors.UserFactory.first_name">(UserFactory attribute)</a>
 </li>
       </ul></li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_base.html#fairdm.contrib.contributors.plugins.tab_base.first_name_of">first_name_of() (in module fairdm.contrib.contributors.plugins.tab_base)</a>
+</li>
       <li><a href="developers/reference/api/fairdm/fairdm.conf.settings.apps.html#fairdm.conf.settings.apps.FIXTURE_DIRS">FIXTURE_DIRS (in module fairdm.conf.settings.apps)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.admin.sites.html#fairdm.contrib.admin.sites.FixtureUploadForm.fixture_file">fixture_file (FixtureUploadForm attribute)</a>, <a href="developers/reference/api/fairdm/fairdm.contrib.admin.views.html#fairdm.contrib.admin.views.FixtureUploadForm.fixture_file">[1]</a>
@@ -5366,6 +5397,8 @@ window.runMermaid = runMermaid;</script>
       <li><a href="developers/reference/api/fairdm/fairdm.registry.config.html#fairdm.registry.config.flatten_fields">flatten_fields() (in module fairdm.registry.config)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.conf.settings.addons.html#fairdm.conf.settings.addons.FLEX_MENUS">FLEX_MENUS (in module fairdm.conf.settings.addons)</a>
+</li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_base.html#fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.foot">foot() (ContributorsBase static method)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.autocomplete.filters.html#fairdm.contrib.autocomplete.filters.RecordMultipleFilter.for_api">for_api() (RecordMultipleFilter method)</a>
 </li>
@@ -5413,13 +5446,9 @@ window.runMermaid = runMermaid;</script>
         <li><a href="developers/reference/api/fairdm/fairdm.forms.base.html#fairdm.forms.base.ModelForm.Meta.form_attrs">(ModelForm.Meta attribute)</a>
 </li>
       </ul></li>
-      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionAdd.form_class">form_class (ContributionAdd attribute)</a>
+      <li><a href="developers/reference/api/fairdm/fairdm.core.dataset.views.html#fairdm.core.dataset.views.DatasetCreateView.form_class">form_class (DatasetCreateView attribute)</a>
 
       <ul>
-        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionAddOrganization.form_class">(ContributionAddOrganization attribute)</a>
-</li>
-        <li><a href="developers/reference/api/fairdm/fairdm.core.dataset.views.html#fairdm.core.dataset.views.DatasetCreateView.form_class">(DatasetCreateView attribute)</a>
-</li>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.views.html#fairdm.contrib.import_export.views.DatasetPublishConfirm.form_class">(DatasetPublishConfirm attribute)</a>
 </li>
         <li><a href="developers/reference/api/fairdm/fairdm.core.editing.html#fairdm.core.editing.EditDescriptions.form_class">(EditDescriptions attribute)</a>
@@ -5609,10 +5638,20 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.conf.settings.database.html#fairdm.conf.settings.database.GEOS_LIBRARY_PATH">GEOS_LIBRARY_PATH (in module fairdm.conf.settings.database)</a>
 </li>
-      <li><a href="developers/reference/api/fairdm/fairdm.core.plugins.html#fairdm.core.plugins.CitationFile.get">get() (CitationFile method)</a>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_organizations.html#fairdm.contrib.contributors.plugins.tab_organizations.AddOrganization.get">get() (AddOrganization method)</a>
 
       <ul>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_people.html#fairdm.contrib.contributors.plugins.tab_people.AddPerson.get">(AddPerson method)</a>
+</li>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_people.html#fairdm.contrib.contributors.plugins.tab_people.AddPersonStep.get">(AddPersonStep method)</a>
+</li>
+        <li><a href="developers/reference/api/fairdm/fairdm.core.plugins.html#fairdm.core.plugins.CitationFile.get">(CitationFile method)</a>
+</li>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.views.claiming.html#fairdm.contrib.contributors.views.claiming.ClaimProfileView.get">(ClaimProfileView method)</a>
+</li>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_credits.html#fairdm.contrib.contributors.plugins.tab_credits.CreditOrganization.get">(CreditOrganization method)</a>
+</li>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_credits.html#fairdm.contrib.contributors.plugins.tab_credits.EditCredit.get">(EditCredit method)</a>
 </li>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.admin.views.html#fairdm.contrib.admin.views.FixtureUploadView.get">(FixtureUploadView method)</a>
 </li>
@@ -5631,6 +5670,8 @@ window.runMermaid = runMermaid;</script>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.mixins.html#fairdm.contrib.import_export.mixins.RecordExportMixin.get">(RecordExportMixin method)</a>
 </li>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.collections.plugins.html#fairdm.contrib.collections.plugins.RecordsTab.get">(RecordsTab method)</a>
+</li>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_credits.html#fairdm.contrib.contributors.plugins.tab_credits.Reorder.get">(Reorder method)</a>
 </li>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.autocomplete.views.html#fairdm.contrib.autocomplete.views.RorAutocompleteView.get">(RorAutocompleteView method)</a>
 </li>
@@ -5798,15 +5839,9 @@ window.runMermaid = runMermaid;</script>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.activity.plugins.html#fairdm.contrib.activity.plugins.ActivityList.get_context_data">get_context_data() (ActivityList method)</a>
 
       <ul>
-        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionAdd.get_context_data">(ContributionAdd method)</a>
-</li>
-        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionEdit.get_context_data">(ContributionEdit method)</a>
-</li>
-        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionList.get_context_data">(ContributionList method)</a>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab.html#fairdm.contrib.contributors.plugins.tab.ContributionList.get_context_data">(ContributionList method)</a>
 </li>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionPage.get_context_data">(ContributionPage method)</a>
-</li>
-        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionRemove.get_context_data">(ContributionRemove method)</a>
 </li>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.plugins.html#fairdm.contrib.import_export.plugins.DatasetImports.get_context_data">(DatasetImports method)</a>
 </li>
@@ -6089,14 +6124,14 @@ window.runMermaid = runMermaid;</script>
         <li><a href="developers/reference/api/fairdm/fairdm.core.editing.html#fairdm.core.editing.EditKeyDates.get_inlines">(EditKeyDates method)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.resources.html#fairdm.contrib.contributors.resources.PersonResource.get_instance">get_instance() (PersonResource method)</a>
 
       <ul>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.resources.html#fairdm.contrib.import_export.resources.RecordResource.get_instance">(RecordResource method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.autocomplete.views.html#fairdm.contrib.autocomplete.views.RorAutocompleteView.get_iterable">get_iterable() (RorAutocompleteView method)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.views.generic.html#fairdm.views.generic.FairDMHomeView.get_landing_context">get_landing_context() (FairDMHomeView method)</a>
@@ -6212,8 +6247,6 @@ window.runMermaid = runMermaid;</script>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.activity.plugins.html#fairdm.contrib.activity.plugins.ActivityList.get_page_lead">get_page_lead() (ActivityList method)</a>
 
       <ul>
-        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionList.get_page_lead">(ContributionList method)</a>
-</li>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.plugins.html#fairdm.contrib.import_export.plugins.DatasetImports.get_page_lead">(DatasetImports method)</a>
 </li>
         <li><a href="developers/reference/api/fairdm/fairdm.views.generic.html#fairdm.views.generic.FairDMHomeView.get_page_lead">(FairDMHomeView method)</a>
@@ -6594,8 +6627,6 @@ window.runMermaid = runMermaid;</script>
       <li><a href="developers/reference/api/fairdm/fairdm.core.citation.html#fairdm.core.citation.CitedName.given">given (CitedName attribute)</a>
 
       <ul>
-        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.NewPersonForm.given">(NewPersonForm attribute)</a>
-</li>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.models.html#fairdm.contrib.contributors.models.Person.given">(Person property)</a>
 </li>
       </ul></li>
@@ -6755,6 +6786,8 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.admin.html#fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.has_view_permission">has_view_permission() (ClaimingAuditLogAdmin method)</a>
 </li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_base.html#fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.head_for">head_for() (ContributorsBase static method)</a>
+</li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.models.html#fairdm.contrib.import_export.models.ImportJob.headers">headers (ImportJob attribute)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.api.schema.html#fairdm.api.schema.TypeDescription.heading">heading (TypeDescription property)</a>
@@ -6771,7 +6804,7 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.choices.html#fairdm.contrib.contributors.choices.OrganizationType.HEALTHCARE">HEALTHCARE (OrganizationType attribute)</a>
 </li>
-      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.AffiliationChoice.held_by">held_by() (AffiliationChoice static method)</a>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_base.html#fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.held_by">held_by() (ContributorsBase static method)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.backups.management.commands.backup.html#fairdm.backups.management.commands.backup.Command.help">help (Command attribute)</a>, <a href="developers/reference/api/fairdm/fairdm.management.commands.cleanup_permissions.html#fairdm.management.commands.cleanup_permissions.Command.help">[1]</a>, <a href="developers/reference/api/fairdm/fairdm.management.commands.create_dev_accounts.html#fairdm.management.commands.create_dev_accounts.Command.help">[2]</a>, <a href="developers/reference/api/fairdm/fairdm.management.commands.generate_fake_data.html#fairdm.management.commands.generate_fake_data.Command.help">[3]</a>, <a href="developers/reference/api/fairdm/fairdm.management.commands.seed_licenses.html#fairdm.management.commands.seed_licenses.Command.help">[4]</a>, <a href="developers/reference/api/fairdm/fairdm.management.commands.show_config.html#fairdm.management.commands.show_config.Command.help">[5]</a>, <a href="developers/reference/api/fairdm/fairdm.management.commands.upgrade_vocabularies.html#fairdm.management.commands.upgrade_vocabularies.Command.help">[6]</a>
 </li>
@@ -6837,8 +6870,6 @@ window.runMermaid = runMermaid;</script>
         <li><a href="developers/reference/api/fairdm/fairdm.api.serializers.html#fairdm.api.serializers.RecordSerializer.html_url">(RecordSerializer attribute)</a>
 </li>
       </ul></li>
-      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionMove.http_method_names">http_method_names (ContributionMove attribute)</a>
-</li>
   </ul></td>
 </tr></table>
 
@@ -7073,6 +7104,8 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.undo.html#fairdm.contrib.import_export.undo.ImportUndo">ImportUndo (class in fairdm.contrib.import_export.undo)</a>
 </li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_base.html#fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.in_default_order">in_default_order() (ContributorsBase method)</a>
+</li>
       <li><a href="developers/reference/api/fairdm/fairdm.core.abstract.html#fairdm.core.abstract.GenericModelManager.in_order">in_order() (GenericModelManager method)</a>
 
       <ul>
@@ -7116,6 +7149,8 @@ window.runMermaid = runMermaid;</script>
 </li>
       </ul></li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.resources.html#fairdm.contrib.import_export.resources.RecordResource.init_instance">init_instance() (RecordResource method)</a>
+</li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_base.html#fairdm.contrib.contributors.plugins.tab_base.initials_of">initials_of() (in module fairdm.contrib.contributors.plugins.tab_base)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.models.html#fairdm.contrib.contributors.models.ClaimingAuditLog.initiated_by">initiated_by (ClaimingAuditLog attribute)</a>
 </li>
@@ -7229,12 +7264,6 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.collections.plugins.html#fairdm.contrib.collections.plugins.RecordsTab.is_own_page">is_own_page() (RecordsTab method)</a>
 </li>
-      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionAdd.is_person">is_person (ContributionAdd attribute)</a>
-
-      <ul>
-        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionAddOrganization.is_person">(ContributionAddOrganization attribute)</a>
-</li>
-      </ul></li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.models.html#fairdm.contrib.contributors.models.Contribution.is_person">is_person() (Contribution method)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.models.html#fairdm.contrib.contributors.models.Affiliation.is_primary">is_primary (Affiliation attribute)</a>
@@ -7291,15 +7320,17 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.plugins.html#fairdm.contrib.import_export.plugins.JobPage">JobPage (class in fairdm.contrib.import_export.plugins)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.plugins.html#fairdm.contrib.import_export.plugins.JobProblems">JobProblems (class in fairdm.contrib.import_export.plugins)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.plugins.html#fairdm.contrib.import_export.plugins.JobStatus">JobStatus (class in fairdm.contrib.import_export.plugins)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.activity.receivers.html#fairdm.contrib.activity.receivers.JOINED">JOINED (in module fairdm.contrib.activity.receivers)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.activity.lines.html#fairdm.contrib.activity.lines.ActivityLines.joinings">joinings() (ActivityLines method)</a>
+</li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab.html#fairdm.contrib.contributors.plugins.tab.ContributionList.Media.js">js (ContributionList.Media attribute)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.services.registries.html#fairdm.contrib.contributors.services.registries.JSON">JSON (in module fairdm.contrib.contributors.services.registries)</a>
 </li>
@@ -7528,6 +7559,8 @@ window.runMermaid = runMermaid;</script>
       <li><a href="developers/reference/api/fairdm/fairdm.conf.html#fairdm.conf.Provenance.layers">layers() (Provenance method)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.core.project.plugins.html#fairdm.core.project.plugins.Overview.lead_roles">lead_roles (Overview attribute)</a>
+</li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_base.html#fairdm.contrib.contributors.plugins.tab_base.LEADER">LEADER (in module fairdm.contrib.contributors.plugins.tab_base)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.resources.html#fairdm.contrib.import_export.resources.RecordResource.leave_out_other_dataset">leave_out_other_dataset() (RecordResource method)</a>
 </li>
@@ -7771,6 +7804,8 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.services.crediting.html#fairdm.contrib.contributors.services.crediting.Crediting.locked">locked() (Crediting method)</a>
 </li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_base.html#fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.locked_roles">locked_roles() (ContributorsBase method)</a>
+</li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.utils.audit.html#fairdm.contrib.contributors.utils.audit.log_claiming_event">log_claiming_event() (in module fairdm.contrib.contributors.utils.audit)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.conf.addons.html#fairdm.conf.addons.logger">logger (in module fairdm.conf.addons)</a>
@@ -7871,16 +7906,12 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.choices.html#fairdm.contrib.contributors.choices.ContributionLevel.MANAGE">MANAGE (ContributionLevel attribute)</a>
 </li>
-      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionAdd.manager_only">manager_only (ContributionAdd attribute)</a>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab.html#fairdm.contrib.contributors.plugins.tab.ContributionList.manager_only">manager_only (ContributionList attribute)</a>
 
       <ul>
-        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionEdit.manager_only">(ContributionEdit attribute)</a>
-</li>
-        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionMove.manager_only">(ContributionMove attribute)</a>
-</li>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionPage.manager_only">(ContributionPage attribute)</a>
 </li>
-        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionRemove.manager_only">(ContributionRemove attribute)</a>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_base.html#fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.manager_only">(ContributorsBase attribute)</a>
 </li>
       </ul></li>
       <li><a href="developers/reference/api/fairdm/fairdm.api.serializers.html#fairdm.api.serializers.CreatorCreditMixin.manager_only_fields">manager_only_fields (CreatorCreditMixin attribute)</a>
@@ -8066,7 +8097,11 @@ window.runMermaid = runMermaid;</script>
       <li><a href="developers/reference/api/fairdm/fairdm.conf.settings.static_media.html#fairdm.conf.settings.static_media.MEDIA_URL">MEDIA_URL (in module fairdm.conf.settings.static_media)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.models.html#fairdm.contrib.contributors.models.Affiliation.MembershipType.MEMBER">MEMBER (Affiliation.MembershipType attribute)</a>
+
+      <ul>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_base.html#fairdm.contrib.contributors.plugins.tab_base.MEMBER">(in module fairdm.contrib.contributors.plugins.tab_base)</a>
 </li>
+      </ul></li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.models.html#fairdm.contrib.contributors.models.Person.member_since">member_since (Person property)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.overview.html#fairdm.contrib.contributors.plugins.overview.Overview.member_slots">member_slots (Overview attribute)</a>
@@ -8579,6 +8614,16 @@ window.runMermaid = runMermaid;</script>
 </li>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#module-fairdm.contrib.contributors.plugins.shared">fairdm.contrib.contributors.plugins.shared</a>
 </li>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab.html#module-fairdm.contrib.contributors.plugins.tab">fairdm.contrib.contributors.plugins.tab</a>
+</li>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_base.html#module-fairdm.contrib.contributors.plugins.tab_base">fairdm.contrib.contributors.plugins.tab_base</a>
+</li>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_credits.html#module-fairdm.contrib.contributors.plugins.tab_credits">fairdm.contrib.contributors.plugins.tab_credits</a>
+</li>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_organizations.html#module-fairdm.contrib.contributors.plugins.tab_organizations">fairdm.contrib.contributors.plugins.tab_organizations</a>
+</li>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_people.html#module-fairdm.contrib.contributors.plugins.tab_people">fairdm.contrib.contributors.plugins.tab_people</a>
+</li>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.update.html#module-fairdm.contrib.contributors.plugins.update">fairdm.contrib.contributors.plugins.update</a>
 </li>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.profiles.html#module-fairdm.contrib.contributors.profiles">fairdm.contrib.contributors.profiles</a>
@@ -8971,6 +9016,12 @@ window.runMermaid = runMermaid;</script>
       <ul>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.activity.plugins.html#fairdm.contrib.activity.plugins.ActivityList.name">(ActivityList attribute)</a>
 </li>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_organizations.html#fairdm.contrib.contributors.plugins.tab_organizations.AddOrganization.name">(AddOrganization attribute)</a>
+</li>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_people.html#fairdm.contrib.contributors.plugins.tab_people.AddPerson.name">(AddPerson attribute)</a>
+</li>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_people.html#fairdm.contrib.contributors.plugins.tab_people.AddPersonStep.name">(AddPersonStep attribute)</a>
+</li>
         <li><a href="developers/reference/api/fairdm/fairdm.registry.config.html#fairdm.registry.config.Authority.name">(Authority attribute)</a>
 </li>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.autocomplete.apps.html#fairdm.contrib.autocomplete.apps.AutocompleteConfig.name">(AutocompleteConfig attribute)</a>
@@ -8997,6 +9048,8 @@ window.runMermaid = runMermaid;</script>
 </li>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.apps.html#fairdm.contrib.contributors.apps.ContributorsConfig.name">(ContributorsConfig attribute)</a>
 </li>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_credits.html#fairdm.contrib.contributors.plugins.tab_credits.CreditOrganization.name">(CreditOrganization attribute)</a>
+</li>
         <li><a href="developers/reference/api/fairdm/fairdm.factories.core.html#fairdm.factories.core.DatasetFactory.name">(DatasetFactory attribute)</a>
 </li>
         <li><a href="developers/reference/api/fairdm/fairdm.core.dataset.forms.html#fairdm.core.dataset.forms.DatasetForm.name">(DatasetForm attribute)</a>
@@ -9008,6 +9061,8 @@ window.runMermaid = runMermaid;</script>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.views.html#fairdm.contrib.import_export.views.DatasetPublishConfirm.name">(DatasetPublishConfirm attribute)</a>
 </li>
         <li><a href="developers/reference/api/fairdm/fairdm.core.editing.html#fairdm.core.editing.DeleteRecord.name">(DeleteRecord attribute)</a>
+</li>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_credits.html#fairdm.contrib.contributors.plugins.tab_credits.EditCredit.name">(EditCredit attribute)</a>
 </li>
         <li><a href="developers/reference/api/fairdm/fairdm.core.editing.html#fairdm.core.editing.EditDescriptions.name">(EditDescriptions attribute)</a>
 </li>
@@ -9067,8 +9122,6 @@ window.runMermaid = runMermaid;</script>
 </li>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.collections.tables.html#fairdm.contrib.collections.tables.MeasurementTable.name">(MeasurementTable attribute)</a>
 </li>
-        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.NewOrganizationForm.name">(NewOrganizationForm attribute)</a>
-</li>
         <li><a href="developers/reference/api/fairdm/fairdm.search.html#fairdm.search.OrganizationKind.name">(OrganizationKind attribute)</a>
 </li>
         <li><a href="developers/reference/api/fairdm/fairdm.api.serializers.html#fairdm.api.serializers.OrganizationReferenceSerializer.name">(OrganizationReferenceSerializer attribute)</a>
@@ -9093,6 +9146,10 @@ window.runMermaid = runMermaid;</script>
 </li>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.collections.plugins.html#fairdm.contrib.collections.plugins.RecordType.name">(RecordType property)</a>
 </li>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_credits.html#fairdm.contrib.contributors.plugins.tab_credits.RemoveCredit.name">(RemoveCredit attribute)</a>
+</li>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_credits.html#fairdm.contrib.contributors.plugins.tab_credits.Reorder.name">(Reorder attribute)</a>
+</li>
         <li><a href="developers/reference/api/fairdm/fairdm.factories.core.html#fairdm.factories.core.SampleFactory.name">(SampleFactory attribute)</a>
 </li>
         <li><a href="developers/reference/api/fairdm/fairdm.search.html#fairdm.search.SampleKind.name">(SampleKind attribute)</a>
@@ -9111,11 +9168,11 @@ window.runMermaid = runMermaid;</script>
 </li>
         <li><a href="developers/reference/api/fairdm/fairdm.api.schema.html#fairdm.api.schema.TypeDescription.name">(TypeDescription property)</a>
 </li>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_credits.html#fairdm.contrib.contributors.plugins.tab_credits.UndoRemove.name">(UndoRemove attribute)</a>
+</li>
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.NewPersonForm.name">name() (NewPersonForm method)</a>
-</li>
       <li><a href="developers/reference/api/fairdm/fairdm.api.serializers.html#fairdm.api.serializers.NameIdentifierSerializer.name_identifier">name_identifier (NameIdentifierSerializer attribute)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.api.serializers.html#fairdm.api.serializers.NameIdentifierSerializer.name_identifier_scheme">name_identifier_scheme (NameIdentifierSerializer attribute)</a>
@@ -9173,10 +9230,6 @@ window.runMermaid = runMermaid;</script>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.admin.html#fairdm.contrib.contributors.admin.OrganizationActionForm.new_owner">new_owner (OrganizationActionForm attribute)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.adapters.html#fairdm.contrib.contributors.adapters.AccountAdapter.new_user">new_user() (AccountAdapter method)</a>
-</li>
-      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.NewOrganizationForm">NewOrganizationForm (class in fairdm.contrib.contributors.plugins.shared)</a>
-</li>
-      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.NewPersonForm">NewPersonForm (class in fairdm.contrib.contributors.plugins.shared)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.core.managers.html#fairdm.core.managers.no_private_project">no_private_project() (in module fairdm.core.managers)</a>
 </li>
@@ -9284,8 +9337,12 @@ window.runMermaid = runMermaid;</script>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.autocomplete.views.html#fairdm.contrib.autocomplete.views.TagAutocompleteView.offered">(TagAutocompleteView method)</a>
 </li>
       </ul></li>
-      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.services.crediting.html#fairdm.contrib.contributors.services.crediting.Crediting.offered_roles">offered_roles() (Crediting method)</a>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_base.html#fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.offered_roles">offered_roles() (ContributorsBase method)</a>
+
+      <ul>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.services.crediting.html#fairdm.contrib.contributors.services.crediting.Crediting.offered_roles">(Crediting method)</a>
 </li>
+      </ul></li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.access.html#fairdm.contrib.contributors.access.RecordAccess.on_chain">on_chain() (RecordAccess method)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.templatetags.fairdm.html#fairdm.templatetags.fairdm.on_menu_page">on_menu_page() (in module fairdm.templatetags.fairdm)</a>
@@ -9324,7 +9381,11 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.views.orcid.html#fairdm.contrib.contributors.views.orcid.orcid_login">orcid_login (in module fairdm.contrib.contributors.views.orcid)</a>
 </li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_people.html#fairdm.contrib.contributors.plugins.tab_people.AddPersonStep.orcid_matches_step">orcid_matches_step() (AddPersonStep method)</a>
+</li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.models.html#fairdm.contrib.contributors.models.ORCID_PATTERN">ORCID_PATTERN (in module fairdm.contrib.contributors.models)</a>
+</li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_people.html#fairdm.contrib.contributors.plugins.tab_people.AddPersonStep.orcid_person">orcid_person() (AddPersonStep method)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.forms.widgets.html#fairdm.contrib.contributors.forms.widgets.OrcidInputWidget">OrcidInputWidget (class in fairdm.contrib.contributors.forms.widgets)</a>
 </li>
@@ -9410,8 +9471,6 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.api.filters.html#fairdm.api.filters.PersonFilterSet.organization">organization (PersonFilterSet attribute)</a>
 </li>
-      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.AffiliationChoice.organization">organization() (AffiliationChoice method)</a>
-</li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.models.html#fairdm.contrib.contributors.models.Organization.Meta">Organization.Meta (class in fairdm.contrib.contributors.models)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.views.generic.html#fairdm.views.generic.FairDMHomeView.organization_limit">organization_limit (FairDMHomeView attribute)</a>
@@ -9471,7 +9530,11 @@ window.runMermaid = runMermaid;</script>
       <li><a href="developers/reference/api/fairdm/fairdm.api.serializers.html#fairdm.api.serializers.OrganizationReferenceSerializer">OrganizationReferenceSerializer (class in fairdm.api.serializers)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.managers.html#fairdm.contrib.contributors.managers.ContributionQuerySet.organizations">organizations() (ContributionQuerySet method)</a>
+
+      <ul>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_base.html#fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.organizations">(ContributorsBase method)</a>
 </li>
+      </ul></li>
       <li><a href="developers/reference/api/fairdm/fairdm.api.serializers.html#fairdm.api.serializers.OrganizationSerializer">OrganizationSerializer (class in fairdm.api.serializers)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.api.serializers.html#fairdm.api.serializers.OrganizationSerializer.Meta">OrganizationSerializer.Meta (class in fairdm.api.serializers)</a>
@@ -9573,15 +9636,7 @@ window.runMermaid = runMermaid;</script>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.activity.plugins.html#fairdm.contrib.activity.plugins.ActivityList.page_title">page_title (ActivityList attribute)</a>
 
       <ul>
-        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionAddOrganization.page_title">(ContributionAddOrganization attribute)</a>
-</li>
-        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionAddPerson.page_title">(ContributionAddPerson attribute)</a>
-</li>
-        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionEdit.page_title">(ContributionEdit attribute)</a>
-</li>
-        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionList.page_title">(ContributionList attribute)</a>
-</li>
-        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionRemove.page_title">(ContributionRemove attribute)</a>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab.html#fairdm.contrib.contributors.plugins.tab.ContributionList.page_title">(ContributionList attribute)</a>
 </li>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.person.html#fairdm.contrib.contributors.plugins.person.ContributorDatasets.page_title">(ContributorDatasets attribute)</a>
 </li>
@@ -9733,7 +9788,11 @@ window.runMermaid = runMermaid;</script>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.models.html#fairdm.contrib.contributors.models.Affiliation.MembershipType.PENDING">PENDING (Affiliation.MembershipType attribute)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.managers.html#fairdm.contrib.contributors.managers.ContributionQuerySet.people">people() (ContributionQuerySet method)</a>
+
+      <ul>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_base.html#fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.people">(ContributorsBase method)</a>
 </li>
+      </ul></li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.access.html#fairdm.contrib.contributors.access.RecordAccess.people_above">people_above() (RecordAccess method)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.core.plugins.html#fairdm.core.plugins.RecordOverviewPlugin.people_faces">people_faces (RecordOverviewPlugin attribute)</a>
@@ -9814,6 +9873,10 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.models.html#fairdm.contrib.contributors.models.Person.Meta">Person.Meta (class in fairdm.contrib.contributors.models)</a>
 </li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_credits.html#fairdm.contrib.contributors.plugins.tab_credits.EditCredit.person_fields">person_fields() (EditCredit method)</a>
+</li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_people.html#fairdm.contrib.contributors.plugins.tab_people.AddPersonStep.person_roles_step">person_roles_step() (AddPersonStep method)</a>
+</li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.autocomplete.views.html#fairdm.contrib.autocomplete.views.PersonAutocompleteView">PersonAutocompleteView (class in fairdm.contrib.autocomplete.views)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.forms.contribution.html#fairdm.contrib.contributors.forms.contribution.PersonCreateForm">PersonCreateForm (class in fairdm.contrib.contributors.forms.contribution)</a>
@@ -9858,6 +9921,12 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.api.viewsets.html#fairdm.api.viewsets.PersonViewSet">PersonViewSet (class in fairdm.api.viewsets)</a>
 </li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_people.html#fairdm.contrib.contributors.plugins.tab_people.AddPersonStep.pick_url">pick_url() (AddPersonStep static method)</a>
+</li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_people.html#fairdm.contrib.contributors.plugins.tab_people.AddPersonStep.picked_affiliation">picked_affiliation() (AddPersonStep method)</a>
+</li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_organizations.html#fairdm.contrib.contributors.plugins.tab_organizations.AddOrganization.picked_from_ror">picked_from_ror() (AddOrganization method)</a>
+</li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.autocomplete.fields.html#fairdm.contrib.autocomplete.fields.RecordFieldMixin.placeholder">placeholder (RecordFieldMixin attribute)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.core.choices.html#fairdm.core.choices.ProjectStatus.PLANNING">PLANNING (ProjectStatus attribute)</a>
@@ -9898,14 +9967,14 @@ window.runMermaid = runMermaid;</script>
         <li><a href="developers/reference/api/fairdm/fairdm.core.sample.filters.html#fairdm.core.sample.filters.SampleFilter.polymorphic_ctype">(SampleFilter attribute)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="developers/reference/api/fairdm/fairdm.core.managers.html#fairdm.core.managers.PolymorphicManager">PolymorphicManager (class in fairdm.core.managers)</a>
 
       <ul>
         <li><a href="developers/reference/api/fairdm/fairdm.db.models.html#fairdm.db.models.PolymorphicManager">(class in fairdm.db.models)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="developers/reference/api/fairdm/fairdm.utils.models.html#fairdm.utils.models.PolymorphicMixin">PolymorphicMixin (class in fairdm.utils.models)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.db.models.html#fairdm.db.models.PolymorphicModel">PolymorphicModel (class in fairdm.db.models)</a>
@@ -9938,6 +10007,10 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.views.permalink.html#fairdm.views.permalink.PORTAL_ID_PATTERN">PORTAL_ID_PATTERN (in module fairdm.views.permalink)</a>
 </li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_people.html#fairdm.contrib.contributors.plugins.tab_people.portal_organization">portal_organization() (in module fairdm.contrib.contributors.plugins.tab_people)</a>
+</li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_people.html#fairdm.contrib.contributors.plugins.tab_people.PORTAL_RESULTS">PORTAL_RESULTS (in module fairdm.contrib.contributors.plugins.tab_people)</a>
+</li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.models.html#fairdm.contrib.contributors.models.Person.portal_roles">portal_roles (Person property)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.admin.sites.html#fairdm.contrib.admin.sites.PortalAdminAuthenticationForm">PortalAdminAuthenticationForm (class in fairdm.contrib.admin.sites)</a>
@@ -9952,16 +10025,16 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.db.fields.html#fairdm.db.fields.PositiveIntegerQuantityField">PositiveIntegerQuantityField (class in fairdm.db.fields)</a>
 </li>
-      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.views.claiming.html#fairdm.contrib.contributors.views.claiming.ClaimProfileConfirmView.post">post() (ClaimProfileConfirmView method)</a>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_organizations.html#fairdm.contrib.contributors.plugins.tab_organizations.AddOrganization.post">post() (AddOrganization method)</a>
 
       <ul>
-        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionAdd.post">(ContributionAdd method)</a>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_people.html#fairdm.contrib.contributors.plugins.tab_people.AddPersonStep.post">(AddPersonStep method)</a>
 </li>
-        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionEdit.post">(ContributionEdit method)</a>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.views.claiming.html#fairdm.contrib.contributors.views.claiming.ClaimProfileConfirmView.post">(ClaimProfileConfirmView method)</a>
 </li>
-        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionMove.post">(ContributionMove method)</a>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_credits.html#fairdm.contrib.contributors.plugins.tab_credits.CreditOrganization.post">(CreditOrganization method)</a>
 </li>
-        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionRemove.post">(ContributionRemove method)</a>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_credits.html#fairdm.contrib.contributors.plugins.tab_credits.EditCredit.post">(EditCredit method)</a>
 </li>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.admin.views.html#fairdm.contrib.admin.views.FixtureUploadView.post">(FixtureUploadView method)</a>
 </li>
@@ -9970,6 +10043,12 @@ window.runMermaid = runMermaid;</script>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.plugins.html#fairdm.contrib.import_export.plugins.JobColumns.post">(JobColumns method)</a>
 </li>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.plugins.html#fairdm.contrib.import_export.plugins.JobDetail.post">(JobDetail method)</a>
+</li>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_credits.html#fairdm.contrib.contributors.plugins.tab_credits.RemoveCredit.post">(RemoveCredit method)</a>
+</li>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_credits.html#fairdm.contrib.contributors.plugins.tab_credits.Reorder.post">(Reorder method)</a>
+</li>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_credits.html#fairdm.contrib.contributors.plugins.tab_credits.UndoRemove.post">(UndoRemove method)</a>
 </li>
       </ul></li>
       <li><a href="developers/reference/api/fairdm/fairdm.conf.checks.html#fairdm.conf.checks.POSTGIS_ENGINE">POSTGIS_ENGINE (in module fairdm.conf.checks)</a>
@@ -10035,8 +10114,6 @@ window.runMermaid = runMermaid;</script>
       <li><a href="developers/reference/api/fairdm/fairdm.backups.keys.html#fairdm.backups.keys.BackupKey.PRIVATE_ARMOUR">PRIVATE_ARMOUR (BackupKey attribute)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.plugins.mixins.html#fairdm.contrib.plugins.mixins.PrivateRecordNotFoundMixin">PrivateRecordNotFoundMixin (class in fairdm.contrib.plugins.mixins)</a>
-</li>
-      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.AffiliationChoice.problem">problem (AffiliationChoice property)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.models.html#fairdm.contrib.import_export.models.ImportRow.Outcome.PROBLEM">PROBLEM (ImportRow.Outcome attribute)</a>
 </li>
@@ -10282,6 +10359,8 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.forms.fields.html#fairdm.forms.fields.QuantityFormFieldMixin">QuantityFormFieldMixin (class in fairdm.forms.fields)</a>
 </li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.services.registries.html#fairdm.contrib.contributors.services.registries.Orcid.queries_for">queries_for() (Orcid method)</a>
+</li>
       <li><a href="developers/reference/api/fairdm/fairdm.core.sample.plugins.html#fairdm.core.sample.plugins.OverviewRedirect.query_string">query_string (OverviewRedirect attribute)</a>
 
       <ul>
@@ -10442,6 +10521,8 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.views.generic.html#fairdm.views.generic.FairDMHomeView.record_type_limit">record_type_limit (FairDMHomeView attribute)</a>
 </li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_base.html#fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.record_url">record_url() (ContributorsBase method)</a>
+</li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.autocomplete.urls.html#fairdm.contrib.autocomplete.urls.RECORD_VIEWS">RECORD_VIEWS (in module fairdm.contrib.autocomplete.urls)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.access.html#fairdm.contrib.contributors.access.RecordAccess">RecordAccess (class in fairdm.contrib.contributors.access)</a>
@@ -10534,10 +10615,12 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.receivers.html#fairdm.contrib.contributors.receivers.REFRESH_TASK">REFRESH_TASK (in module fairdm.contrib.contributors.receivers)</a>
 </li>
-      <li><a href="developers/reference/api/fairdm/fairdm.contrib.autocomplete.views.html#fairdm.contrib.autocomplete.views.RorAutocompleteView.refusal">refusal() (RorAutocompleteView method)</a>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_base.html#fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.refusal">refusal() (ContributorsBase method)</a>
+
+      <ul>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.autocomplete.views.html#fairdm.contrib.autocomplete.views.RorAutocompleteView.refusal">(RorAutocompleteView method)</a>
 </li>
-      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionAdd.refuse">refuse() (ContributionAdd method)</a>
-</li>
+      </ul></li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.access.html#fairdm.contrib.contributors.access.RecordAccess.refuse_move_without_manager">refuse_move_without_manager() (RecordAccess method)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.receivers.html#fairdm.contrib.contributors.receivers.refuse_shipped_role_deletion">refuse_shipped_role_deletion() (in module fairdm.contrib.contributors.receivers)</a>
@@ -10545,6 +10628,12 @@ window.runMermaid = runMermaid;</script>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.receivers.html#fairdm.contrib.contributors.receivers.refuse_shipped_role_rename">refuse_shipped_role_rename() (in module fairdm.contrib.contributors.receivers)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.core.editing.html#fairdm.core.editing.RecordEditingPage.REFUSED">REFUSED (RecordEditingPage attribute)</a>
+</li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_base.html#fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.region_context">region_context() (ContributorsBase method)</a>
+</li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_base.html#fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.region_response">region_response() (ContributorsBase method)</a>
+</li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_base.html#fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.region_template">region_template (ContributorsBase attribute)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.templatetags.contributor_tags.html#fairdm.contrib.contributors.templatetags.contributor_tags.register">register (in module fairdm.contrib.contributors.templatetags.contributor_tags)</a>
 
@@ -10570,12 +10659,12 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.core.apps.html#fairdm.core.apps.FairDMCoreConfig.register_core_models">register_core_models() (FairDMCoreConfig method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="developers/reference/api/fairdm/fairdm.search.html#fairdm.search.register_kinds">register_kinds() (in module fairdm.search)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.core.apps.html#fairdm.core.apps.FairDMCoreConfig.register_sample_children">register_sample_children() (FairDMCoreConfig method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="developers/reference/api/fairdm/fairdm.api.router.html#fairdm.api.router.FairDMAPIRouter.register_types">register_types() (FairDMAPIRouter method)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.plugins.base.html#fairdm.contrib.plugins.base.Plugin.registered_model">registered_model (Plugin attribute)</a>
@@ -10586,14 +10675,8 @@ window.runMermaid = runMermaid;</script>
         <li><a href="developers/reference/api/fairdm/fairdm.registry.registry.html#fairdm.registry.registry.registry">(in module fairdm.registry.registry)</a>
 </li>
       </ul></li>
-      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionAdd.registry">registry() (ContributionAdd method)</a>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_base.html#fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.registry_refusal">registry_refusal() (ContributorsBase method)</a>
 </li>
-      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionAdd.registry_class">registry_class (ContributionAdd attribute)</a>
-
-      <ul>
-        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionAddOrganization.registry_class">(ContributionAddOrganization attribute)</a>
-</li>
-      </ul></li>
       <li><a href="developers/reference/api/fairdm/fairdm.registry.exceptions.html#fairdm.registry.exceptions.RegistryError">RegistryError</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.services.registries.html#fairdm.contrib.contributors.services.registries.RegistryRateLimited">RegistryRateLimited</a>
@@ -10668,6 +10751,8 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.core.utils.html#fairdm.core.utils.remove_perm">remove_perm() (in module fairdm.core.utils)</a>
 </li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_credits.html#fairdm.contrib.contributors.plugins.tab_credits.RemoveCredit">RemoveCredit (class in fairdm.contrib.contributors.plugins.tab_credits)</a>
+</li>
       <li><a href="developers/reference/api/fairdm/fairdm.api.schema.html#fairdm.api.schema.ApiDescription.render">render() (ApiDescription method)</a>
 
       <ul>
@@ -10699,6 +10784,8 @@ window.runMermaid = runMermaid;</script>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.collections.tables.html#fairdm.contrib.collections.tables.BaseTable.render_dataset">render_dataset() (BaseTable method)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.collections.tables.html#fairdm.contrib.collections.tables.MeasurementTable.render_sample">render_sample() (MeasurementTable method)</a>
+</li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_credits.html#fairdm.contrib.contributors.plugins.tab_credits.Reorder">Reorder (class in fairdm.contrib.contributors.plugins.tab_credits)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.conf.html#fairdm.conf.Provenance.replace">replace() (Provenance method)</a>
 </li>
@@ -10733,6 +10820,8 @@ window.runMermaid = runMermaid;</script>
       <li><a href="developers/reference/api/fairdm/fairdm.conf.html#fairdm.conf.Provenance.reset">reset() (Provenance method)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.core.plugins.html#fairdm.core.plugins.RecordOverviewPlugin.resolvable_identifier_types">resolvable_identifier_types (RecordOverviewPlugin attribute)</a>
+</li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.services.registries.html#fairdm.contrib.contributors.services.registries.Ror.resolve">resolve() (Ror method)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.plugins.access.html#fairdm.contrib.plugins.access.resolve_check">resolve_check() (in module fairdm.contrib.plugins.access)</a>
 </li>
@@ -10774,8 +10863,6 @@ window.runMermaid = runMermaid;</script>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.services.registries.html#fairdm.contrib.contributors.services.registries.Ror.results_from">(Ror method)</a>
 </li>
       </ul></li>
-      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionAdd.results_shown">results_shown (ContributionAdd attribute)</a>
-</li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.services.registries.html#fairdm.contrib.contributors.services.registries.RESULTS_SHOWN">RESULTS_SHOWN (in module fairdm.contrib.contributors.services.registries)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.plugins.utils.html#fairdm.contrib.plugins.utils.reverse">reverse() (in module fairdm.contrib.plugins.utils)</a>
@@ -10790,6 +10877,12 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="reference/glossary.html#term-Role-on-a-record"><strong>Role (on a record)</strong></a>
 </li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_base.html#fairdm.contrib.contributors.plugins.tab_base.role_by_slug">role_by_slug() (in module fairdm.contrib.contributors.plugins.tab_base)</a>
+</li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_base.html#fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.role_context">role_context() (ContributorsBase method)</a>
+</li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_base.html#fairdm.contrib.contributors.plugins.tab_base.ROLE_URI">ROLE_URI (in module fairdm.contrib.contributors.plugins.tab_base)</a>
+</li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.models.html#fairdm.contrib.contributors.models.Contribution.roles">roles (Contribution attribute)</a>
 
       <ul>
@@ -10799,6 +10892,10 @@ window.runMermaid = runMermaid;</script>
       <li><a href="developers/reference/api/fairdm/fairdm.portal_roles.html#fairdm.portal_roles.PortalRoles.ROLES">ROLES (PortalRoles attribute)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.forms.contribution.html#fairdm.contrib.contributors.forms.contribution.UpdateContributionForm.roles">roles (UpdateContributionForm attribute)</a>
+</li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_base.html#fairdm.contrib.contributors.plugins.tab_base.ROLES_DOCS_URL">ROLES_DOCS_URL (in module fairdm.contrib.contributors.plugins.tab_base)</a>
+</li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_organizations.html#fairdm.contrib.contributors.plugins.tab_organizations.AddOrganization.roles_step">roles_step() (AddOrganization method)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.api.serializers.html#fairdm.api.serializers.RoleSerializer">RoleSerializer (class in fairdm.api.serializers)</a>
 </li>
@@ -10810,8 +10907,16 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.core.vocabularies.html#fairdm.core.vocabularies.ROR">ROR (in module fairdm.core.vocabularies)</a>
 </li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.services.registries.html#fairdm.contrib.contributors.services.registries.Orcid.ror_for">ror_for() (Orcid static method)</a>
+</li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.resources.html#fairdm.contrib.contributors.resources.PersonResource.ror_id">ror_id (PersonResource attribute)</a>
 </li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_organizations.html#fairdm.contrib.contributors.plugins.tab_organizations.AddOrganization.ror_matches_step">ror_matches_step() (AddOrganization method)</a>
+
+      <ul>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_people.html#fairdm.contrib.contributors.plugins.tab_people.AddPersonStep.ror_matches_step">(AddPersonStep method)</a>
+</li>
+      </ul></li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.models.html#fairdm.contrib.contributors.models.ROR_PATTERN">ROR_PATTERN (in module fairdm.contrib.contributors.models)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.autocomplete.views.html#fairdm.contrib.autocomplete.views.RorAutocompleteView">RorAutocompleteView (class in fairdm.contrib.autocomplete.views)</a>
@@ -11001,10 +11106,6 @@ window.runMermaid = runMermaid;</script>
 </li>
         <li><a href="developers/reference/api/fairdm/fairdm.core.forms.html#fairdm.core.forms.KeywordForm.save">(KeywordForm method)</a>
 </li>
-        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.NewOrganizationForm.save">(NewOrganizationForm method)</a>
-</li>
-        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.NewPersonForm.save">(NewPersonForm method)</a>
-</li>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.forms.organization.html#fairdm.contrib.contributors.forms.organization.OrganizationCreateForm.save">(OrganizationCreateForm method)</a>
 </li>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.models.html#fairdm.contrib.contributors.models.Person.save">(Person method)</a>
@@ -11122,11 +11223,17 @@ window.runMermaid = runMermaid;</script>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.autocomplete.views.html#fairdm.contrib.autocomplete.views.TagAutocompleteView.search_lookups">(TagAutocompleteView attribute)</a>
 </li>
       </ul></li>
-      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionAdd.search_portal">search_portal() (ContributionAdd method)</a>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_base.html#fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.search_registry">search_registry() (ContributorsBase method)</a>
 </li>
-      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionAdd.search_registry">search_registry() (ContributionAdd method)</a>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_organizations.html#fairdm.contrib.contributors.plugins.tab_organizations.AddOrganization.search_step">search_step() (AddOrganization method)</a>
+</li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_people.html#fairdm.contrib.contributors.plugins.tab_people.AddPersonStep.search_url">search_url() (AddPersonStep method)</a>
+</li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.services.registries.html#fairdm.contrib.contributors.services.registries.SEARCHES_PER_MINUTE">SEARCHES_PER_MINUTE (in module fairdm.contrib.contributors.services.registries)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.core.choices.html#fairdm.core.choices.ProjectStatus.SEARCHING_FOR_COLLABORATORS">SEARCHING_FOR_COLLABORATORS (ProjectStatus attribute)</a>
+</li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.services.registries.html#fairdm.contrib.contributors.services.registries.SearchLimitReached">SearchLimitReached</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.services.registries.html#fairdm.contrib.contributors.services.registries.seconds_to_wait">seconds_to_wait() (in module fairdm.contrib.contributors.services.registries)</a>
 </li>
@@ -11196,8 +11303,6 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.conf.settings.logging.html#fairdm.conf.settings.logging.SENTRY_DSN">SENTRY_DSN (in module fairdm.conf.settings.logging)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="developers/reference/api/fairdm/fairdm.conf.settings.logging.html#fairdm.conf.settings.logging.SENTRY_LOG_LEVEL">SENTRY_LOG_LEVEL (in module fairdm.conf.settings.logging)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.collections.tables.html#fairdm.contrib.collections.tables.SampleTable.Meta.sequence">sequence (SampleTable.Meta attribute)</a>
@@ -11214,6 +11319,8 @@ window.runMermaid = runMermaid;</script>
         <li><a href="developers/reference/api/fairdm/fairdm.api.viewsets.html#fairdm.api.viewsets.ProjectViewSet.serializer_class">(ProjectViewSet attribute)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="developers/reference/api/fairdm/fairdm.registry.config.html#fairdm.registry.config.ModelConfiguration.serializer_fields">serializer_fields (ModelConfiguration attribute)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.registry.factories.html#fairdm.registry.factories.SerializerFactory">SerializerFactory (class in fairdm.registry.factories)</a>
@@ -11256,7 +11363,11 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.reader.html#fairdm.contrib.import_export.reader.FileReader.SHEET_ENTRIES">SHEET_ENTRIES (FileReader attribute)</a>
 </li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_base.html#fairdm.contrib.contributors.plugins.tab_base.SHEET_ID">SHEET_ID (in module fairdm.contrib.contributors.plugins.tab_base)</a>
+</li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.exports.html#fairdm.contrib.import_export.exports.SHEET_NAME_LIMIT">SHEET_NAME_LIMIT (in module fairdm.contrib.import_export.exports)</a>
+</li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_base.html#fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.sheet_response">sheet_response() (ContributorsBase method)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.exports.html#fairdm.contrib.import_export.exports.TableExport.sheet_title">sheet_title() (TableExport method)</a>
 </li>
@@ -11360,6 +11471,8 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.forms.account.html#fairdm.contrib.contributors.forms.account.SocialSignupForm">SocialSignupForm (class in fairdm.contrib.contributors.forms.account)</a>
 </li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.services.registries.html#fairdm.contrib.contributors.services.registries.Ror.sole_id_from">sole_id_from() (Ror method)</a>
+</li>
       <li><a href="developers/reference/api/fairdm/fairdm.conf.settings.addons.html#fairdm.conf.settings.addons.SOLO_CACHE">SOLO_CACHE (in module fairdm.conf.settings.addons)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.conf.settings.addons.html#fairdm.conf.settings.addons.SOLO_CACHE_TIMEOUT">SOLO_CACHE_TIMEOUT (in module fairdm.conf.settings.addons)</a>
@@ -11401,6 +11514,8 @@ window.runMermaid = runMermaid;</script>
       <li><a href="developers/reference/api/fairdm/fairdm.api.settings.html#fairdm.api.settings.SPECTACULAR_SETTINGS">SPECTACULAR_SETTINGS (in module fairdm.api.settings)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.templatetags.contributor_tags.html#fairdm.contrib.contributors.templatetags.contributor_tags.split_contributors">split_contributors() (in module fairdm.contrib.contributors.templatetags.contributor_tags)</a>
+</li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_people.html#fairdm.contrib.contributors.plugins.tab_people.split_name">split_name() (in module fairdm.contrib.contributors.plugins.tab_people)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.core.editing.html#fairdm.core.editing.DeleteRecord.split_protected">split_protected() (DeleteRecord method)</a>
 </li>
@@ -11476,6 +11591,14 @@ window.runMermaid = runMermaid;</script>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.plugins.html#fairdm.contrib.import_export.plugins.JobColumns.step">(JobColumns attribute)</a>
 </li>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.plugins.html#fairdm.contrib.import_export.plugins.JobDetail.step">(JobDetail property)</a>
+</li>
+      </ul></li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_base.html#fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.step_response">step_response() (ContributorsBase method)</a>
+</li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_organizations.html#fairdm.contrib.contributors.plugins.tab_organizations.AddOrganization.step_url">step_url() (AddOrganization method)</a>
+
+      <ul>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_people.html#fairdm.contrib.contributors.plugins.tab_people.AddPersonStep.step_url">(AddPersonStep method)</a>
 </li>
       </ul></li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.plugins.html#fairdm.contrib.import_export.plugins.STEPS">STEPS (in module fairdm.contrib.import_export.plugins)</a>
@@ -11607,15 +11730,7 @@ window.runMermaid = runMermaid;</script>
 </li>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.views.claiming.html#fairdm.contrib.contributors.views.claiming.ClaimProfileView.template_name">(ClaimProfileView attribute)</a>
 </li>
-        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionAddOrganization.template_name">(ContributionAddOrganization attribute)</a>
-</li>
-        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionAddPerson.template_name">(ContributionAddPerson attribute)</a>
-</li>
-        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionEdit.template_name">(ContributionEdit attribute)</a>
-</li>
-        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionList.template_name">(ContributionList attribute)</a>
-</li>
-        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionRemove.template_name">(ContributionRemove attribute)</a>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab.html#fairdm.contrib.contributors.plugins.tab.ContributionList.template_name">(ContributionList attribute)</a>
 </li>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.plugins.html#fairdm.contrib.import_export.plugins.DatasetImports.template_name">(DatasetImports attribute)</a>
 </li>
@@ -11722,6 +11837,8 @@ window.runMermaid = runMermaid;</script>
         <li><a href="developers/reference/api/fairdm/fairdm.api.schema.html#fairdm.api.schema.TypeDescription.title">(TypeDescription property)</a>
 </li>
       </ul></li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_organizations.html#fairdm.contrib.contributors.plugins.tab_organizations.AddOrganization.title">title() (AddOrganization method)</a>
+</li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.plugins.html#fairdm.contrib.import_export.plugins.JobDetail.TITLES">TITLES (JobDetail attribute)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.core.citation.html#fairdm.core.citation.Citation.to_bibtex">to_bibtex() (Citation method)</a>
@@ -11970,6 +12087,10 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.tasks.html#fairdm.contrib.import_export.tasks.UNDO_LIMITS">UNDO_LIMITS (in module fairdm.contrib.import_export.tasks)</a>
 </li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_credits.html#fairdm.contrib.contributors.plugins.tab_credits.UNDO_SALT">UNDO_SALT (in module fairdm.contrib.contributors.plugins.tab_credits)</a>
+</li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_credits.html#fairdm.contrib.contributors.plugins.tab_credits.UNDO_SECONDS">UNDO_SECONDS (in module fairdm.contrib.contributors.plugins.tab_credits)</a>
+</li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.models.html#fairdm.contrib.import_export.models.ImportJob.Status.UNDOING">UNDOING (ImportJob.Status attribute)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.models.html#fairdm.contrib.import_export.models.ImportJob.Status.UNDONE">UNDONE (ImportJob.Status attribute)</a>
@@ -11977,6 +12098,8 @@ window.runMermaid = runMermaid;</script>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.models.html#fairdm.contrib.import_export.models.ImportJob.undone_at">undone_at (ImportJob attribute)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.models.html#fairdm.contrib.import_export.models.ImportJob.undone_by">undone_by (ImportJob attribute)</a>
+</li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_credits.html#fairdm.contrib.contributors.plugins.tab_credits.UndoRemove">UndoRemove (class in fairdm.contrib.contributors.plugins.tab_credits)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.core.dataset.models.html#fairdm.core.dataset.models.DatasetLiteratureRelation.Meta.unique_together">unique_together (DatasetLiteratureRelation.Meta attribute)</a>
 
@@ -11991,6 +12114,8 @@ window.runMermaid = runMermaid;</script>
       <li><a href="developers/reference/api/fairdm/fairdm.templatetags.fairdm.html#fairdm.templatetags.fairdm.unit">unit() (in module fairdm.templatetags.fairdm)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.schema.html#fairdm.contrib.import_export.schema.UNIT_IN_LABEL">UNIT_IN_LABEL (in module fairdm.contrib.import_export.schema)</a>
+</li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_people.html#fairdm.contrib.contributors.plugins.tab_people.AddPerson.unknown_identifier">unknown_identifier() (AddPerson method)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.conf.checks.html#fairdm.conf.checks.UNREADABLE_DATABASE">UNREADABLE_DATABASE (in module fairdm.conf.checks)</a>
 </li>
@@ -12069,21 +12194,21 @@ window.runMermaid = runMermaid;</script>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.activity.plugins.html#fairdm.contrib.activity.plugins.ActivityList.url_path">url_path (ActivityList attribute)</a>
 
       <ul>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_organizations.html#fairdm.contrib.contributors.plugins.tab_organizations.AddOrganization.url_path">(AddOrganization attribute)</a>
+</li>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_people.html#fairdm.contrib.contributors.plugins.tab_people.AddPerson.url_path">(AddPerson attribute)</a>
+</li>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_people.html#fairdm.contrib.contributors.plugins.tab_people.AddPersonStep.url_path">(AddPersonStep attribute)</a>
+</li>
         <li><a href="developers/reference/api/fairdm/fairdm.core.plugins.html#fairdm.core.plugins.CitationFile.url_path">(CitationFile attribute)</a>
 </li>
-        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionAddOrganization.url_path">(ContributionAddOrganization attribute)</a>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab.html#fairdm.contrib.contributors.plugins.tab.ContributionList.url_path">(ContributionList attribute)</a>
 </li>
-        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionAddPerson.url_path">(ContributionAddPerson attribute)</a>
-</li>
-        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionEdit.url_path">(ContributionEdit attribute)</a>
-</li>
-        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionList.url_path">(ContributionList attribute)</a>
-</li>
-        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionMove.url_path">(ContributionMove attribute)</a>
-</li>
-        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionRemove.url_path">(ContributionRemove attribute)</a>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_credits.html#fairdm.contrib.contributors.plugins.tab_credits.CreditOrganization.url_path">(CreditOrganization attribute)</a>
 </li>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.plugins.html#fairdm.contrib.import_export.plugins.DatasetImports.url_path">(DatasetImports attribute)</a>
+</li>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_credits.html#fairdm.contrib.contributors.plugins.tab_credits.EditCredit.url_path">(EditCredit attribute)</a>
 </li>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.plugins.html#fairdm.contrib.import_export.plugins.ImportStart.url_path">(ImportStart attribute)</a>
 </li>
@@ -12107,11 +12232,17 @@ window.runMermaid = runMermaid;</script>
 </li>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.plugins.base.html#fairdm.contrib.plugins.base.Plugin.url_path">(Plugin attribute)</a>
 </li>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_credits.html#fairdm.contrib.contributors.plugins.tab_credits.RemoveCredit.url_path">(RemoveCredit attribute)</a>
+</li>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_credits.html#fairdm.contrib.contributors.plugins.tab_credits.Reorder.url_path">(Reorder attribute)</a>
+</li>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.collections.plugins.html#fairdm.contrib.collections.plugins.SampleMeasurements.url_path">(SampleMeasurements attribute)</a>
 </li>
         <li><a href="developers/reference/api/fairdm/fairdm.core.plugins.html#fairdm.core.plugins.SamplePoints.url_path">(SamplePoints attribute)</a>
 </li>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.collections.plugins.html#fairdm.contrib.collections.plugins.Samples.url_path">(Samples attribute)</a>
+</li>
+        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.tab_credits.html#fairdm.contrib.contributors.plugins.tab_credits.UndoRemove.url_path">(UndoRemove attribute)</a>
 </li>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.update.html#fairdm.contrib.contributors.plugins.update.Update.url_path">(Update attribute)</a>
 </li>
@@ -12454,8 +12585,6 @@ window.runMermaid = runMermaid;</script>
       </ul></li>
       <li><a href="developers/reference/api/fairdm/fairdm.core.editing.html#fairdm.core.editing.RecordEditingPage.verdict">verdict() (RecordEditingPage class method)</a>
 </li>
-      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionAdd.via">via (ContributionAdd property)</a>
-</li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.choices.html#fairdm.contrib.contributors.choices.ContributionLevel.VIEW">VIEW (ContributionLevel attribute)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.autocomplete.fields.html#fairdm.contrib.autocomplete.fields.RecordFieldMixin.view">view() (RecordFieldMixin method)</a>
@@ -12533,8 +12662,6 @@ window.runMermaid = runMermaid;</script>
       <li><a href="developers/reference/api/fairdm/fairdm.registry.config.html#fairdm.registry.config.Authority.website">website (Authority attribute)</a>
 
       <ul>
-        <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.NewOrganizationForm.website">(NewOrganizationForm attribute)</a>
-</li>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.forms.profile.html#fairdm.contrib.contributors.forms.profile.OrganizationProfileForm.website">(OrganizationProfileForm attribute)</a>
 </li>
       </ul></li>
@@ -12625,6 +12752,8 @@ window.runMermaid = runMermaid;</script>
 </li>
       </ul></li>
       <li><a href="developers/reference/api/fairdm/fairdm.core.editing.html#fairdm.core.editing.RecordEditingPage.without_form_tag">without_form_tag() (RecordEditingPage static method)</a>
+</li>
+      <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.services.registries.html#fairdm.contrib.contributors.services.registries.Orcid.words_of">words_of() (Orcid static method)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.exports.html#fairdm.contrib.import_export.exports.TableExport.workbook">workbook() (TableExport method)</a>
 </li>

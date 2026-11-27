@@ -1,6 +1,6 @@
 # Contributors
 
-The Contributors tab lists the people and organizations credited on a record, and it is where the people who manage the record change who is credited and what each person may do. Projects, datasets, samples and measurements all have it, and the screens are the same on all four. Only the roles on offer and the access card differ.
+The Contributors tab lists the people and organizations credited on a record. It is also where the people who manage the record add people, change what each person did and may do, put people in order and remove them. Projects, datasets, samples and measurements all have it, and it works the same way on all four. Only the roles on offer differ.
 
 ## How to reach it
 
@@ -15,52 +15,21 @@ Open the record's page and choose its **Contributors** tab, or choose **See all*
 
 The tab opens for exactly the people who may open the record's own page, and answers everyone else as if the record did not exist. Only people who manage the record are offered the controls for changing it. Everyone else who may open the record sees the two lists and nothing more. See [How access to a record is decided](../../explanation/how-access-to-a-record-is-decided.md).
 
-## The header and the search box
-
-The heading is **Contributors**, with the record's name beneath it. When anyone is credited, a search box headed "Search by name" and a **Search** button sit beside the heading. They narrow both lists to the names that contain what you typed. The page then reads "Showing the people and organizations whose name contains" followed by your text, with a **Show everyone** link that clears the search.
-
 ## People
 
-A section headed **People**, with a count, lists the people credited, in the order the record names them. Each row has:
+A section headed **People**, with a count, lists the people credited in the order the record names them in. Each row shows the person's avatar and name, the organization they are credited from on this record and their roles. A person with no organization shows a dash.
 
-- The row's place in the list.
-- The person's avatar and name, linked to their page.
-- The organization they are credited from on this record, if any.
-- Their roles on this record, as badges.
-
-People who manage the record also see, on each row:
-
-- What the person may do, as a badge: **Can view**, **Can edit** or **Can manage**. A level held from a record above adds "from the" and the record's kind. A person with no level reads "No access". A person with no account yet adds "Takes effect when they have an account."
-- Arrow buttons that move the person earlier or later, left out while a search is narrowing the list or when there is nobody to move past.
-- **Edit** and **Remove**.
-
-People who manage the record also see an **Add person** button, and below the list a note: "This order is the order the" followed by the record's kind, "names its people in, its citation included. Only people who can manage this" and the kind "see what each person may do."
-
-### When no one is credited
-
-The section reads "No people are credited yet." A manager also reads that the order they put people in is the order the record names them in, its citation included. While you are searching and no one matches, it reads "No person on this" followed by the record's kind and "matches" and your text.
+People who manage the record also see an **Add** button beside the heading. Each row has a menu with **Edit**, **Reorder** and **Remove**. **Reorder** is offered when there is more than one person.
 
 ## Organizations
 
-A section headed **Organizations**, with a count, shows each organization as a small card with its logo and its name, linked to the organization's page. Roles are not shown on the card.
+A section headed **Organizations**, with a count, lists every organization credited on the record, in the order the people they are credited from lead the record, then the organizations credited on their own. Each row shows the organization's name and its roles. An organization that only appears because someone is credited from it shows the role Project Member where the kind of record offers it.
 
-People who manage the record also see an **Add organization** button, and on each card a settings menu with:
+People who manage the record see an **Add** button beside the heading. Each row has **Edit roles**, and **Remove** when nobody on the record is credited from that organization.
 
-- **Move earlier** and **Move later**.
-- **Edit roles**.
-- **Remove**. When people on the record are credited from the organization, this is replaced by "Cannot be removed while" followed by a count and "people here are credited from it", with a **See who** link.
+## Access from other records
 
-Below the cards they read "Organizations are credited and hold no access. Their members gain none from it."
-
-### When no organization is credited
-
-The section reads "No organizations are credited yet." A manager also reads "A person's affiliation is listed here when they are added. An organization can also be credited on its own."
-
-## Access from the record above
-
-On a dataset, a sample and a measurement, people who manage the record also see a card headed "Access from the" followed by the kind of the record above, such as **project** or **dataset**. A project is at the top, so it has no such card.
-
-The card lists the people who can open this record only because of what they hold on the record above it, each with a badge for their level and a link "from the" and the record's kind. They are not listed on this record, and their access can only be changed on the record above, which the **Manage there** button opens. When there are none, the card reads "Nobody else holds access to this" and the record's kind "through its" and the kind above.
+On a dataset, a sample and a measurement, people who manage the record also see a section headed **Access from other records**. It lists the people who can open this record only because of what they hold on a record above it, with their level and the record it comes from. They are not credited here, and their access is changed on the record above.
 
 ## The levels
 
@@ -72,11 +41,11 @@ A person holds one level on a record. Each level includes the ones before it.
 | Can edit | Also change the record and the data in it |
 | Can manage | Also change its contributors and their levels, change its visibility, publish it and delete it |
 
-An organization holds no level. A role says how a person took part and never changes a level. The reasoning, and how a level reaches the records beneath, is in [How access to a record is decided](../../explanation/how-access-to-a-record-is-decided.md).
+A person added from the tab starts at **Can view**. An organization holds no level. A role says how a person took part and never changes a level. The reasoning, and how a level reaches the records beneath, is in [How access to a record is decided](../../explanation/how-access-to-a-record-is-decided.md).
 
 ## The roles each kind offers
 
-The roles on the Edit a contributor screen depend on the record's kind.
+The roles depend on the record's kind. What each one means is in [Contributor roles](../../reference/contributor-roles.md).
 
 | Record | Roles |
 |---|---|
@@ -85,76 +54,44 @@ The roles on the Edit a contributor screen depend on the record's kind.
 | Sample | Collector, Preparer, Archivist, Destroyer, Restorer |
 | Measurement | Preparation, Collection, Support |
 
+Everyone added to a project or a dataset, person or organization, holds Project Member. The role is ticked and cannot be unticked, and someone who holds it keeps it when their roles are edited.
+
 The person who creates a project or a dataset is credited on it at the **Can manage** level with the roles Creator, Project Member and Contact Person. A superuser who creates one is not credited, because a superuser cannot be a contributor. See [How contributor accounts and credits work](../../explanation/how-contributor-accounts-and-credits-work.md).
 
 ## Add a person
 
-Choose **Add person** to open a screen headed **Add a person**. It opens with "A person is added with the organization they were at for this" and the record's kind. It offers three tabs, and switching between them does not reload the page. Each tab keeps its own search.
+**Add** beside **People** opens a sheet. Its steps are:
 
-### Already in the portal
+1. **Search.** Type a name or an ORCID iD. The people in the portal who are not on the record yet narrow as you type. A name nobody in the portal has, and an ORCID iD nobody holds, appear as a **New** row at the bottom.
+2. **Who they are.** A new name asks ORCID who it knows under that name. Pick the person you mean, or add them by name alone. A name added alone is split into given names and a family name for you to confirm.
+3. **Their affiliation.** The organizations on their ORCID record come first, then those on their portal profile, then the rest of the portal. Search by name to find another, and use a **New** row for one the portal lacks. An organization picked from ORCID is matched in the portal by its ROR ID, which the portal also finds from a Funder Registry, Ringgold or GRID ID that the ORCID record gives. The portal makes one only when nothing matches.
+4. **Their roles.** Tick the roles that apply, then **Add**.
 
-Headed "Search the people in this portal", with the hint "By name, or part of it." and a **Search** button. Each match has a **Choose** button, or reads **Already a contributor** when the person is on the record. When there are more matches than the screen lists, it says "There are more matches than are shown, so add more of the name to narrow the search." Up to 20 matches are listed. With none it reads "Nobody in this portal matches" followed by your text.
+**Back** returns to the step before. Tapping outside the sheet, dragging it down or its close button closes it without adding anyone.
 
-Choosing a match shows the person and the affiliation choice, then **Add to this** and the record's kind, with **Choose someone else** beside it.
-
-### Find by ORCID
-
-Headed "Search ORCID", with the hint "By name, or by ORCID iD such as 0000-0002-1825-0097." Each match shows the person's name, the institution ORCID lists and their ORCID iD, with a **Choose** button. Up to 10 matches are listed, and people with no public name are not. While the search runs the screen reads "Searching ORCID…". With none it reads "ORCID has nobody matching" followed by your text. When ORCID cannot be reached it reads "Searching ORCID is unavailable right now, but the other two tabs still work."
-
-Choosing a match shows it with the line "A profile is made for them from their ORCID record. They can claim it later by signing in with ORCID." The first current employer ORCID lists is offered as the organization. A profile that already holds that ORCID iD is used and no second one is made.
-
-### New person
-
-For someone who is not in the portal and has no ORCID iD. The tab reads "For someone who is not in the portal and has no ORCID iD. They get a profile with no account, and can be invited to claim it later." Its fields are **Given name** and **Family name**, then the affiliation choice. The button reads **Add to this** and the record's kind.
-
-When a profile with the same name exists, the tab warns "Someone with this name is already in the portal.", lists those profiles with a **Choose** button each, and the button changes to **Make a new profile anyway and add**. A refused submission lists the problems under "Nothing was added."
-
-### The affiliation choice
-
-Every way of adding a person ends with a fieldset headed "Their affiliation for this" and the record's kind. It offers the person's own affiliations, the primary one first and selected, each marked "Their primary affiliation today", "Also current" or "Earlier, until" and a date. Beneath them are **Another organization**, with a text box that suggests organizations in the portal, and **No affiliation**. A name the portal does not have yet makes a new organization. The choice is kept with this record only.
-
-### Footer
-
-The screen ends with "A person you add can open this" and the record's kind "straight away, and nothing more until you say so. They join the end of the people." and a **Back to contributors** button.
+ORCID and ROR searches are limited per person to a number a minute, and a registry that cannot be reached is said so in the step. The portal never adds someone from a registry it could not ask.
 
 ## Add an organization
 
-Choose **Add organization** to open a screen headed **Add an organization**. It opens with "Use this for an organization credited on this" and the record's kind "in its own right, such as a funder or a host institution." It offers three tabs.
-
-- **Already in the portal**, headed "Search the organizations in this portal". Each match has an **Add** button, or reads **Already listed**.
-- **Find in ROR**, headed "Search the ROR registry", with the hint "By name, or by ROR ID such as https://ror.org/04z8jg394." Each match shows the name, its kind and place, and its ROR ID, with a **Choose** button. Choosing one shows "A profile is made for it from its ROR record and it is added to this" and the record's kind, with **Add to this** and the kind, and **Choose another**. Organizations that are not active in ROR are not listed. When ROR cannot be reached the tab reads "Searching ROR is unavailable right now, but the other two tabs still work."
-- **New organization**, for "an organization that is not in the portal and not in ROR". Its fields are **Name**, **City (optional)**, **Country (optional)** and **Website (optional)**. A country is given by name or by its two-letter code. A name that an organization in the portal already has is never made twice. The tab offers the existing organization with an **Add** button instead.
-
-The screen ends with "An organization is credited and holds no access. It joins the end of the organizations."
-
-After you add anyone, you arrive on the Edit a contributor screen with a message such as "Name was added. Say what they did, and what they may do here." For an organization the message reads "Say what they did here." If the person is a superuser, nobody is added and the message reads that a superuser cannot be a contributor.
+**Add** beside **Organizations** opens a sheet with a search of the portal's organizations. A name the portal does not have becomes a **New** row, which asks ROR who it knows under that name. Pick the organization you mean or add it by name alone, then tick its roles and choose **Add**.
 
 ## Edit a contributor
 
-**Edit** beside a person, or **Edit roles** on an organization's menu, opens a screen headed **Edit a contributor**. It shows the contributor, then:
+**Edit** on a person opens their sheet:
 
-- A group headed "What they did on" the record's kind, with a checkbox for each role in the table above. The hint reads "Choose every role that applies, or none. Roles are credit: they do not change what anyone may do."
-- For a person, the affiliation choice described above, with their current choice selected.
-- For a person, a group headed "What they may do on" the record's kind, with three radio buttons, **Can view**, **Can edit** and **Can manage**, each with a hint. A level the person already holds from a record above is the lowest on offer, and the choices below it are switched off. A person with no account reads "This person has no account yet. What you choose takes effect when they have one."
-- For an organization, the line "Nothing. An organization is credited and holds no access, and its members gain none from it. Add a person to give them access."
+- **Their affiliation on this record.** One of the person's own affiliations, any other organization in the portal, or none. The choice is kept with this record only.
+- **Roles.** Tick every role that applies.
+- **Their access.** The three levels, each with a hint. A level the person holds from a record above is the lowest on offer, and the levels below it are switched off.
 
-The buttons are **Save**, **Cancel**, and **Remove from this record**. Everything is saved together or not at all. A refusal lists its reasons under "Nothing was saved." Three refusals are possible:
-
-- A role the kind does not offer: "Choose from the roles offered for this kind of record."
-- A level below what the person holds from a record above: "They hold “Can edit” from the dataset above, and it cannot be lowered here." The level and record in the message vary.
-- A change that would leave the record with nobody to manage it: "Name is the only person who can manage this dataset. Give someone else “Can manage” first."
-
-Saving returns you to the Contributors tab with "Name was saved."
+**Edit roles** on an organization opens its roles. Everything on a sheet is saved together or not at all. A refusal is shown on the tab, and nothing is saved.
 
 ## Remove a contributor
 
-**Remove** opens a screen headed **Remove a contributor**. It shows the contributor and one of three states:
+**Remove** takes the person off the record at once and offers **Undo** for a few seconds. **Undo** puts them back with the same roles, level, organization and place in the order. A record always keeps a manager, so the only person who can manage it cannot be removed.
 
-- The question "Remove" followed by the name and "from this" and the kind, with a list of what happens: the contributor is no longer credited or named in the citation, a person loses the access they held through being listed here and keeps what they hold from a record above, and an organization they are credited from stays under Organizations. Choose **Remove** to go ahead, or **Cancel**.
-- For an organization that people are credited from, the name and "cannot be removed yet." with the explanation that it is listed as the affiliation of the people below, and the list of those people. There is no way to go ahead.
-- For the only person who can manage the record, the name and "cannot be removed yet." with "They are the only person who can manage this" and the kind, then "Give someone else “Can manage” first, so it is never left with nobody to look after it." There is no way to go ahead.
+## Reorder
 
-Both refused states offer **Back to contributors**. After a removal you arrive on the Contributors tab with "Name was removed from this" and the kind.
+**Reorder** opens the people in a list you can drag by its handle. With the keyboard, focus the handle and use the arrow keys. **Save order** keeps it. The order is the order the record names its people in, its citation included.
 
 ## What you can do here
 

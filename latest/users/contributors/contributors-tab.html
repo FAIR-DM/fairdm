@@ -8,8 +8,8 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="users/contributors/contributors-tab.html" />
 <meta property="og:site_name" content="fairdm" />
-<meta property="og:description" content="The Contributors tab lists the people and organizations credited on a record, and it is where the people who manage the record change who is credited and what each person may do. Projects, datasets..." />
-<meta name="description" content="The Contributors tab lists the people and organizations credited on a record, and it is where the people who manage the record change who is credited and what each person may do. Projects, datasets..." />
+<meta property="og:description" content="The Contributors tab lists the people and organizations credited on a record. It is also where the people who manage the record add people, change what each person did and may do, put people in ord..." />
+<meta name="description" content="The Contributors tab lists the people and organizations credited on a record. It is also where the people who manage the record add people, change what each person did and may do, put people in ord..." />
 
     <title>Contributors &#8212; fairdm 0.6.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/styles/sphinx-daisyui.css?v=aedd34d4" />
@@ -111,6 +111,7 @@ commentsRunWhenDOMLoaded(addUtterances);
             <li><a href="../../explanation/how-locations-are-stored-and-protected.html">How locations are stored and protected</a></li>
             <li><a href="../../explanation/dataset-publication-dois-and-datacite-metadata.html">Dataset publication, DOIs and DataCite metadata</a></li>
             <li><a href="../../reference/glossary.html">Glossary</a></li>
+            <li><a href="../../reference/contributor-roles.html">Contributor roles</a></li>
             <li><a href="../../contributing/index.html">Framework Contributors</a></li>
             <li><a href="../../adr/index.html">Architecture Decision Records</a></li>
             <li><a href="../../ROADMAP.html">Roadmap — FairDM</a></li>
@@ -185,6 +186,7 @@ commentsRunWhenDOMLoaded(addUtterances);
                 <li><a href="../../explanation/how-locations-are-stored-and-protected.html">How locations are stored and protected</a></li>
                 <li><a href="../../explanation/dataset-publication-dois-and-datacite-metadata.html">Dataset publication, DOIs and DataCite metadata</a></li>
                 <li><a href="../../reference/glossary.html">Glossary</a></li>
+                <li><a href="../../reference/contributor-roles.html">Contributor roles</a></li>
                 <li><a href="../../contributing/index.html">Framework Contributors</a></li>
                 <li><a href="../../adr/index.html">Architecture Decision Records</a></li>
                 <li><a href="../../ROADMAP.html">Roadmap — FairDM</a></li>
@@ -285,29 +287,16 @@ commentsRunWhenDOMLoaded(addUtterances);
             <summary class="collapse-title min-h-0 py-3 text-sm font-semibold">On this page</summary>
             <nav class="collapse-content text-sm" aria-label="On this page"><ul class="daisy-toc-list">
 <li><a class="daisy-toc-link reference internal" href="#how-to-reach-it">How to reach it</a></li>
-<li><a class="daisy-toc-link reference internal" href="#the-header-and-the-search-box">The header and the search box</a></li>
-<li><a class="daisy-toc-link reference internal" href="#people">People</a><ul class="daisy-toc-list">
-<li><a class="daisy-toc-link reference internal" href="#when-no-one-is-credited">When no one is credited</a></li>
-</ul>
-</li>
-<li><a class="daisy-toc-link reference internal" href="#organizations">Organizations</a><ul class="daisy-toc-list">
-<li><a class="daisy-toc-link reference internal" href="#when-no-organization-is-credited">When no organization is credited</a></li>
-</ul>
-</li>
-<li><a class="daisy-toc-link reference internal" href="#access-from-the-record-above">Access from the record above</a></li>
+<li><a class="daisy-toc-link reference internal" href="#people">People</a></li>
+<li><a class="daisy-toc-link reference internal" href="#organizations">Organizations</a></li>
+<li><a class="daisy-toc-link reference internal" href="#access-from-other-records">Access from other records</a></li>
 <li><a class="daisy-toc-link reference internal" href="#the-levels">The levels</a></li>
 <li><a class="daisy-toc-link reference internal" href="#the-roles-each-kind-offers">The roles each kind offers</a></li>
-<li><a class="daisy-toc-link reference internal" href="#add-a-person">Add a person</a><ul class="daisy-toc-list">
-<li><a class="daisy-toc-link reference internal" href="#already-in-the-portal">Already in the portal</a></li>
-<li><a class="daisy-toc-link reference internal" href="#find-by-orcid">Find by ORCID</a></li>
-<li><a class="daisy-toc-link reference internal" href="#new-person">New person</a></li>
-<li><a class="daisy-toc-link reference internal" href="#the-affiliation-choice">The affiliation choice</a></li>
-<li><a class="daisy-toc-link reference internal" href="#footer">Footer</a></li>
-</ul>
-</li>
+<li><a class="daisy-toc-link reference internal" href="#add-a-person">Add a person</a></li>
 <li><a class="daisy-toc-link reference internal" href="#add-an-organization">Add an organization</a></li>
 <li><a class="daisy-toc-link reference internal" href="#edit-a-contributor">Edit a contributor</a></li>
 <li><a class="daisy-toc-link reference internal" href="#remove-a-contributor">Remove a contributor</a></li>
+<li><a class="daisy-toc-link reference internal" href="#reorder">Reorder</a></li>
 <li><a class="daisy-toc-link reference internal" href="#what-you-can-do-here">What you can do here</a></li>
 </ul>
 </nav>
@@ -316,7 +305,7 @@ commentsRunWhenDOMLoaded(addUtterances);
           
   <section id="contributors">
 <h1>Contributors<a class="headerlink" aria-label="Link to this heading: Contributors" href="#contributors" title="Link to this heading">¶</a></h1>
-<p>The Contributors tab lists the people and organizations credited on a record, and it is where the people who manage the record change who is credited and what each person may do. Projects, datasets, samples and measurements all have it, and the screens are the same on all four. Only the roles on offer and the access card differ.</p>
+<p>The Contributors tab lists the people and organizations credited on a record. It is also where the people who manage the record add people, change what each person did and may do, put people in order and remove them. Projects, datasets, samples and measurements all have it, and it works the same way on all four. Only the roles on offer differ.</p>
 <section id="how-to-reach-it">
 <h2>How to reach it<a class="headerlink" aria-label="Link to this heading: How to reach it" href="#how-to-reach-it" title="Link to this heading">¶</a></h2>
 <p>Open the record’s page and choose its <strong>Contributors</strong> tab, or choose <strong>See all</strong> on the record’s <strong>People</strong> card. The address is the record’s own address followed by <code class="docutils literal notranslate"><span class="pre">contributors/</span></code>:</p>
@@ -344,50 +333,19 @@ commentsRunWhenDOMLoaded(addUtterances);
 </div>
 <p>The tab opens for exactly the people who may open the record’s own page, and answers everyone else as if the record did not exist. Only people who manage the record are offered the controls for changing it. Everyone else who may open the record sees the two lists and nothing more. See <a class="reference internal" href="../../explanation/how-access-to-a-record-is-decided.html"><span class="std std-doc">How access to a record is decided</span></a>.</p>
 </section>
-<section id="the-header-and-the-search-box">
-<h2>The header and the search box<a class="headerlink" aria-label="Link to this heading: The header and the search box" href="#the-header-and-the-search-box" title="Link to this heading">¶</a></h2>
-<p>The heading is <strong>Contributors</strong>, with the record’s name beneath it. When anyone is credited, a search box headed “Search by name” and a <strong>Search</strong> button sit beside the heading. They narrow both lists to the names that contain what you typed. The page then reads “Showing the people and organizations whose name contains” followed by your text, with a <strong>Show everyone</strong> link that clears the search.</p>
-</section>
 <section id="people">
 <h2>People<a class="headerlink" aria-label="Link to this heading: People" href="#people" title="Link to this heading">¶</a></h2>
-<p>A section headed <strong>People</strong>, with a count, lists the people credited, in the order the record names them. Each row has:</p>
-<ul class="simple">
-<li><p>The row’s place in the list.</p></li>
-<li><p>The person’s avatar and name, linked to their page.</p></li>
-<li><p>The organization they are credited from on this record, if any.</p></li>
-<li><p>Their roles on this record, as badges.</p></li>
-</ul>
-<p>People who manage the record also see, on each row:</p>
-<ul class="simple">
-<li><p>What the person may do, as a badge: <strong>Can view</strong>, <strong>Can edit</strong> or <strong>Can manage</strong>. A level held from a record above adds “from the” and the record’s kind. A person with no level reads “No access”. A person with no account yet adds “Takes effect when they have an account.”</p></li>
-<li><p>Arrow buttons that move the person earlier or later, left out while a search is narrowing the list or when there is nobody to move past.</p></li>
-<li><p><strong>Edit</strong> and <strong>Remove</strong>.</p></li>
-</ul>
-<p>People who manage the record also see an <strong>Add person</strong> button, and below the list a note: “This order is the order the” followed by the record’s kind, “names its people in, its citation included. Only people who can manage this” and the kind “see what each person may do.”</p>
-<section id="when-no-one-is-credited">
-<h3>When no one is credited<a class="headerlink" aria-label="Link to this heading: When no one is credited" href="#when-no-one-is-credited" title="Link to this heading">¶</a></h3>
-<p>The section reads “No people are credited yet.” A manager also reads that the order they put people in is the order the record names them in, its citation included. While you are searching and no one matches, it reads “No person on this” followed by the record’s kind and “matches” and your text.</p>
-</section>
+<p>A section headed <strong>People</strong>, with a count, lists the people credited in the order the record names them in. Each row shows the person’s avatar and name, the organization they are credited from on this record and their roles. A person with no organization shows a dash.</p>
+<p>People who manage the record also see an <strong>Add</strong> button beside the heading. Each row has a menu with <strong>Edit</strong>, <strong>Reorder</strong> and <strong>Remove</strong>. <strong>Reorder</strong> is offered when there is more than one person.</p>
 </section>
 <section id="organizations">
 <h2>Organizations<a class="headerlink" aria-label="Link to this heading: Organizations" href="#organizations" title="Link to this heading">¶</a></h2>
-<p>A section headed <strong>Organizations</strong>, with a count, shows each organization as a small card with its logo and its name, linked to the organization’s page. Roles are not shown on the card.</p>
-<p>People who manage the record also see an <strong>Add organization</strong> button, and on each card a settings menu with:</p>
-<ul class="simple">
-<li><p><strong>Move earlier</strong> and <strong>Move later</strong>.</p></li>
-<li><p><strong>Edit roles</strong>.</p></li>
-<li><p><strong>Remove</strong>. When people on the record are credited from the organization, this is replaced by “Cannot be removed while” followed by a count and “people here are credited from it”, with a <strong>See who</strong> link.</p></li>
-</ul>
-<p>Below the cards they read “Organizations are credited and hold no access. Their members gain none from it.”</p>
-<section id="when-no-organization-is-credited">
-<h3>When no organization is credited<a class="headerlink" aria-label="Link to this heading: When no organization is credited" href="#when-no-organization-is-credited" title="Link to this heading">¶</a></h3>
-<p>The section reads “No organizations are credited yet.” A manager also reads “A person’s affiliation is listed here when they are added. An organization can also be credited on its own.”</p>
+<p>A section headed <strong>Organizations</strong>, with a count, lists every organization credited on the record, in the order the people they are credited from lead the record, then the organizations credited on their own. Each row shows the organization’s name and its roles. An organization that only appears because someone is credited from it shows the role Project Member where the kind of record offers it.</p>
+<p>People who manage the record see an <strong>Add</strong> button beside the heading. Each row has <strong>Edit roles</strong>, and <strong>Remove</strong> when nobody on the record is credited from that organization.</p>
 </section>
-</section>
-<section id="access-from-the-record-above">
-<h2>Access from the record above<a class="headerlink" aria-label="Link to this heading: Access from the record above" href="#access-from-the-record-above" title="Link to this heading">¶</a></h2>
-<p>On a dataset, a sample and a measurement, people who manage the record also see a card headed “Access from the” followed by the kind of the record above, such as <strong>project</strong> or <strong>dataset</strong>. A project is at the top, so it has no such card.</p>
-<p>The card lists the people who can open this record only because of what they hold on the record above it, each with a badge for their level and a link “from the” and the record’s kind. They are not listed on this record, and their access can only be changed on the record above, which the <strong>Manage there</strong> button opens. When there are none, the card reads “Nobody else holds access to this” and the record’s kind “through its” and the kind above.</p>
+<section id="access-from-other-records">
+<h2>Access from other records<a class="headerlink" aria-label="Link to this heading: Access from other records" href="#access-from-other-records" title="Link to this heading">¶</a></h2>
+<p>On a dataset, a sample and a measurement, people who manage the record also see a section headed <strong>Access from other records</strong>. It lists the people who can open this record only because of what they hold on a record above it, with their level and the record it comes from. They are not credited here, and their access is changed on the record above.</p>
 </section>
 <section id="the-levels">
 <h2>The levels<a class="headerlink" aria-label="Link to this heading: The levels" href="#the-levels" title="Link to this heading">¶</a></h2>
@@ -411,11 +369,11 @@ commentsRunWhenDOMLoaded(addUtterances);
 </tbody>
 </table>
 </div>
-<p>An organization holds no level. A role says how a person took part and never changes a level. The reasoning, and how a level reaches the records beneath, is in <a class="reference internal" href="../../explanation/how-access-to-a-record-is-decided.html"><span class="std std-doc">How access to a record is decided</span></a>.</p>
+<p>A person added from the tab starts at <strong>Can view</strong>. An organization holds no level. A role says how a person took part and never changes a level. The reasoning, and how a level reaches the records beneath, is in <a class="reference internal" href="../../explanation/how-access-to-a-record-is-decided.html"><span class="std std-doc">How access to a record is decided</span></a>.</p>
 </section>
 <section id="the-roles-each-kind-offers">
 <h2>The roles each kind offers<a class="headerlink" aria-label="Link to this heading: The roles each kind offers" href="#the-roles-each-kind-offers" title="Link to this heading">¶</a></h2>
-<p>The roles on the Edit a contributor screen depend on the record’s kind.</p>
+<p>The roles depend on the record’s kind. What each one means is in <a class="reference internal" href="../../reference/contributor-roles.html"><span class="std std-doc">Contributor roles</span></a>.</p>
 <div aria-label="Table" class="daisy-sphinx-scroll" role="region" tabindex="0"><table class="docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Record</p></th>
@@ -438,72 +396,42 @@ commentsRunWhenDOMLoaded(addUtterances);
 </tbody>
 </table>
 </div>
+<p>Everyone added to a project or a dataset, person or organization, holds Project Member. The role is ticked and cannot be unticked, and someone who holds it keeps it when their roles are edited.</p>
 <p>The person who creates a project or a dataset is credited on it at the <strong>Can manage</strong> level with the roles Creator, Project Member and Contact Person. A superuser who creates one is not credited, because a superuser cannot be a contributor. See <a class="reference internal" href="../../explanation/how-contributor-accounts-and-credits-work.html"><span class="std std-doc">How contributor accounts and credits work</span></a>.</p>
 </section>
 <section id="add-a-person">
 <h2>Add a person<a class="headerlink" aria-label="Link to this heading: Add a person" href="#add-a-person" title="Link to this heading">¶</a></h2>
-<p>Choose <strong>Add person</strong> to open a screen headed <strong>Add a person</strong>. It opens with “A person is added with the organization they were at for this” and the record’s kind. It offers three tabs, and switching between them does not reload the page. Each tab keeps its own search.</p>
-<section id="already-in-the-portal">
-<h3>Already in the portal<a class="headerlink" aria-label="Link to this heading: Already in the portal" href="#already-in-the-portal" title="Link to this heading">¶</a></h3>
-<p>Headed “Search the people in this portal”, with the hint “By name, or part of it.” and a <strong>Search</strong> button. Each match has a <strong>Choose</strong> button, or reads <strong>Already a contributor</strong> when the person is on the record. When there are more matches than the screen lists, it says “There are more matches than are shown, so add more of the name to narrow the search.” Up to 20 matches are listed. With none it reads “Nobody in this portal matches” followed by your text.</p>
-<p>Choosing a match shows the person and the affiliation choice, then <strong>Add to this</strong> and the record’s kind, with <strong>Choose someone else</strong> beside it.</p>
-</section>
-<section id="find-by-orcid">
-<h3>Find by ORCID<a class="headerlink" aria-label="Link to this heading: Find by ORCID" href="#find-by-orcid" title="Link to this heading">¶</a></h3>
-<p>Headed “Search ORCID”, with the hint “By name, or by ORCID iD such as 0000-0002-1825-0097.” Each match shows the person’s name, the institution ORCID lists and their ORCID iD, with a <strong>Choose</strong> button. Up to 10 matches are listed, and people with no public name are not. While the search runs the screen reads “Searching ORCID…”. With none it reads “ORCID has nobody matching” followed by your text. When ORCID cannot be reached it reads “Searching ORCID is unavailable right now, but the other two tabs still work.”</p>
-<p>Choosing a match shows it with the line “A profile is made for them from their ORCID record. They can claim it later by signing in with ORCID.” The first current employer ORCID lists is offered as the organization. A profile that already holds that ORCID iD is used and no second one is made.</p>
-</section>
-<section id="new-person">
-<h3>New person<a class="headerlink" aria-label="Link to this heading: New person" href="#new-person" title="Link to this heading">¶</a></h3>
-<p>For someone who is not in the portal and has no ORCID iD. The tab reads “For someone who is not in the portal and has no ORCID iD. They get a profile with no account, and can be invited to claim it later.” Its fields are <strong>Given name</strong> and <strong>Family name</strong>, then the affiliation choice. The button reads <strong>Add to this</strong> and the record’s kind.</p>
-<p>When a profile with the same name exists, the tab warns “Someone with this name is already in the portal.”, lists those profiles with a <strong>Choose</strong> button each, and the button changes to <strong>Make a new profile anyway and add</strong>. A refused submission lists the problems under “Nothing was added.”</p>
-</section>
-<section id="the-affiliation-choice">
-<h3>The affiliation choice<a class="headerlink" aria-label="Link to this heading: The affiliation choice" href="#the-affiliation-choice" title="Link to this heading">¶</a></h3>
-<p>Every way of adding a person ends with a fieldset headed “Their affiliation for this” and the record’s kind. It offers the person’s own affiliations, the primary one first and selected, each marked “Their primary affiliation today”, “Also current” or “Earlier, until” and a date. Beneath them are <strong>Another organization</strong>, with a text box that suggests organizations in the portal, and <strong>No affiliation</strong>. A name the portal does not have yet makes a new organization. The choice is kept with this record only.</p>
-</section>
-<section id="footer">
-<h3>Footer<a class="headerlink" aria-label="Link to this heading: Footer" href="#footer" title="Link to this heading">¶</a></h3>
-<p>The screen ends with “A person you add can open this” and the record’s kind “straight away, and nothing more until you say so. They join the end of the people.” and a <strong>Back to contributors</strong> button.</p>
-</section>
+<p><strong>Add</strong> beside <strong>People</strong> opens a sheet. Its steps are:</p>
+<ol class="arabic simple">
+<li><p><strong>Search.</strong> Type a name or an ORCID iD. The people in the portal who are not on the record yet narrow as you type. A name nobody in the portal has, and an ORCID iD nobody holds, appear as a <strong>New</strong> row at the bottom.</p></li>
+<li><p><strong>Who they are.</strong> A new name asks ORCID who it knows under that name. Pick the person you mean, or add them by name alone. A name added alone is split into given names and a family name for you to confirm.</p></li>
+<li><p><strong>Their affiliation.</strong> The organizations on their ORCID record come first, then those on their portal profile, then the rest of the portal. Search by name to find another, and use a <strong>New</strong> row for one the portal lacks. An organization picked from ORCID is matched in the portal by its ROR ID, which the portal also finds from a Funder Registry, Ringgold or GRID ID that the ORCID record gives. The portal makes one only when nothing matches.</p></li>
+<li><p><strong>Their roles.</strong> Tick the roles that apply, then <strong>Add</strong>.</p></li>
+</ol>
+<p><strong>Back</strong> returns to the step before. Tapping outside the sheet, dragging it down or its close button closes it without adding anyone.</p>
+<p>ORCID and ROR searches are limited per person to a number a minute, and a registry that cannot be reached is said so in the step. The portal never adds someone from a registry it could not ask.</p>
 </section>
 <section id="add-an-organization">
 <h2>Add an organization<a class="headerlink" aria-label="Link to this heading: Add an organization" href="#add-an-organization" title="Link to this heading">¶</a></h2>
-<p>Choose <strong>Add organization</strong> to open a screen headed <strong>Add an organization</strong>. It opens with “Use this for an organization credited on this” and the record’s kind “in its own right, such as a funder or a host institution.” It offers three tabs.</p>
-<ul class="simple">
-<li><p><strong>Already in the portal</strong>, headed “Search the organizations in this portal”. Each match has an <strong>Add</strong> button, or reads <strong>Already listed</strong>.</p></li>
-<li><p><strong>Find in ROR</strong>, headed “Search the ROR registry”, with the hint “By name, or by ROR ID such as https://ror.org/04z8jg394.” Each match shows the name, its kind and place, and its ROR ID, with a <strong>Choose</strong> button. Choosing one shows “A profile is made for it from its ROR record and it is added to this” and the record’s kind, with <strong>Add to this</strong> and the kind, and <strong>Choose another</strong>. Organizations that are not active in ROR are not listed. When ROR cannot be reached the tab reads “Searching ROR is unavailable right now, but the other two tabs still work.”</p></li>
-<li><p><strong>New organization</strong>, for “an organization that is not in the portal and not in ROR”. Its fields are <strong>Name</strong>, <strong>City (optional)</strong>, <strong>Country (optional)</strong> and <strong>Website (optional)</strong>. A country is given by name or by its two-letter code. A name that an organization in the portal already has is never made twice. The tab offers the existing organization with an <strong>Add</strong> button instead.</p></li>
-</ul>
-<p>The screen ends with “An organization is credited and holds no access. It joins the end of the organizations.”</p>
-<p>After you add anyone, you arrive on the Edit a contributor screen with a message such as “Name was added. Say what they did, and what they may do here.” For an organization the message reads “Say what they did here.” If the person is a superuser, nobody is added and the message reads that a superuser cannot be a contributor.</p>
+<p><strong>Add</strong> beside <strong>Organizations</strong> opens a sheet with a search of the portal’s organizations. A name the portal does not have becomes a <strong>New</strong> row, which asks ROR who it knows under that name. Pick the organization you mean or add it by name alone, then tick its roles and choose <strong>Add</strong>.</p>
 </section>
 <section id="edit-a-contributor">
 <h2>Edit a contributor<a class="headerlink" aria-label="Link to this heading: Edit a contributor" href="#edit-a-contributor" title="Link to this heading">¶</a></h2>
-<p><strong>Edit</strong> beside a person, or <strong>Edit roles</strong> on an organization’s menu, opens a screen headed <strong>Edit a contributor</strong>. It shows the contributor, then:</p>
+<p><strong>Edit</strong> on a person opens their sheet:</p>
 <ul class="simple">
-<li><p>A group headed “What they did on” the record’s kind, with a checkbox for each role in the table above. The hint reads “Choose every role that applies, or none. Roles are credit: they do not change what anyone may do.”</p></li>
-<li><p>For a person, the affiliation choice described above, with their current choice selected.</p></li>
-<li><p>For a person, a group headed “What they may do on” the record’s kind, with three radio buttons, <strong>Can view</strong>, <strong>Can edit</strong> and <strong>Can manage</strong>, each with a hint. A level the person already holds from a record above is the lowest on offer, and the choices below it are switched off. A person with no account reads “This person has no account yet. What you choose takes effect when they have one.”</p></li>
-<li><p>For an organization, the line “Nothing. An organization is credited and holds no access, and its members gain none from it. Add a person to give them access.”</p></li>
+<li><p><strong>Their affiliation on this record.</strong> One of the person’s own affiliations, any other organization in the portal, or none. The choice is kept with this record only.</p></li>
+<li><p><strong>Roles.</strong> Tick every role that applies.</p></li>
+<li><p><strong>Their access.</strong> The three levels, each with a hint. A level the person holds from a record above is the lowest on offer, and the levels below it are switched off.</p></li>
 </ul>
-<p>The buttons are <strong>Save</strong>, <strong>Cancel</strong>, and <strong>Remove from this record</strong>. Everything is saved together or not at all. A refusal lists its reasons under “Nothing was saved.” Three refusals are possible:</p>
-<ul class="simple">
-<li><p>A role the kind does not offer: “Choose from the roles offered for this kind of record.”</p></li>
-<li><p>A level below what the person holds from a record above: “They hold “Can edit” from the dataset above, and it cannot be lowered here.” The level and record in the message vary.</p></li>
-<li><p>A change that would leave the record with nobody to manage it: “Name is the only person who can manage this dataset. Give someone else “Can manage” first.”</p></li>
-</ul>
-<p>Saving returns you to the Contributors tab with “Name was saved.”</p>
+<p><strong>Edit roles</strong> on an organization opens its roles. Everything on a sheet is saved together or not at all. A refusal is shown on the tab, and nothing is saved.</p>
 </section>
 <section id="remove-a-contributor">
 <h2>Remove a contributor<a class="headerlink" aria-label="Link to this heading: Remove a contributor" href="#remove-a-contributor" title="Link to this heading">¶</a></h2>
-<p><strong>Remove</strong> opens a screen headed <strong>Remove a contributor</strong>. It shows the contributor and one of three states:</p>
-<ul class="simple">
-<li><p>The question “Remove” followed by the name and “from this” and the kind, with a list of what happens: the contributor is no longer credited or named in the citation, a person loses the access they held through being listed here and keeps what they hold from a record above, and an organization they are credited from stays under Organizations. Choose <strong>Remove</strong> to go ahead, or <strong>Cancel</strong>.</p></li>
-<li><p>For an organization that people are credited from, the name and “cannot be removed yet.” with the explanation that it is listed as the affiliation of the people below, and the list of those people. There is no way to go ahead.</p></li>
-<li><p>For the only person who can manage the record, the name and “cannot be removed yet.” with “They are the only person who can manage this” and the kind, then “Give someone else “Can manage” first, so it is never left with nobody to look after it.” There is no way to go ahead.</p></li>
-</ul>
-<p>Both refused states offer <strong>Back to contributors</strong>. After a removal you arrive on the Contributors tab with “Name was removed from this” and the kind.</p>
+<p><strong>Remove</strong> takes the person off the record at once and offers <strong>Undo</strong> for a few seconds. <strong>Undo</strong> puts them back with the same roles, level, organization and place in the order. A record always keeps a manager, so the only person who can manage it cannot be removed.</p>
+</section>
+<section id="reorder">
+<h2>Reorder<a class="headerlink" aria-label="Link to this heading: Reorder" href="#reorder" title="Link to this heading">¶</a></h2>
+<p><strong>Reorder</strong> opens the people in a list you can drag by its handle. With the keyboard, focus the handle and use the arrow keys. <strong>Save order</strong> keeps it. The order is the order the record names its people in, its citation included.</p>
 </section>
 <section id="what-you-can-do-here">
 <h2>What you can do here<a class="headerlink" aria-label="Link to this heading: What you can do here" href="#what-you-can-do-here" title="Link to this heading">¶</a></h2>
@@ -540,29 +468,16 @@ commentsRunWhenDOMLoaded(addUtterances);
   <p id="daisy-page-toc-label" class="daisy-section-label mb-2 flex items-center gap-2 leading-4"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M3 5h.01" /> <path d="M3 12h.01" /> <path d="M3 19h.01" /> <path d="M8 5h13" /> <path d="M8 12h13" /> <path d="M8 19h13" /> </svg>On this page</p>
   <ul class="daisy-toc-list">
 <li><a class="daisy-toc-link reference internal" href="#how-to-reach-it">How to reach it</a></li>
-<li><a class="daisy-toc-link reference internal" href="#the-header-and-the-search-box">The header and the search box</a></li>
-<li><a class="daisy-toc-link reference internal" href="#people">People</a><ul class="daisy-toc-list">
-<li><a class="daisy-toc-link reference internal" href="#when-no-one-is-credited">When no one is credited</a></li>
-</ul>
-</li>
-<li><a class="daisy-toc-link reference internal" href="#organizations">Organizations</a><ul class="daisy-toc-list">
-<li><a class="daisy-toc-link reference internal" href="#when-no-organization-is-credited">When no organization is credited</a></li>
-</ul>
-</li>
-<li><a class="daisy-toc-link reference internal" href="#access-from-the-record-above">Access from the record above</a></li>
+<li><a class="daisy-toc-link reference internal" href="#people">People</a></li>
+<li><a class="daisy-toc-link reference internal" href="#organizations">Organizations</a></li>
+<li><a class="daisy-toc-link reference internal" href="#access-from-other-records">Access from other records</a></li>
 <li><a class="daisy-toc-link reference internal" href="#the-levels">The levels</a></li>
 <li><a class="daisy-toc-link reference internal" href="#the-roles-each-kind-offers">The roles each kind offers</a></li>
-<li><a class="daisy-toc-link reference internal" href="#add-a-person">Add a person</a><ul class="daisy-toc-list">
-<li><a class="daisy-toc-link reference internal" href="#already-in-the-portal">Already in the portal</a></li>
-<li><a class="daisy-toc-link reference internal" href="#find-by-orcid">Find by ORCID</a></li>
-<li><a class="daisy-toc-link reference internal" href="#new-person">New person</a></li>
-<li><a class="daisy-toc-link reference internal" href="#the-affiliation-choice">The affiliation choice</a></li>
-<li><a class="daisy-toc-link reference internal" href="#footer">Footer</a></li>
-</ul>
-</li>
+<li><a class="daisy-toc-link reference internal" href="#add-a-person">Add a person</a></li>
 <li><a class="daisy-toc-link reference internal" href="#add-an-organization">Add an organization</a></li>
 <li><a class="daisy-toc-link reference internal" href="#edit-a-contributor">Edit a contributor</a></li>
 <li><a class="daisy-toc-link reference internal" href="#remove-a-contributor">Remove a contributor</a></li>
+<li><a class="daisy-toc-link reference internal" href="#reorder">Reorder</a></li>
 <li><a class="daisy-toc-link reference internal" href="#what-you-can-do-here">What you can do here</a></li>
 </ul>
 

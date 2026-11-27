@@ -111,6 +111,7 @@ commentsRunWhenDOMLoaded(addUtterances);
             <li><a href="../../explanation/how-locations-are-stored-and-protected.html">How locations are stored and protected</a></li>
             <li><a href="../../explanation/dataset-publication-dois-and-datacite-metadata.html">Dataset publication, DOIs and DataCite metadata</a></li>
             <li><a href="../../reference/glossary.html">Glossary</a></li>
+            <li><a href="../../reference/contributor-roles.html">Contributor roles</a></li>
             <li><a href="../../contributing/index.html">Framework Contributors</a></li>
             <li><a href="../../adr/index.html">Architecture Decision Records</a></li>
             <li><a href="../../ROADMAP.html">Roadmap — FairDM</a></li>
@@ -185,6 +186,7 @@ commentsRunWhenDOMLoaded(addUtterances);
                 <li><a href="../../explanation/how-locations-are-stored-and-protected.html">How locations are stored and protected</a></li>
                 <li><a href="../../explanation/dataset-publication-dois-and-datacite-metadata.html">Dataset publication, DOIs and DataCite metadata</a></li>
                 <li><a href="../../reference/glossary.html">Glossary</a></li>
+                <li><a href="../../reference/contributor-roles.html">Contributor roles</a></li>
                 <li><a href="../../contributing/index.html">Framework Contributors</a></li>
                 <li><a href="../../adr/index.html">Architecture Decision Records</a></li>
                 <li><a href="../../ROADMAP.html">Roadmap — FairDM</a></li>
@@ -297,30 +299,28 @@ commentsRunWhenDOMLoaded(addUtterances);
 <p>Adding a contributor credits a person or an organization on a record. Do it when someone took part in the work, or when an organization funded or hosted it.</p>
 <section id="before-you-start">
 <h2>Before you start<a class="headerlink" aria-label="Link to this heading: Before you start" href="#before-you-start" title="Link to this heading">¶</a></h2>
-<p>You need to manage the record, which means holding the <strong>Can manage</strong> level on it or on the record above it. A superuser cannot be credited, so the portal adds nobody when you choose one.</p>
+<p>You need to manage the record, which means holding the <strong>Can manage</strong> level on it or on the record above it. A superuser cannot be credited, so the portal never offers one.</p>
 </section>
 <section id="steps">
 <h2>Steps<a class="headerlink" aria-label="Link to this heading: Steps" href="#steps" title="Link to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>Open the record’s page and choose its <strong>Contributors</strong> tab.</p></li>
-<li><p>Choose <strong>Add person</strong> to credit a person, or <strong>Add organization</strong> to credit an organization.</p></li>
-<li><p>Find the contributor on one of three tabs. Use the first that fits.</p>
+<li><p>Choose <strong>Add</strong> beside <strong>People</strong> to credit a person, or beside <strong>Organizations</strong> to credit an organization.</p></li>
+<li><p>Type a name. The portal’s own matches are listed first.</p>
 <ul class="simple">
-<li><p><strong>Already in the portal</strong>: type part of the name and choose <strong>Search</strong>, then choose the match. A contributor already credited on the record is marked and cannot be added again.</p></li>
-<li><p><strong>Find by ORCID</strong> for a person, or <strong>Find in ROR</strong> for an organization: search by name or by identifier, then choose the match. The portal makes a profile from the registry’s record. A person made this way has no account and can claim the profile later by signing in with ORCID. A profile that already holds the identifier is used instead of a second one.</p></li>
-<li><p><strong>New person</strong> or <strong>New organization</strong>: enter the details by hand. For a person, enter a <strong>Given name</strong> and a <strong>Family name</strong>. For an organization, enter a <strong>Name</strong> and, if you want, a <strong>City</strong>, a <strong>Country</strong> and a <strong>Website</strong>. Give the country by name or by its two-letter code.</p></li>
+<li><p>Choose a match from the portal. Someone already credited on the record is not listed.</p></li>
+<li><p>For a person, a name or an ORCID iD the portal does not have is a <strong>New</strong> row. Choosing it asks ORCID who it knows under that name. Choose the person you mean, or add them by name alone and confirm their given names and family name. A person added from ORCID gets a profile made from their ORCID record, with no account, and can claim it later by signing in with ORCID. A profile that already holds the iD is used instead of a second one.</p></li>
+<li><p>For an organization, a <strong>New</strong> row asks ROR the same way. Choose the organization you mean, or add it by name alone.</p></li>
 </ul>
 </li>
-<li><p>For a person, choose the organization they are credited from on this record. See <a class="reference internal" href="change-the-organization-a-person-is-credited-from.html"><span class="std std-doc">How to change the organization a person is credited from</span></a> for what the choice means.</p></li>
-<li><p>Choose <strong>Add to this</strong> followed by the record’s kind. For an organization found in the portal, choose <strong>Add</strong>.</p></li>
-<li><p>On the <strong>Edit a contributor</strong> screen that opens, <a class="reference internal" href="set-a-contributors-roles.html"><span class="std std-doc">set the contributor’s roles</span></a> and, for a person, their level. Choose <strong>Save</strong>.</p></li>
+<li><p>For a person, choose the organization they are credited from on this record. The organizations on their ORCID record are listed first. See <a class="reference internal" href="change-the-organization-a-person-is-credited-from.html"><span class="std std-doc">How to change the organization a person is credited from</span></a> for what the choice means.</p></li>
+<li><p>Tick the contributor’s roles, then choose <strong>Add</strong>. On a project or a dataset, Project Member is ticked and stays ticked.</p></li>
 </ol>
-<p>If a person with the same name is already in the portal, the <strong>New person</strong> tab lists those profiles first. Choose one of them if it is who you mean, so their work stays on one profile. Otherwise choose <strong>Make a new profile anyway and add</strong>. An organization with the same name as one in the portal is never made twice.</p>
-<p>If the registry cannot be reached, the tab says so. The other two tabs still work.</p>
+<p>If a registry cannot be reached, or you have searched a lot in a minute, the step says so and nobody is added.</p>
 </section>
 <section id="the-result">
 <h2>The result<a class="headerlink" aria-label="Link to this heading: The result" href="#the-result" title="Link to this heading">¶</a></h2>
-<p>The contributor is credited on the record, last in their list. A person starts at <strong>Can view</strong> with no roles, so on a private record they can open it and cannot change it. An organization holds no access. Nobody is emailed.</p>
+<p>The contributor is credited on the record, last in their list, and a notice confirms it with <strong>Undo</strong> for removals. A person starts at <strong>Can view</strong>, so on a private record they can open it and cannot change it. An organization holds no access. Nobody is emailed. To give a person more access, <a class="reference internal" href="let-a-colleague-into-a-private-record.html"><span class="std std-doc">edit them</span></a>.</p>
 <p>The organization you chose for a person is listed under Organizations on the record too, once, however many people are credited from it.</p>
 <p>The screens are described on <a class="reference internal" href="contributors-tab.html"><span class="std std-doc">Contributors</span></a>. A person’s account and how a profile is claimed are explained in <a class="reference internal" href="../../explanation/how-contributor-accounts-and-credits-work.html"><span class="std std-doc">How contributor accounts and credits work</span></a>.</p>
 </section>

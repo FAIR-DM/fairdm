@@ -51,6 +51,7 @@ These pages explain how FairDM works and why. Every reader may need them.
 ## Reference for every reader
 
 - [Glossary](reference/glossary.md)
+- [Contributor roles](reference/contributor-roles.md)
 
 ## For maintainers
 
@@ -100,6 +101,7 @@ explanation/dataset-publication-dois-and-datacite-metadata
 :caption: Reference
 
 reference/glossary
+reference/contributor-roles
 ```
 
 ```{toctree}

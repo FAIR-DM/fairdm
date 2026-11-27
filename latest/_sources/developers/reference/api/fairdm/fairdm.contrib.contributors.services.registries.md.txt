@@ -39,6 +39,10 @@
   - ```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.fetch_record
     :summary:
     ```
+* - {py:obj}`count_search <fairdm.contrib.contributors.services.registries.count_search>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.count_search
+    :summary:
+    ```
 * - {py:obj}`ask <fairdm.contrib.contributors.services.registries.ask>`
   - ```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.ask
     :summary:
@@ -65,6 +69,10 @@
     ```
 * - {py:obj}`JSON <fairdm.contrib.contributors.services.registries.JSON>`
   - ```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.JSON
+    :summary:
+    ```
+* - {py:obj}`SEARCHES_PER_MINUTE <fairdm.contrib.contributors.services.registries.SEARCHES_PER_MINUTE>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.SEARCHES_PER_MINUTE
     :summary:
     ```
 * - {py:obj}`FETCH_TIMEOUT <fairdm.contrib.contributors.services.registries.FETCH_TIMEOUT>`
@@ -111,6 +119,16 @@
    None
 
 ```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.JSON
+```
+
+````
+
+````{py:data} SEARCHES_PER_MINUTE
+:canonical: fairdm.contrib.contributors.services.registries.SEARCHES_PER_MINUTE
+:value: >
+   60
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.SEARCHES_PER_MINUTE
 ```
 
 ````
@@ -171,6 +189,29 @@ Bases: {py:obj}`Exception`
 
 ````
 
+````{py:exception} SearchLimitReached()
+:canonical: fairdm.contrib.contributors.services.registries.SearchLimitReached
+
+Bases: {py:obj}`fairdm.contrib.contributors.services.registries.RegistryUnavailable`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.SearchLimitReached
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.SearchLimitReached.__init__
+```
+
+````
+
+````{py:function} count_search(user)
+:canonical: fairdm.contrib.contributors.services.registries.count_search
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.count_search
+```
+````
+
 ````{py:function} ask(address, parse, *, params=None, headers=None, missing_ok=False)
 :canonical: fairdm.contrib.contributors.services.registries.ask
 
@@ -204,6 +245,16 @@ Bases: {py:obj}`Exception`
 
 ````
 
+````{py:attribute} ACTIVITIES
+:canonical: fairdm.contrib.contributors.services.registries.Orcid.ACTIVITIES
+:value: >
+   'https://pub.orcid.org/v3.0/{}/activities'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.Orcid.ACTIVITIES
+```
+
+````
+
 ````{py:method} identifier_in(text)
 :canonical: fairdm.contrib.contributors.services.registries.Orcid.identifier_in
 
@@ -212,7 +263,33 @@ Bases: {py:obj}`Exception`
 
 ````
 
-````{py:method} search(term)
+````{py:method} words_of(text)
+:canonical: fairdm.contrib.contributors.services.registries.Orcid.words_of
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.Orcid.words_of
+```
+
+````
+
+````{py:method} all_words(field, words)
+:canonical: fairdm.contrib.contributors.services.registries.Orcid.all_words
+:classmethod:
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.Orcid.all_words
+```
+
+````
+
+````{py:method} queries_for(term, affiliation='')
+:canonical: fairdm.contrib.contributors.services.registries.Orcid.queries_for
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.Orcid.queries_for
+```
+
+````
+
+````{py:method} search(term, affiliation='')
 :canonical: fairdm.contrib.contributors.services.registries.Orcid.search
 
 ```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.Orcid.search
@@ -272,6 +349,41 @@ Bases: {py:obj}`Exception`
 :canonical: fairdm.contrib.contributors.services.registries.Orcid.profile
 
 ```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.Orcid.profile
+```
+
+````
+
+````{py:attribute} AFFILIATION_SECTIONS
+:canonical: fairdm.contrib.contributors.services.registries.Orcid.AFFILIATION_SECTIONS
+:value: >
+   ('employment', 'education', 'qualification', 'invited-position', 'membership', 'service')
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.Orcid.AFFILIATION_SECTIONS
+```
+
+````
+
+````{py:method} affiliations(orcid_id)
+:canonical: fairdm.contrib.contributors.services.registries.Orcid.affiliations
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.Orcid.affiliations
+```
+
+````
+
+````{py:method} ror_for(source, value)
+:canonical: fairdm.contrib.contributors.services.registries.Orcid.ror_for
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.Orcid.ror_for
+```
+
+````
+
+````{py:method} affiliations_from(body)
+:canonical: fairdm.contrib.contributors.services.registries.Orcid.affiliations_from
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.Orcid.affiliations_from
 ```
 
 ````
@@ -356,6 +468,32 @@ Bases: {py:obj}`Exception`
 :canonical: fairdm.contrib.contributors.services.registries.Ror.profile
 
 ```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.Ror.profile
+```
+
+````
+
+````{py:attribute} EXTERNAL_IDS
+:canonical: fairdm.contrib.contributors.services.registries.Ror.EXTERNAL_IDS
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.Ror.EXTERNAL_IDS
+```
+
+````
+
+````{py:method} resolve(source, value)
+:canonical: fairdm.contrib.contributors.services.registries.Ror.resolve
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.Ror.resolve
+```
+
+````
+
+````{py:method} sole_id_from(body)
+:canonical: fairdm.contrib.contributors.services.registries.Ror.sole_id_from
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.Ror.sole_id_from
 ```
 
 ````

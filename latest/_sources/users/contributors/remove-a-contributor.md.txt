@@ -14,11 +14,9 @@ Two things can stop a removal:
 ## Steps
 
 1. Open the record's page and choose its **Contributors** tab.
-2. Choose **Remove** beside the person, or open the menu on the organization's card and choose **Remove**. You can also choose **Remove from this record** on the **Edit a contributor** screen.
-3. Read the screen. It asks "Remove" followed by the name and "from this" and the record's kind, and lists what the removal does.
-4. Choose **Remove**.
+2. Open the menu on the person's row and choose **Remove**, or choose **Remove** on the organization's row.
 
-To change your mind, choose **Cancel**.
+To change your mind, choose **Undo** in the notice that appears. It stays for a few seconds.
 
 ## The result
 
@@ -26,6 +24,6 @@ The contributor is no longer credited on the record or named in its citation. A 
 
 An organization a person was credited from stays under Organizations. Remove it separately if it should go too.
 
-If you add the person again later, they start at **Can view** with no roles, and you are asked for their organization again.
+**Undo** puts the contributor back with the same roles, level, organization and place in the order. A person added again later starts at **Can view**.
 
 The screen is described on [Contributors](contributors-tab.md). For why a record keeps a manager, see [How access to a record is decided](../../explanation/how-access-to-a-record-is-decided.md).

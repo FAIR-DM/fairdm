@@ -8,8 +8,8 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="developers/reference/crediting.html" />
 <meta property="og:site_name" content="fairdm" />
-<meta property="og:description" content="This page lists Crediting, the one place the contributors of a project, dataset, sample or measurement change, and the classes around it: the organization choice ( AffiliationChoice), the two forms..." />
-<meta name="description" content="This page lists Crediting, the one place the contributors of a project, dataset, sample or measurement change, and the classes around it: the organization choice ( AffiliationChoice), the two forms..." />
+<meta property="og:description" content="This page lists Crediting, the one place the contributors of a project, dataset, sample or measurement change, and the classes around it: the ORCID and ROR lookups ( Orcid, Ror), the level choices ..." />
+<meta name="description" content="This page lists Crediting, the one place the contributors of a project, dataset, sample or measurement change, and the classes around it: the ORCID and ROR lookups ( Orcid, Ror), the level choices ..." />
 
     <title>Crediting &#8212; fairdm 0.6.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/styles/sphinx-daisyui.css?v=aedd34d4" />
@@ -111,6 +111,7 @@ commentsRunWhenDOMLoaded(addUtterances);
             <li><a href="../../explanation/how-locations-are-stored-and-protected.html">How locations are stored and protected</a></li>
             <li><a href="../../explanation/dataset-publication-dois-and-datacite-metadata.html">Dataset publication, DOIs and DataCite metadata</a></li>
             <li><a href="../../reference/glossary.html">Glossary</a></li>
+            <li><a href="../../reference/contributor-roles.html">Contributor roles</a></li>
             <li><a href="../../contributing/index.html">Framework Contributors</a></li>
             <li><a href="../../adr/index.html">Architecture Decision Records</a></li>
             <li><a href="../../ROADMAP.html">Roadmap — FairDM</a></li>
@@ -185,6 +186,7 @@ commentsRunWhenDOMLoaded(addUtterances);
                 <li><a href="../../explanation/how-locations-are-stored-and-protected.html">How locations are stored and protected</a></li>
                 <li><a href="../../explanation/dataset-publication-dois-and-datacite-metadata.html">Dataset publication, DOIs and DataCite metadata</a></li>
                 <li><a href="../../reference/glossary.html">Glossary</a></li>
+                <li><a href="../../reference/contributor-roles.html">Contributor roles</a></li>
                 <li><a href="../../contributing/index.html">Framework Contributors</a></li>
                 <li><a href="../../adr/index.html">Architecture Decision Records</a></li>
                 <li><a href="../../ROADMAP.html">Roadmap — FairDM</a></li>
@@ -375,11 +377,12 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li><a class="daisy-toc-link reference internal" href="#the-last-manager">The last manager</a></li>
 </ul>
 </li>
-<li><a class="daisy-toc-link reference internal" href="#affiliationchoice">AffiliationChoice</a></li>
-<li><a class="daisy-toc-link reference internal" href="#newpersonform-and-neworganizationform">NewPersonForm and NewOrganizationForm</a></li>
 <li><a class="daisy-toc-link reference internal" href="#orcid-and-ror">Orcid and Ror</a></li>
 <li><a class="daisy-toc-link reference internal" href="#level-choices">Level choices</a></li>
-<li><a class="daisy-toc-link reference internal" href="#the-contributors-tab">The Contributors tab</a></li>
+<li><a class="daisy-toc-link reference internal" href="#the-contributors-tab">The Contributors tab</a><ul class="daisy-toc-list">
+<li><a class="daisy-toc-link reference internal" href="#helpers">Helpers</a></li>
+</ul>
+</li>
 </ul>
 </nav>
           </details>
@@ -387,7 +390,7 @@ commentsRunWhenDOMLoaded(addUtterances);
           
   <section id="crediting">
 <h1>Crediting<a class="headerlink" aria-label="Link to this heading: Crediting" href="#crediting" title="Link to this heading">¶</a></h1>
-<p>This page lists <code class="docutils literal notranslate"><span class="pre">Crediting</span></code>, the one place the contributors of a project, dataset, sample or measurement change, and the classes around it: the organization choice (<code class="docutils literal notranslate"><span class="pre">AffiliationChoice</span></code>), the two forms for people and organizations typed in by hand (<code class="docutils literal notranslate"><span class="pre">NewPersonForm</span></code>, <code class="docutils literal notranslate"><span class="pre">NewOrganizationForm</span></code>), the ORCID and ROR lookups (<code class="docutils literal notranslate"><span class="pre">Orcid</span></code>, <code class="docutils literal notranslate"><span class="pre">Ror</span></code>) and the pages of the Contributors tab. It does not cover the <code class="docutils literal notranslate"><span class="pre">Contribution</span></code> model, which is in <a class="reference internal" href="contributor-models.html"><span class="std std-doc">Contributor models</span></a>, or the levels a credit carries, which are in <a class="reference internal" href="contribution-levels-and-record-access.html"><span class="std std-doc">Contribution levels and record access</span></a>. For the task, see <a class="reference internal" href="../how-to/credit-a-person-on-a-record.html"><span class="std std-doc">How to credit a person on a record</span></a>.</p>
+<p>This page lists <code class="docutils literal notranslate"><span class="pre">Crediting</span></code>, the one place the contributors of a project, dataset, sample or measurement change, and the classes around it: the ORCID and ROR lookups (<code class="docutils literal notranslate"><span class="pre">Orcid</span></code>, <code class="docutils literal notranslate"><span class="pre">Ror</span></code>), the level choices and the views of the Contributors tab. It does not cover the <code class="docutils literal notranslate"><span class="pre">Contribution</span></code> model, which is in <a class="reference internal" href="contributor-models.html"><span class="std std-doc">Contributor models</span></a>, or the levels a credit carries, which are in <a class="reference internal" href="contribution-levels-and-record-access.html"><span class="std std-doc">Contribution levels and record access</span></a>. For the task, see <a class="reference internal" href="../how-to/credit-a-person-on-a-record.html"><span class="std std-doc">How to credit a person on a record</span></a>.</p>
 <section id="the-crediting-class">
 <h2>The Crediting class<a class="headerlink" aria-label="Link to this heading: The Crediting class" href="#the-crediting-class" title="Link to this heading">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">Crediting(record)</span></code> is in <code class="docutils literal notranslate"><span class="pre">fairdm.contrib.contributors.services.crediting</span></code>. <code class="docutils literal notranslate"><span class="pre">record</span></code> is a project, dataset, sample or measurement of any registered type. A sample or measurement held as its base class is changed as its real type, which is where its contributors and their levels are read.</p>
@@ -415,7 +418,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">move(contribution,</span> <span class="pre">direction)</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
-<td><p>Moves the credit one place earlier (<code class="docutils literal notranslate"><span class="pre">&quot;up&quot;</span></code>) or later (<code class="docutils literal notranslate"><span class="pre">&quot;down&quot;</span></code>) among the credits of its own kind. Changes nothing for the first moving earlier or the last moving later</p></td>
+<td><p>Moves the credit one place earlier (<code class="docutils literal notranslate"><span class="pre">&quot;up&quot;</span></code>) or later (<code class="docutils literal notranslate"><span class="pre">&quot;down&quot;</span></code>) among the credits of its own kind. Changes nothing for the first moving earlier or the last moving later. The Contributors tab orders people with <code class="docutils literal notranslate"><span class="pre">mvp.ordering.save_order</span></code> instead, so a whole order is saved at once</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">make_creator(user,</span> <span class="pre">*,</span> <span class="pre">roles=())</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Contribution</span></code> or <code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
@@ -506,7 +509,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 </section>
 <section id="order">
 <h3>Order<a class="headerlink" aria-label="Link to this heading: Order" href="#order" title="Link to this heading">¶</a></h3>
-<p>A record names its people in one order and its organizations in another. <code class="docutils literal notranslate"><span class="pre">Crediting.move</span></code> is the only code that changes either. It swaps <code class="docutils literal notranslate"><span class="pre">order</span></code> with the neighbour of the same kind on the same record. Credits that share an order value are told apart by their creation order, so a move gives the same result every time. <code class="docutils literal notranslate"><span class="pre">add</span></code> places a contributor last. <code class="docutils literal notranslate"><span class="pre">update</span></code> and <code class="docutils literal notranslate"><span class="pre">remove</span></code> leave the others’ order as it is.</p>
+<p>A record names its people in one order and its organizations in another. <code class="docutils literal notranslate"><span class="pre">Crediting.move</span></code> and the tab’s reorder sheet change the people’s order, and the sheet saves it in one write. It swaps <code class="docutils literal notranslate"><span class="pre">order</span></code> with the neighbour of the same kind on the same record. Credits that share an order value are told apart by their creation order, so a move gives the same result every time. <code class="docutils literal notranslate"><span class="pre">add</span></code> places a contributor last. <code class="docutils literal notranslate"><span class="pre">update</span></code> and <code class="docutils literal notranslate"><span class="pre">remove</span></code> leave the others’ order as it is.</p>
 <p><code class="docutils literal notranslate"><span class="pre">Contribution.objects.for_entity(record).people()</span></code> and <code class="docutils literal notranslate"><span class="pre">.organizations()</span></code> read the two lists, each ordered by <code class="docutils literal notranslate"><span class="pre">order</span></code> then <code class="docutils literal notranslate"><span class="pre">pk</span></code>. <code class="docutils literal notranslate"><span class="pre">RecordOverviewPlugin.get_contributions()</span></code> returns the two lists one after the other, people first. <code class="docutils literal notranslate"><span class="pre">get_credits()</span></code> follows that order and gives a person credited with no organization an <code class="docutils literal notranslate"><span class="pre">affiliation</span></code> of <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
 </section>
 <section id="the-last-manager">
@@ -514,141 +517,9 @@ commentsRunWhenDOMLoaded(addUtterances);
 <p>A record that has someone who counts as able to manage it, as <code class="docutils literal notranslate"><span class="pre">RecordAccess(record).managers()</span></code> reckons, keeps one. <code class="docutils literal notranslate"><span class="pre">update</span></code> and <code class="docutils literal notranslate"><span class="pre">remove</span></code> refuse a change that would take the record from at least one such person to none, whoever asks. A record that has none already may lose or raise anyone. The person’s own level and the level they hold from a record above are both read, so lowering a manager who also manages through the dataset is allowed.</p>
 </section>
 </section>
-<section id="affiliationchoice">
-<h2>AffiliationChoice<a class="headerlink" aria-label="Link to this heading: AffiliationChoice" href="#affiliationchoice" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">AffiliationChoice</span></code> is a form in <code class="docutils literal notranslate"><span class="pre">fairdm.contrib.contributors.plugins.shared</span></code>. It is the choice of the organization a person is credited from on one record, and the form behind the <code class="docutils literal notranslate"><span class="pre">c-contribution.affiliation</span></code> component.</p>
-<div aria-label="Table" class="daisy-sphinx-scroll" role="region" tabindex="0"><table class="docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p>Argument</p></th>
-<th class="head"><p>Type</p></th>
-<th class="head"><p>Default</p></th>
-<th class="head"><p>What it does</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">person</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">Person</span></code> or <code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
-<td><p>The person, when they are already in the portal. Their affiliations become the options, the current primary one first</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">credit</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">Contribution</span></code> or <code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
-<td><p>The person’s credit on the record, when it is being edited. Its organization is selected</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">suggested</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code></p></td>
-<td><p>An organization name to offer, such as an employer from ORCID</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<div aria-label="Table" class="daisy-sphinx-scroll" role="region" tabindex="0"><table class="docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p>Field</p></th>
-<th class="head"><p>Accepts</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">affiliation</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">org:&lt;id&gt;</span></code> for one of the person’s affiliations, <code class="docutils literal notranslate"><span class="pre">other</span></code> for an organization named in <code class="docutils literal notranslate"><span class="pre">affiliation_name</span></code>, or <code class="docutils literal notranslate"><span class="pre">none</span></code>. An empty value means <code class="docutils literal notranslate"><span class="pre">none</span></code>. Any other value is refused with the code <code class="docutils literal notranslate"><span class="pre">invalid_choice</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">affiliation_name</span></code></p></td>
-<td><p>The organization’s name, up to the length of <code class="docutils literal notranslate"><span class="pre">Contributor.name</span></code>. Required when <code class="docutils literal notranslate"><span class="pre">affiliation</span></code> is <code class="docutils literal notranslate"><span class="pre">other</span></code></p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<div aria-label="Table" class="daisy-sphinx-scroll" role="region" tabindex="0"><table class="docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p>Member</p></th>
-<th class="head"><p>Returns</p></th>
-<th class="head"><p>What it does</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">organization()</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">Organization</span></code> or <code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
-<td><p>The organization chosen. For <code class="docutils literal notranslate"><span class="pre">other</span></code>, it finds an organization with that name (ignoring case) or creates one. Call it inside the transaction that saves the credit, so that an organization made for a save that is then refused is not kept</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">choice()</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">dict</span></code></p></td>
-<td><p>The options, which one is selected, the name typed for another organization, and every organization name for the suggestions. A refused form keeps what was entered</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">problem</span></code></p></td>
-<td><p>Property, <code class="docutils literal notranslate"><span class="pre">str</span></code> or <code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
-<td><p>The first error message</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">held_by(person)</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">list</span></code> of <code class="docutils literal notranslate"><span class="pre">dict</span></code></p></td>
-<td><p>Static. One <code class="docutils literal notranslate"><span class="pre">{&quot;value&quot;,</span> <span class="pre">&quot;organization&quot;,</span> <span class="pre">&quot;note&quot;}</span></code> for each of the person’s affiliations</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-</section>
-<section id="newpersonform-and-neworganizationform">
-<h2>NewPersonForm and NewOrganizationForm<a class="headerlink" aria-label="Link to this heading: NewPersonForm and NewOrganizationForm" href="#newpersonform-and-neworganizationform" title="Link to this heading">¶</a></h2>
-<p>Both are forms in <code class="docutils literal notranslate"><span class="pre">fairdm.contrib.contributors.plugins.shared</span></code>. They are behind the by-hand tab of the add pages. <code class="docutils literal notranslate"><span class="pre">save()</span></code> makes the contributor and does nothing else, so a page can make it, make the organization chosen and write the credit in one transaction.</p>
-<p><code class="docutils literal notranslate"><span class="pre">NewPersonForm</span></code>:</p>
-<div aria-label="Table" class="daisy-sphinx-scroll" role="region" tabindex="0"><table class="docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p>Field</p></th>
-<th class="head"><p>Type</p></th>
-<th class="head"><p>Accepts</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">given</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">CharField</span></code></p></td>
-<td><p>The given name, up to the length of <code class="docutils literal notranslate"><span class="pre">Person.first_name</span></code>. Required</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">family</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">CharField</span></code></p></td>
-<td><p>The family name, up to the length of <code class="docutils literal notranslate"><span class="pre">Person.last_name</span></code>. Required</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">confirmed</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">BooleanField</span></code></p></td>
-<td><p>Whether the user has seen the profiles that share the name. Optional</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<p>A posted <code class="docutils literal notranslate"><span class="pre">email</span></code> is ignored. <code class="docutils literal notranslate"><span class="pre">save()</span></code> returns an active, unclaimed <code class="docutils literal notranslate"><span class="pre">Person</span></code> with an unusable password and no account. <code class="docutils literal notranslate"><span class="pre">same_name</span></code> lists up to five people whose name matches, and the form is not valid while it is not empty unless <code class="docutils literal notranslate"><span class="pre">confirmed</span></code> is sent. The error has the code <code class="docutils literal notranslate"><span class="pre">same_name</span></code>.</p>
-<p><code class="docutils literal notranslate"><span class="pre">NewOrganizationForm</span></code>:</p>
-<div aria-label="Table" class="daisy-sphinx-scroll" role="region" tabindex="0"><table class="docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p>Field</p></th>
-<th class="head"><p>Type</p></th>
-<th class="head"><p>Accepts</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">name</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">CharField</span></code></p></td>
-<td><p>The name. Required</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">city</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">CharField</span></code></p></td>
-<td><p>A city. Optional</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">country</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">CharField</span></code></p></td>
-<td><p>A country name or a code from the country field’s list. Anything else is refused with the code <code class="docutils literal notranslate"><span class="pre">invalid_country</span></code>. Optional</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">website</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">URLField</span></code></p></td>
-<td><p>A web address. A missing scheme is read as <code class="docutils literal notranslate"><span class="pre">https</span></code>. It is stored in the organization’s <code class="docutils literal notranslate"><span class="pre">links</span></code>. Optional</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<p>The form is never valid while <code class="docutils literal notranslate"><span class="pre">same_name</span></code> holds an organization with the same name (ignoring case). The error has the code <code class="docutils literal notranslate"><span class="pre">same_name</span></code>.</p>
-</section>
 <section id="orcid-and-ror">
 <h2>Orcid and Ror<a class="headerlink" aria-label="Link to this heading: Orcid and Ror" href="#orcid-and-ror" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">Orcid</span></code> and <code class="docutils literal notranslate"><span class="pre">Ror</span></code> are in <code class="docutils literal notranslate"><span class="pre">fairdm.contrib.contributors.services.registries</span></code>. They are two plain classes with no shared base, and the add pages search them. Each has the same four methods.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Orcid</span></code> and <code class="docutils literal notranslate"><span class="pre">Ror</span></code> are in <code class="docutils literal notranslate"><span class="pre">fairdm.contrib.contributors.services.registries</span></code>. They are two plain classes with no shared base, and the Contributors tab searches them. Each has the same four methods, and each has more.</p>
 <div aria-label="Table" class="daisy-sphinx-scroll" role="region" tabindex="0"><table class="docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Method</p></th>
@@ -659,7 +530,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">search(term)</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">{&quot;results&quot;:</span> <span class="pre">[...],</span> <span class="pre">&quot;more&quot;:</span> <span class="pre">bool}</span></code></p></td>
-<td><p>Searches by name, or by identifier when <code class="docutils literal notranslate"><span class="pre">term</span></code> has the form of one or is the address of one. Returns at most <code class="docutils literal notranslate"><span class="pre">RESULTS_SHOWN</span></code> (10) records and whether the registry holds more. ORCID records of people with no public name and ROR records of organizations that are not active are left out</p></td>
+<td><p>Searches by name, or by identifier when <code class="docutils literal notranslate"><span class="pre">term</span></code> has the form of one or is the address of one. Returns at most <code class="docutils literal notranslate"><span class="pre">RESULTS_SHOWN</span></code> (10) records and whether the registry holds more. <code class="docutils literal notranslate"><span class="pre">Orcid().search(term,</span> <span class="pre">affiliation=&quot;&quot;)</span></code> also takes the name of an affiliation to narrow by. A name is searched as a phrase over the given and family names first, then by each word with the last as a prefix ORCID records of people with no public name and ROR records of organizations that are not active are left out</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fetch(identifier)</span></code></p></td>
 <td><p>record or <code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
@@ -676,6 +547,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 </tbody>
 </table>
 </div>
+<p><code class="docutils literal notranslate"><span class="pre">Orcid().affiliations(orcid_id)</span></code> returns every organization on a person’s public ORCID record, ended ones included, each once and the current ones first, as <code class="docutils literal notranslate"><span class="pre">{&quot;name&quot;,</span> <span class="pre">&quot;ror&quot;,</span> <span class="pre">&quot;current&quot;}</span></code>. An empty list means ORCID has none listed or could not be asked. <code class="docutils literal notranslate"><span class="pre">Ror().resolve(source,</span> <span class="pre">value)</span></code> finds the ROR ID of an organization another registry names: <code class="docutils literal notranslate"><span class="pre">source</span></code> is <code class="docutils literal notranslate"><span class="pre">&quot;FUNDREF&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;GRID&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;RINGGOLD&quot;</span></code>. It returns the bare ROR ID or <code class="docutils literal notranslate"><span class="pre">None</span></code>. ROR indexes Funder Registry and GRID IDs, and has no Ringgold field, so a Ringgold ID resolves only when the organization’s record happens to carry it.</p>
 <p>A record is a plain dictionary:</p>
 <div aria-label="Table" class="daisy-sphinx-scroll" role="region" tabindex="0"><table class="docutils align-default">
 <thead>
@@ -749,6 +621,14 @@ commentsRunWhenDOMLoaded(addUtterances);
 <td><p><code class="docutils literal notranslate"><span class="pre">10</span></code></p></td>
 <td><p>The seconds a registry has to answer <code class="docutils literal notranslate"><span class="pre">fetch_record</span></code></p></td>
 </tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">SEARCHES_PER_MINUTE</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">60</span></code></p></td>
+<td><p>The most registry searches one person may make in a minute</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">SearchLimitReached</span></code></p></td>
+<td><p>Exception, a <code class="docutils literal notranslate"><span class="pre">RegistryUnavailable</span></code></p></td>
+<td><p>Raised by <code class="docutils literal notranslate"><span class="pre">count_search(user)</span></code> past the limit. The count is kept in the default cache</p></td>
+</tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">KEPT</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">300</span></code></p></td>
 <td><p>The seconds an answer is kept in the default cache, by address, parameters and active language. An answer of “no such record” is kept. A failure is not</p></td>
@@ -764,95 +644,115 @@ commentsRunWhenDOMLoaded(addUtterances);
 </section>
 <section id="the-contributors-tab">
 <h2>The Contributors tab<a class="headerlink" aria-label="Link to this heading: The Contributors tab" href="#the-contributors-tab" title="Link to this heading">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">ContributionList</span></code> in <code class="docutils literal notranslate"><span class="pre">fairdm.contrib.contributors.plugins.shared</span></code> is the plugin behind the <strong>Contributors</strong> tab. It is registered on <code class="docutils literal notranslate"><span class="pre">Project</span></code>, <code class="docutils literal notranslate"><span class="pre">Dataset</span></code>, <code class="docutils literal notranslate"><span class="pre">Sample</span></code> and <code class="docutils literal notranslate"><span class="pre">Measurement</span></code>, with the label “Contributors”, the icon <code class="docutils literal notranslate"><span class="pre">users</span></code> and order 150. Registered sample and measurement types inherit it, and their roles, levels and addresses are read from the core model they extend.</p>
-<p>The pages share the base class <code class="docutils literal notranslate"><span class="pre">ContributionPage</span></code>, which works out the record, its kind and whether the viewer may manage it. A page opens only when the record’s overview would. A page that changes anything answers 403 to a signed-in person who cannot manage the record and sends a visitor to sign in.</p>
+<p><code class="docutils literal notranslate"><span class="pre">ContributionList</span></code> in <code class="docutils literal notranslate"><span class="pre">fairdm.contrib.contributors.plugins.tab</span></code> is the plugin behind the <strong>Contributors</strong> tab. It is registered on <code class="docutils literal notranslate"><span class="pre">Project</span></code>, <code class="docutils literal notranslate"><span class="pre">Dataset</span></code>, <code class="docutils literal notranslate"><span class="pre">Sample</span></code> and <code class="docutils literal notranslate"><span class="pre">Measurement</span></code>, with the label “Contributors”, the icon <code class="docutils literal notranslate"><span class="pre">users</span></code> and order 150. Registered sample and measurement types inherit it, and their roles, levels and addresses are read from the core model they extend.</p>
+<p>The tab is one page, <code class="docutils literal notranslate"><span class="pre">contributors/tab/page.html</span></code>, whose body is the Cotton component <code class="docutils literal notranslate"><span class="pre">c-contributor.tab.region</span></code>. Every change answers with that region drawn again, and the sheets that collect a change are drawn into the page by htmx. The views share the base class <code class="docutils literal notranslate"><span class="pre">ContributorsBase</span></code> in <code class="docutils literal notranslate"><span class="pre">plugins/tab_base.py</span></code>, which extends <code class="docutils literal notranslate"><span class="pre">ContributionPage</span></code> and so opens only when the record’s overview would. The views that change anything answer 403 to a signed-in person who cannot manage the record and send a visitor to sign in.</p>
 <div aria-label="Table" class="daisy-sphinx-scroll" role="region" tabindex="0"><table class="docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Class</p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">url_path</span></code></p></th>
+<th class="head"><p>Extra view <code class="docutils literal notranslate"><span class="pre">name</span></code></p></th>
 <th class="head"><p>Method</p></th>
 <th class="head"><p>What it does</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ContributionList</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">contributors</span></code></p></td>
+<td><p>none</p></td>
 <td><p>GET</p></td>
-<td><p>Lists the people and the organizations, each in their own order</p></td>
+<td><p>The two lists, and for a manager the people who hold access from a record above</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ContributionAddPerson</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">AddPerson</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">add-person</span></code></p></td>
-<td><p>GET, POST</p></td>
-<td><p>Adds a person from the portal, from ORCID or by hand</p></td>
+<td><p>GET</p></td>
+<td><p>The sheet’s search of the portal’s people</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ContributionAddOrganization</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">AddPersonStep</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">add-person-step</span></code></p></td>
+<td><p>GET, POST</p></td>
+<td><p>The later steps: who they are, their affiliation, their roles. A POST adds the person</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">AddOrganization</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">add-organization</span></code></p></td>
 <td><p>GET, POST</p></td>
-<td><p>Adds an organization from the portal, from ROR or by hand</p></td>
+<td><p>The organization sheet and its steps. A POST lists the organization</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ContributionEdit</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">&lt;int:pk&gt;/edit</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">EditCredit</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">edit</span></code></p></td>
 <td><p>GET, POST</p></td>
-<td><p>Sets a contributor’s roles and, for a person, the level and the organization</p></td>
+<td><p>Sets a contributor’s roles and, for a person, the affiliation and the level</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ContributionRemove</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">&lt;int:pk&gt;/remove</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CreditOrganization</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">credit-organization</span></code></p></td>
 <td><p>GET, POST</p></td>
-<td><p>Confirms, then removes a contributor</p></td>
+<td><p>Gives an organization that is only someone’s affiliation roles of its own</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ContributionMove</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">&lt;int:pk&gt;/move</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">RemoveCredit</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">remove</span></code></p></td>
 <td><p>POST</p></td>
-<td><p>Moves a contributor one place. A <code class="docutils literal notranslate"><span class="pre">direction</span></code> of <code class="docutils literal notranslate"><span class="pre">up</span></code> or <code class="docutils literal notranslate"><span class="pre">down</span></code> is required, and anything else answers 400</p></td>
+<td><p>Removes a contributor and answers with an Undo</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">UndoRemove</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">undo</span></code></p></td>
+<td><p>POST</p></td>
+<td><p>Puts a removed contributor back from the signed token in <code class="docutils literal notranslate"><span class="pre">undo</span></code>, valid for five minutes</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Reorder</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">reorder</span></code></p></td>
+<td><p>GET, POST</p></td>
+<td><p>Saves the order of the people</p></td>
 </tr>
 </tbody>
 </table>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">ContributionAddPerson</span></code> and <code class="docutils literal notranslate"><span class="pre">ContributionAddOrganization</span></code> share the base <code class="docutils literal notranslate"><span class="pre">ContributionAdd</span></code>:</p>
-<div aria-label="Table" class="daisy-sphinx-scroll" role="region" tabindex="0"><table class="docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p>Attribute</p></th>
-<th class="head"><p>Type</p></th>
-<th class="head"><p>Default</p></th>
-<th class="head"><p>What it does</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">is_person</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">bool</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
-<td><p>Whether the page adds a person</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">registry_class</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">Orcid</span></code> or <code class="docutils literal notranslate"><span class="pre">Ror</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">Orcid</span></code> (<code class="docutils literal notranslate"><span class="pre">Ror</span></code> on the organization page)</p></td>
-<td><p>The registry behind the second tab</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">form_class</span></code></p></td>
-<td><p>form</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">NewPersonForm</span></code> (<code class="docutils literal notranslate"><span class="pre">NewOrganizationForm</span></code> on the organization page)</p></td>
-<td><p>The form behind the by-hand tab</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">results_shown</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">int</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">20</span></code></p></td>
-<td><p>The most matches the portal search lists</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<p>The page offers three tabs, <code class="docutils literal notranslate"><span class="pre">portal</span></code>, <code class="docutils literal notranslate"><span class="pre">registry</span></code> and <code class="docutils literal notranslate"><span class="pre">new</span></code>, and <code class="docutils literal notranslate"><span class="pre">via</span></code> in the address or the form names the one to open. The portal search reads <code class="docutils literal notranslate"><span class="pre">q</span></code> and the registry search reads <code class="docutils literal notranslate"><span class="pre">rq</span></code>. The context’s <code class="docutils literal notranslate"><span class="pre">adding</span></code> carries <code class="docutils literal notranslate"><span class="pre">registry_results</span></code>, <code class="docutils literal notranslate"><span class="pre">registry_more</span></code> and <code class="docutils literal notranslate"><span class="pre">registry_unavailable</span></code>. A registry that cannot be reached leaves the other two tabs working, and the page answers 200. Choosing a registry record only fetches it. Adding posts the identifier, and the page fetches the record again before it makes a profile.</p>
-<p>A refused add or edit answers 422 and draws the page again with what was entered.</p>
-<p>Addresses resolve with the plugin <code class="docutils literal notranslate"><span class="pre">reverse</span></code>:</p>
+<p>Addresses resolve with the plugin <code class="docutils literal notranslate"><span class="pre">reverse</span></code>, and an extra view’s name is prefixed with the plugin’s:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fairdm.contrib.plugins</span><span class="w"> </span><span class="kn">import</span> <span class="n">reverse</span>
 
 <span class="n">reverse</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="s2">"contribution-list"</span><span class="p">)</span>
-<span class="n">reverse</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="s2">"contribution-list-contribution-add-person"</span><span class="p">)</span>
-<span class="n">reverse</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="s2">"contribution-list-contribution-edit"</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="n">contribution</span><span class="o">.</span><span class="n">pk</span><span class="p">)</span>
-<span class="n">reverse</span><span class="p">(</span><span class="n">sample</span><span class="p">,</span> <span class="s2">"contribution-list-contribution-remove"</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="n">contribution</span><span class="o">.</span><span class="n">pk</span><span class="p">)</span>
+<span class="n">reverse</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="s2">"contribution-list-add-person"</span><span class="p">)</span>
+<span class="n">reverse</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="s2">"contribution-list-edit"</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="n">contribution</span><span class="o">.</span><span class="n">pk</span><span class="p">)</span>
+<span class="n">reverse</span><span class="p">(</span><span class="n">sample</span><span class="p">,</span> <span class="s2">"contribution-list-remove"</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="n">contribution</span><span class="o">.</span><span class="n">pk</span><span class="p">)</span>
 </pre></div>
 </div>
+<p>Everyone added to a record that offers the role holds Project Member, ticked and locked in the roles field, and someone who holds it keeps it on edit. A registry search counts against <code class="docutils literal notranslate"><span class="pre">SEARCHES_PER_MINUTE</span></code>, and a registry that cannot be reached, or a person who has searched too often, is told so in the step and nothing is added.</p>
+<section id="helpers">
+<h3>Helpers<a class="headerlink" aria-label="Link to this heading: Helpers" href="#helpers" title="Link to this heading">¶</a></h3>
+<p>The views lean on a few functions, which a project that builds its own step on the tab can call too.</p>
+<div aria-label="Table" class="daisy-sphinx-scroll" role="region" tabindex="0"><table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Function</p></th>
+<th class="head"><p>Module</p></th>
+<th class="head"><p>Returns</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">role_by_slug(slug)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">plugins.tab_base</span></code></p></td>
+<td><p>The contributor role with that slug, or <code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">first_name_of(person,</span> <span class="pre">new_name=None)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">plugins.tab_base</span></code></p></td>
+<td><p>The first of a person’s given names, or their family name when they have none</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">initials_of(record,</span> <span class="pre">organization=False)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">plugins.tab_base</span></code></p></td>
+<td><p>The initials an avatar shows for a registry record</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">affiliation_choices(person)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">plugins.tab_base</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(theirs,</span> <span class="pre">others)</span></code>: the organizations on the person’s profile as <code class="docutils literal notranslate"><span class="pre">(organization,</span> <span class="pre">current)</span></code> pairs, then every other organization</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">split_name(typed)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">plugins.tab_people</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">{&quot;first_name&quot;,</span> <span class="pre">&quot;last_name&quot;}</span></code> from a name typed whole: the last word is the family name</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">portal_organization(entry)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">plugins.tab_people</span></code></p></td>
+<td><p>The portal’s organization for one picked from ORCID or ROR, made only when no ROR ID or name matches</p></td>
+</tr>
+</tbody>
+</table>
+</div>
 <p>See <a class="reference internal" href="plugins.html"><span class="std std-doc">Plugins</span></a> for the plugin registration arguments.</p>
+</section>
 </section>
 </section>
 
@@ -883,11 +783,12 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li><a class="daisy-toc-link reference internal" href="#the-last-manager">The last manager</a></li>
 </ul>
 </li>
-<li><a class="daisy-toc-link reference internal" href="#affiliationchoice">AffiliationChoice</a></li>
-<li><a class="daisy-toc-link reference internal" href="#newpersonform-and-neworganizationform">NewPersonForm and NewOrganizationForm</a></li>
 <li><a class="daisy-toc-link reference internal" href="#orcid-and-ror">Orcid and Ror</a></li>
 <li><a class="daisy-toc-link reference internal" href="#level-choices">Level choices</a></li>
-<li><a class="daisy-toc-link reference internal" href="#the-contributors-tab">The Contributors tab</a></li>
+<li><a class="daisy-toc-link reference internal" href="#the-contributors-tab">The Contributors tab</a><ul class="daisy-toc-list">
+<li><a class="daisy-toc-link reference internal" href="#helpers">Helpers</a></li>
+</ul>
+</li>
 </ul>
 
 </nav></div>

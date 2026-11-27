@@ -111,6 +111,7 @@ commentsRunWhenDOMLoaded(addUtterances);
             <li><a href="../../../../explanation/how-locations-are-stored-and-protected.html">How locations are stored and protected</a></li>
             <li><a href="../../../../explanation/dataset-publication-dois-and-datacite-metadata.html">Dataset publication, DOIs and DataCite metadata</a></li>
             <li><a href="../../../../reference/glossary.html">Glossary</a></li>
+            <li><a href="../../../../reference/contributor-roles.html">Contributor roles</a></li>
             <li><a href="../../../../contributing/index.html">Framework Contributors</a></li>
             <li><a href="../../../../adr/index.html">Architecture Decision Records</a></li>
             <li><a href="../../../../ROADMAP.html">Roadmap — FairDM</a></li>
@@ -185,6 +186,7 @@ commentsRunWhenDOMLoaded(addUtterances);
                 <li><a href="../../../../explanation/how-locations-are-stored-and-protected.html">How locations are stored and protected</a></li>
                 <li><a href="../../../../explanation/dataset-publication-dois-and-datacite-metadata.html">Dataset publication, DOIs and DataCite metadata</a></li>
                 <li><a href="../../../../reference/glossary.html">Glossary</a></li>
+                <li><a href="../../../../reference/contributor-roles.html">Contributor roles</a></li>
                 <li><a href="../../../../contributing/index.html">Framework Contributors</a></li>
                 <li><a href="../../../../adr/index.html">Architecture Decision Records</a></li>
                 <li><a href="../../../../ROADMAP.html">Roadmap — FairDM</a></li>
@@ -383,16 +385,23 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.TIMEOUT"><code class="docutils literal notranslate"><span class="pre">TIMEOUT</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.KEPT"><code class="docutils literal notranslate"><span class="pre">KEPT</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.JSON"><code class="docutils literal notranslate"><span class="pre">JSON</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.SEARCHES_PER_MINUTE"><code class="docutils literal notranslate"><span class="pre">SEARCHES_PER_MINUTE</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.FETCH_TIMEOUT"><code class="docutils literal notranslate"><span class="pre">FETCH_TIMEOUT</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.RegistryRateLimited"><code class="docutils literal notranslate"><span class="pre">RegistryRateLimited</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.seconds_to_wait"><code class="docutils literal notranslate"><span class="pre">seconds_to_wait()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.fetch_record"><code class="docutils literal notranslate"><span class="pre">fetch_record()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.RegistryUnavailable"><code class="docutils literal notranslate"><span class="pre">RegistryUnavailable</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.SearchLimitReached"><code class="docutils literal notranslate"><span class="pre">SearchLimitReached</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.count_search"><code class="docutils literal notranslate"><span class="pre">count_search()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.ask"><code class="docutils literal notranslate"><span class="pre">ask()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.Orcid"><code class="docutils literal notranslate"><span class="pre">Orcid</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.Orcid.SEARCH"><code class="docutils literal notranslate"><span class="pre">Orcid.SEARCH</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.Orcid.RECORD"><code class="docutils literal notranslate"><span class="pre">Orcid.RECORD</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.Orcid.ACTIVITIES"><code class="docutils literal notranslate"><span class="pre">Orcid.ACTIVITIES</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.Orcid.identifier_in"><code class="docutils literal notranslate"><span class="pre">Orcid.identifier_in()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.Orcid.words_of"><code class="docutils literal notranslate"><span class="pre">Orcid.words_of()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.Orcid.all_words"><code class="docutils literal notranslate"><span class="pre">Orcid.all_words()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.Orcid.queries_for"><code class="docutils literal notranslate"><span class="pre">Orcid.queries_for()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.Orcid.search"><code class="docutils literal notranslate"><span class="pre">Orcid.search()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.Orcid.results_from"><code class="docutils literal notranslate"><span class="pre">Orcid.results_from()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.Orcid.found_in"><code class="docutils literal notranslate"><span class="pre">Orcid.found_in()</span></code></a></li>
@@ -401,6 +410,10 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.Orcid.read_record"><code class="docutils literal notranslate"><span class="pre">Orcid.read_record()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.Orcid.known"><code class="docutils literal notranslate"><span class="pre">Orcid.known()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.Orcid.profile"><code class="docutils literal notranslate"><span class="pre">Orcid.profile()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.Orcid.AFFILIATION_SECTIONS"><code class="docutils literal notranslate"><span class="pre">Orcid.AFFILIATION_SECTIONS</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.Orcid.affiliations"><code class="docutils literal notranslate"><span class="pre">Orcid.affiliations()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.Orcid.ror_for"><code class="docutils literal notranslate"><span class="pre">Orcid.ror_for()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.Orcid.affiliations_from"><code class="docutils literal notranslate"><span class="pre">Orcid.affiliations_from()</span></code></a></li>
 </ul>
 </li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.Ror"><code class="docutils literal notranslate"><span class="pre">Ror</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
@@ -413,6 +426,9 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.Ror.fetch"><code class="docutils literal notranslate"><span class="pre">Ror.fetch()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.Ror.known"><code class="docutils literal notranslate"><span class="pre">Ror.known()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.Ror.profile"><code class="docutils literal notranslate"><span class="pre">Ror.profile()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.Ror.EXTERNAL_IDS"><code class="docutils literal notranslate"><span class="pre">Ror.EXTERNAL_IDS</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.Ror.resolve"><code class="docutils literal notranslate"><span class="pre">Ror.resolve()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.Ror.sole_id_from"><code class="docutils literal notranslate"><span class="pre">Ror.sole_id_from()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -426,7 +442,8 @@ commentsRunWhenDOMLoaded(addUtterances);
           
   <section id="module-fairdm.contrib.contributors.services.registries">
 <span id="fairdm-contrib-contributors-services-registries"></span><h1><a class="reference internal" href="#module-fairdm.contrib.contributors.services.registries" title="fairdm.contrib.contributors.services.registries"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.contributors.services.registries</span></code></a><a class="headerlink" aria-label="Link to this heading: fairdm.contrib.contributors.services.registries" href="#module-fairdm.contrib.contributors.services.registries" title="Link to this heading">¶</a></h1>
-<p>Look people up in ORCID and organizations up in ROR, and make profiles from what is found.</p>
+<p>Look people up in ORCID and organizations up in ROR, and make profiles from what is
+found.</p>
 <section id="module-contents">
 <h2>Module Contents<a class="headerlink" aria-label="Link to this heading: Module Contents" href="#module-contents" title="Link to this heading">¶</a></h2>
 <section id="classes">
@@ -451,9 +468,13 @@ commentsRunWhenDOMLoaded(addUtterances);
 <td><p>Read a <code class="docutils literal notranslate"><span class="pre">Retry-After</span></code> header, which is a number of seconds or an HTTP date.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#fairdm.contrib.contributors.services.registries.fetch_record" title="fairdm.contrib.contributors.services.registries.fetch_record"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fetch_record</span></code></a></p></td>
-<td><p>Fetch one registry record for a profile, uncached, as the sync and the transforms do.</p></td>
+<td><p>Fetch one registry record for a profile, uncached, as the sync and the transforms
+do.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.contrib.contributors.services.registries.ask" title="fairdm.contrib.contributors.services.registries.ask"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ask</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.contrib.contributors.services.registries.count_search" title="fairdm.contrib.contributors.services.registries.count_search"><code class="xref py py-obj docutils literal notranslate"><span class="pre">count_search</span></code></a></p></td>
+<td><p>Count one registry search against a person, refusing it past the limit.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.contrib.contributors.services.registries.ask" title="fairdm.contrib.contributors.services.registries.ask"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ask</span></code></a></p></td>
 <td><p>Request an address from a registry and read its answer, unless it is kept.</p></td>
 </tr>
 </tbody>
@@ -476,7 +497,10 @@ commentsRunWhenDOMLoaded(addUtterances);
 <tr class="row-even"><td><p><a class="reference internal" href="#fairdm.contrib.contributors.services.registries.JSON" title="fairdm.contrib.contributors.services.registries.JSON"><code class="xref py py-obj docutils literal notranslate"><span class="pre">JSON</span></code></a></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.contrib.contributors.services.registries.FETCH_TIMEOUT" title="fairdm.contrib.contributors.services.registries.FETCH_TIMEOUT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FETCH_TIMEOUT</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.contrib.contributors.services.registries.SEARCHES_PER_MINUTE" title="fairdm.contrib.contributors.services.registries.SEARCHES_PER_MINUTE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SEARCHES_PER_MINUTE</span></code></a></p></td>
+<td><p>The most registry searches one person may make in a minute.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.contrib.contributors.services.registries.FETCH_TIMEOUT" title="fairdm.contrib.contributors.services.registries.FETCH_TIMEOUT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FETCH_TIMEOUT</span></code></a></p></td>
 <td><p>The seconds a registry has to answer a fetch of one record for a profile.</p></td>
 </tr>
 </tbody>
@@ -513,6 +537,13 @@ commentsRunWhenDOMLoaded(addUtterances);
 </dd></dl>
 
 <dl class="py data">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.services.registries.SEARCHES_PER_MINUTE">
+<span class="sig-name descname"><span class="pre">SEARCHES_PER_MINUTE</span></span><a class="headerlink" aria-label="Link to this definition: SEARCHES_PER_MINUTE" href="#fairdm.contrib.contributors.services.registries.SEARCHES_PER_MINUTE" title="Link to this definition">¶</a></dt>
+<dd><p>60</p>
+<p>The most registry searches one person may make in a minute.</p>
+</dd></dl>
+
+<dl class="py data">
 <dt class="sig sig-object py" id="fairdm.contrib.contributors.services.registries.FETCH_TIMEOUT">
 <span class="sig-name descname"><span class="pre">FETCH_TIMEOUT</span></span><a class="headerlink" aria-label="Link to this definition: FETCH_TIMEOUT" href="#fairdm.contrib.contributors.services.registries.FETCH_TIMEOUT" title="Link to this definition">¶</a></dt>
 <dd><p>10</p>
@@ -525,7 +556,8 @@ commentsRunWhenDOMLoaded(addUtterances);
 <dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">requests.RequestException</span></code></p>
 <p>Signal that a registry answered 429 and asked for no requests for a while.</p>
 <p>Attributes:
-retry_after: The seconds the registry asked to wait, or None when it did not say.</p>
+retry_after: The seconds the registry asked to wait, or None when it did not
+say.</p>
 <p class="rubric">Initialization</p>
 <p>Initialize RequestException with <code class="docutils literal notranslate"><span class="pre">request</span></code> and <code class="docutils literal notranslate"><span class="pre">response</span></code> objects.</p>
 </dd></dl>
@@ -543,10 +575,11 @@ The whole seconds to wait, never negative, or None when the value says nothing.<
 <dl class="py function">
 <dt class="sig sig-object py" id="fairdm.contrib.contributors.services.registries.fetch_record">
 <span class="sig-name descname"><span class="pre">fetch_record</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">address</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: fetch_record" href="#fairdm.contrib.contributors.services.registries.fetch_record" title="Link to this definition">¶</a></dt>
-<dd><p>Fetch one registry record for a profile, uncached, as the sync and the transforms do.</p>
-<p>Every fetch of a record to store on a profile goes through here, so all of them share one
-timeout and one reading of a refusal. Retrying is the caller’s: the sync task retries with
-a growing delay, or after the wait a 429 asks for.</p>
+<dd><p>Fetch one registry record for a profile, uncached, as the sync and the transforms
+do.</p>
+<p>Every fetch of a record to store on a profile goes through here, so all of them
+share one timeout and one reading of a refusal. Retrying is the caller’s: the sync
+task retries with a growing delay, or after the wait a 429 asks for.</p>
 <p>Args:
 address: The record’s address.
 headers: Request headers.</p>
@@ -563,10 +596,33 @@ ValueError: The answer was not JSON.</p>
 <span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">RegistryUnavailable</span></span><a class="headerlink" aria-label="Link to this definition: RegistryUnavailable" href="#fairdm.contrib.contributors.services.registries.RegistryUnavailable" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">Exception</span></code></p>
 <p>Signal that a registry could not be asked or its answer could not be read.</p>
-<p>Raised for a network error, a timeout, an answer that is not a success and an answer that is
-not in the form the registry documents.</p>
+<p>Raised for a network error, a timeout, an answer that is not a success and an answer
+that is not in the form the registry documents.</p>
 <p class="rubric">Initialization</p>
 <p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.services.registries.SearchLimitReached">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">SearchLimitReached</span></span><a class="headerlink" aria-label="Link to this definition: SearchLimitReached" href="#fairdm.contrib.contributors.services.registries.SearchLimitReached" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#fairdm.contrib.contributors.services.registries.RegistryUnavailable" title="fairdm.contrib.contributors.services.registries.RegistryUnavailable"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fairdm.contrib.contributors.services.registries.RegistryUnavailable</span></code></a></p>
+<p>Signal that a person has searched the registries more often than they may in a
+minute.</p>
+<p class="rubric">Initialization</p>
+<p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.services.registries.count_search">
+<span class="sig-name descname"><span class="pre">count_search</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">user</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: count_search" href="#fairdm.contrib.contributors.services.registries.count_search" title="Link to this definition">¶</a></dt>
+<dd><p>Count one registry search against a person, refusing it past the limit.</p>
+<p>The count is kept in the default cache for the minute it began in, so it is shared
+by every process and forgotten after a minute.</p>
+<p>Args:
+user: The signed-in person searching.</p>
+<p>Raises:
+SearchLimitReached: The person has made <code class="docutils literal notranslate"><span class="pre">SEARCHES_PER_MINUTE</span></code> searches this
+minute.</p>
 </dd></dl>
 
 <dl class="py function">
@@ -582,21 +638,22 @@ address: The address, which no search term is ever part of.
 parse: A function that turns the decoded answer into what the caller wants.
 params: Query parameters, which <code class="docutils literal notranslate"><span class="pre">requests</span></code> encodes.
 headers: Request headers.
-missing_ok: Whether a 404 is an answer (“there is no such record”) rather than a failure.</p>
+missing_ok: Whether a 404 is an answer (“there is no such record”) rather than a
+failure.</p>
 <p>Returns:
 What <code class="docutils literal notranslate"><span class="pre">parse</span></code> returns, or None for a 404 when <code class="docutils literal notranslate"><span class="pre">missing_ok</span></code> is true.</p>
 <p>Raises:
-RegistryUnavailable: The request failed, the answer was not a 200, or <code class="docutils literal notranslate"><span class="pre">parse</span></code> could not
-read it.</p>
+RegistryUnavailable: The request failed, the answer was not a 200, or <code class="docutils literal notranslate"><span class="pre">parse</span></code>
+could not read it.</p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="fairdm.contrib.contributors.services.registries.Orcid">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">Orcid</span></span><a class="headerlink" aria-label="Link to this definition: Orcid" href="#fairdm.contrib.contributors.services.registries.Orcid" title="Link to this definition">¶</a></dt>
 <dd><p>Search ORCID for people, fetch one record, and make a profile from it.</p>
-<p>A record is a dictionary with <code class="docutils literal notranslate"><span class="pre">id</span></code> and <code class="docutils literal notranslate"><span class="pre">shown_id</span></code> (the ORCID iD), <code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">given</span></code>,
-<code class="docutils literal notranslate"><span class="pre">family</span></code>, <code class="docutils literal notranslate"><span class="pre">employer</span></code> (the first current employer, or an empty string) and <code class="docutils literal notranslate"><span class="pre">detail</span></code>
-(what tells namesakes apart).</p>
+<p>A record is a dictionary with <code class="docutils literal notranslate"><span class="pre">id</span></code> and <code class="docutils literal notranslate"><span class="pre">shown_id</span></code> (the ORCID iD), <code class="docutils literal notranslate"><span class="pre">name</span></code>,
+<code class="docutils literal notranslate"><span class="pre">given</span></code>, <code class="docutils literal notranslate"><span class="pre">family</span></code>, <code class="docutils literal notranslate"><span class="pre">employer</span></code> (the first current employer, or an empty string)
+and <code class="docutils literal notranslate"><span class="pre">detail</span></code> (what tells namesakes apart).</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="fairdm.contrib.contributors.services.registries.Orcid.SEARCH">
 <span class="sig-name descname"><span class="pre">SEARCH</span></span><a class="headerlink" aria-label="Link to this definition: SEARCH" href="#fairdm.contrib.contributors.services.registries.Orcid.SEARCH" title="Link to this definition">¶</a></dt>
@@ -607,6 +664,12 @@ read it.</p>
 <dt class="sig sig-object py" id="fairdm.contrib.contributors.services.registries.Orcid.RECORD">
 <span class="sig-name descname"><span class="pre">RECORD</span></span><a class="headerlink" aria-label="Link to this definition: RECORD" href="#fairdm.contrib.contributors.services.registries.Orcid.RECORD" title="Link to this definition">¶</a></dt>
 <dd><p>‘https://pub.orcid.org/v3.0/{}/record’</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.services.registries.Orcid.ACTIVITIES">
+<span class="sig-name descname"><span class="pre">ACTIVITIES</span></span><a class="headerlink" aria-label="Link to this definition: ACTIVITIES" href="#fairdm.contrib.contributors.services.registries.Orcid.ACTIVITIES" title="Link to this definition">¶</a></dt>
+<dd><p>‘https://pub.orcid.org/v3.0/{}/activities’</p>
 </dd></dl>
 
 <dl class="py method">
@@ -620,14 +683,54 @@ The bare iD, or None when the text is not in the form of one.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.services.registries.Orcid.words_of">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">words_of</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: words_of" href="#fairdm.contrib.contributors.services.registries.Orcid.words_of" title="Link to this definition">¶</a></dt>
+<dd><p>Return the words of a name or an organization, with nothing ORCID’s query
+language reads.</p>
+<p>Args:
+text: A name or an organization.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.services.registries.Orcid.all_words">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">all_words</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">words</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: all_words" href="#fairdm.contrib.contributors.services.registries.Orcid.all_words" title="Link to this definition">¶</a></dt>
+<dd><p>Return a clause needing every word in <code class="docutils literal notranslate"><span class="pre">field</span></code>, the last one possibly typed
+in part.</p>
+<p>Args:
+field: The ORCID field to search.
+words: The words the field must contain.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.services.registries.Orcid.queries_for">
+<span class="sig-name descname"><span class="pre">queries_for</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">term</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affiliation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: queries_for" href="#fairdm.contrib.contributors.services.registries.Orcid.queries_for" title="Link to this definition">¶</a></dt>
+<dd><p>Return the fielded queries a name search tries in turn, the strictest first.</p>
+<p>ORCID reads a bare term against every field of a record and joins its words with
+OR, so a name alone finds thousands of unrelated people. Each query here asks
+the name fields
+only: first the name as typed, as a phrase, then every word of it in any order
+with the last word as a prefix, so a name still being typed or given family name
+first is found. An affiliation narrows each query to people with an organization
+of that name on their record.</p>
+<p>Args:
+term: The name searched for.
+affiliation: Part of the name of an organization on the person’s record.</p>
+<p>Returns:
+The queries, none when the term has no words.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="fairdm.contrib.contributors.services.registries.Orcid.search">
-<span class="sig-name descname"><span class="pre">search</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">term</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: search" href="#fairdm.contrib.contributors.services.registries.Orcid.search" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">search</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">term</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affiliation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: search" href="#fairdm.contrib.contributors.services.registries.Orcid.search" title="Link to this definition">¶</a></dt>
 <dd><p>Search by name, or by iD when the term is one.</p>
 <p>Args:
-term: A name, an ORCID iD or the address of one.</p>
+term: A name, an ORCID iD or the address of one.
+affiliation: Part of the name of an organization on the person’s record, to
+narrow a name search.</p>
 <p>Returns:
-<code class="docutils literal notranslate"><span class="pre">{&quot;results&quot;:</span> <span class="pre">[...],</span> <span class="pre">&quot;more&quot;:</span> <span class="pre">bool}</span></code>: at most <code class="docutils literal notranslate"><span class="pre">RESULTS_SHOWN</span></code> records of people with
-a public name, and whether the registry holds more matches than that.</p>
+<code class="docutils literal notranslate"><span class="pre">{&quot;results&quot;:</span> <span class="pre">[...],</span> <span class="pre">&quot;more&quot;:</span> <span class="pre">bool}</span></code>: at most <code class="docutils literal notranslate"><span class="pre">RESULTS_SHOWN</span></code> records of
+people with a public name, and whether the registry holds more matches than
+that.</p>
 <p>Raises:
 RegistryUnavailable: ORCID could not be asked or answered badly.</p>
 </dd></dl>
@@ -670,13 +773,13 @@ The record, or None when both names are empty.</p>
 <dt class="sig sig-object py" id="fairdm.contrib.contributors.services.registries.Orcid.fetch">
 <span class="sig-name descname"><span class="pre">fetch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">identifier</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: fetch" href="#fairdm.contrib.contributors.services.registries.Orcid.fetch" title="Link to this definition">¶</a></dt>
 <dd><p>Fetch one person’s public record.</p>
-<p>An identifier that is not in the form of an ORCID iD is refused before any request is
-made.</p>
+<p>An identifier that is not in the form of an ORCID iD is refused before any
+request is made.</p>
 <p>Args:
 identifier: The bare ORCID iD, or its address.</p>
 <p>Returns:
-The record, or None when the identifier is malformed, ORCID has no such record, or
-the record has no public name.</p>
+The record, or None when the identifier is malformed, ORCID has no such
+record, or the record has no public name.</p>
 <p>Raises:
 RegistryUnavailable: ORCID could not be asked or answered badly.</p>
 </dd></dl>
@@ -706,12 +809,57 @@ The person, or None.</p>
 <dt class="sig sig-object py" id="fairdm.contrib.contributors.services.registries.Orcid.profile">
 <span class="sig-name descname"><span class="pre">profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">record</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: profile" href="#fairdm.contrib.contributors.services.registries.Orcid.profile" title="Link to this definition">¶</a></dt>
 <dd><p>Return the person the portal holds under the iD, or make one.</p>
-<p>A person made here has the name and the iD, no email address, an unusable password and
-no account.</p>
+<p>A person made here has the name and the iD, no email address, an unusable
+password and no account.</p>
 <p>Args:
 record: A record from <code class="docutils literal notranslate"><span class="pre">search</span></code> or <code class="docutils literal notranslate"><span class="pre">fetch</span></code>.</p>
 <p>Returns:
 The person.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.services.registries.Orcid.AFFILIATION_SECTIONS">
+<span class="sig-name descname"><span class="pre">AFFILIATION_SECTIONS</span></span><a class="headerlink" aria-label="Link to this definition: AFFILIATION_SECTIONS" href="#fairdm.contrib.contributors.services.registries.Orcid.AFFILIATION_SECTIONS" title="Link to this definition">¶</a></dt>
+<dd><p>(‘employment’, ‘education’, ‘qualification’, ‘invited-position’, ‘membership’, ‘service’)</p>
+<p>The sections of an ORCID record that name an organization the person belongs or
+belonged to, in the order they are offered when nothing else separates them.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.services.registries.Orcid.affiliations">
+<span class="sig-name descname"><span class="pre">affiliations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">orcid_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: affiliations" href="#fairdm.contrib.contributors.services.registries.Orcid.affiliations" title="Link to this definition">¶</a></dt>
+<dd><p>Return every organization on a person’s public ORCID record.</p>
+<p>All the affiliation sections are read, ended ones included, each organization
+once. ORCID identifies an organization by its ROR ID, or by a Funder Registry,
+Ringgold or GRID ID, and the last three are resolved to a ROR ID through ROR.</p>
+<p>Args:
+orcid_id: The bare ORCID iD.</p>
+<p>Returns:
+One dictionary per organization, current ones first, then the most recently
+ended: <code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">ror</span></code> (its ROR ID, or an empty string when none could be
+found) and <code class="docutils literal notranslate"><span class="pre">current</span></code>. Empty when ORCID could not be reached.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.services.registries.Orcid.ror_for">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">ror_for</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: ror_for" href="#fairdm.contrib.contributors.services.registries.Orcid.ror_for" title="Link to this definition">¶</a></dt>
+<dd><p>Return the ROR ID of an organization ORCID identifies another way, or an
+empty string.</p>
+<p>Args:
+source: The kind of identifier ORCID gives, such as <code class="docutils literal notranslate"><span class="pre">FUNDREF</span></code>.
+value: The identifier.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.services.registries.Orcid.affiliations_from">
+<span class="sig-name descname"><span class="pre">affiliations_from</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: affiliations_from" href="#fairdm.contrib.contributors.services.registries.Orcid.affiliations_from" title="Link to this definition">¶</a></dt>
+<dd><p>Read the affiliation sections of an activities answer.</p>
+<p>Args:
+body: The decoded answer.</p>
+<p>Returns:
+One dictionary per entry: <code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">source</span></code> and <code class="docutils literal notranslate"><span class="pre">value</span></code> of the
+identifier ORCID gives (<code class="docutils literal notranslate"><span class="pre">ror</span></code> holds the bare ROR ID itself when that is
+the source), <code class="docutils literal notranslate"><span class="pre">current</span></code>, the <code class="docutils literal notranslate"><span class="pre">year</span></code> it ended and the section’s <code class="docutils literal notranslate"><span class="pre">rank</span></code>.</p>
 </dd></dl>
 
 </dd></dl>
@@ -720,8 +868,9 @@ The person.</p>
 <dt class="sig sig-object py" id="fairdm.contrib.contributors.services.registries.Ror">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">Ror</span></span><a class="headerlink" aria-label="Link to this definition: Ror" href="#fairdm.contrib.contributors.services.registries.Ror" title="Link to this definition">¶</a></dt>
 <dd><p>Search ROR for organizations, fetch one record, and make a profile from it.</p>
-<p>A record is a dictionary with <code class="docutils literal notranslate"><span class="pre">id</span></code> (the ROR address), <code class="docutils literal notranslate"><span class="pre">shown_id</span></code> (the address without its
-scheme), <code class="docutils literal notranslate"><span class="pre">name</span></code> (ROR’s display name) and <code class="docutils literal notranslate"><span class="pre">detail</span></code> (its kind and where it is).</p>
+<p>A record is a dictionary with <code class="docutils literal notranslate"><span class="pre">id</span></code> (the ROR address), <code class="docutils literal notranslate"><span class="pre">shown_id</span></code> (the address
+without its scheme), <code class="docutils literal notranslate"><span class="pre">name</span></code> (ROR’s display name) and <code class="docutils literal notranslate"><span class="pre">detail</span></code> (its kind and
+where it is).</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="fairdm.contrib.contributors.services.registries.Ror.SEARCH">
 <span class="sig-name descname"><span class="pre">SEARCH</span></span><a class="headerlink" aria-label="Link to this definition: SEARCH" href="#fairdm.contrib.contributors.services.registries.Ror.SEARCH" title="Link to this definition">¶</a></dt>
@@ -751,8 +900,8 @@ The bare ID, or None when the text is not in the form of one.</p>
 <p>Args:
 term: A name, a ROR ID or the address of one.</p>
 <p>Returns:
-<code class="docutils literal notranslate"><span class="pre">{&quot;results&quot;:</span> <span class="pre">[...],</span> <span class="pre">&quot;more&quot;:</span> <span class="pre">bool}</span></code>: at most <code class="docutils literal notranslate"><span class="pre">RESULTS_SHOWN</span></code> active organizations,
-and whether the registry holds more matches than that.</p>
+<code class="docutils literal notranslate"><span class="pre">{&quot;results&quot;:</span> <span class="pre">[...],</span> <span class="pre">&quot;more&quot;:</span> <span class="pre">bool}</span></code>: at most <code class="docutils literal notranslate"><span class="pre">RESULTS_SHOWN</span></code> active
+organizations, and whether the registry holds more matches than that.</p>
 <p>Raises:
 RegistryUnavailable: ROR could not be asked or answered badly.</p>
 </dd></dl>
@@ -770,23 +919,26 @@ The results and the flag, as <code class="docutils literal notranslate"><span cl
 <dl class="py method">
 <dt class="sig sig-object py" id="fairdm.contrib.contributors.services.registries.Ror.record_of">
 <span class="sig-name descname"><span class="pre">record_of</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">item</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: record_of" href="#fairdm.contrib.contributors.services.registries.Ror.record_of" title="Link to this definition">¶</a></dt>
-<dd><p>Shape one organization for the templates, or return None when it cannot be chosen.</p>
+<dd><p>Shape one organization for the templates, or return None when it cannot be
+chosen.</p>
 <p>Args:
 item: An organization as ROR describes it.</p>
 <p>Returns:
-The record, or None when the organization is not active or has no display name.</p>
+The record, or None when the organization is not active or has no display
+name.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="fairdm.contrib.contributors.services.registries.Ror.fetch">
 <span class="sig-name descname"><span class="pre">fetch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">identifier</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: fetch" href="#fairdm.contrib.contributors.services.registries.Ror.fetch" title="Link to this definition">¶</a></dt>
 <dd><p>Fetch one organization’s record.</p>
-<p>An identifier that is not in the form of a ROR ID is refused before any request is made.</p>
+<p>An identifier that is not in the form of a ROR ID is refused before any request
+is made.</p>
 <p>Args:
 identifier: The bare ROR ID, or its address.</p>
 <p>Returns:
-The record, or None when the identifier is malformed, ROR has no such record, or the
-organization is not active.</p>
+The record, or None when the identifier is malformed, ROR has no such
+record, or the organization is not active.</p>
 <p>Raises:
 RegistryUnavailable: ROR could not be asked or answered badly.</p>
 </dd></dl>
@@ -810,6 +962,36 @@ The organization, or None.</p>
 record: A record from <code class="docutils literal notranslate"><span class="pre">search</span></code> or <code class="docutils literal notranslate"><span class="pre">fetch</span></code>.</p>
 <p>Returns:
 The organization.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.services.registries.Ror.EXTERNAL_IDS">
+<span class="sig-name descname"><span class="pre">EXTERNAL_IDS</span></span><a class="headerlink" aria-label="Link to this definition: EXTERNAL_IDS" href="#fairdm.contrib.contributors.services.registries.Ror.EXTERNAL_IDS" title="Link to this definition">¶</a></dt>
+<dd><p>None</p>
+<p>The ways ORCID identifies an organization other than by its ROR ID.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.services.registries.Ror.resolve">
+<span class="sig-name descname"><span class="pre">resolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: resolve" href="#fairdm.contrib.contributors.services.registries.Ror.resolve" title="Link to this definition">¶</a></dt>
+<dd><p>Find the ROR ID of an organization another registry identifies.</p>
+<p>ORCID names many organizations by their Funder Registry, Ringgold or GRID ID.
+ROR lists the identifiers it knows for an organization, so a search on one finds
+it. An identifier that no organization holds, or that several do, finds nothing.</p>
+<p>Args:
+source: The registry as ORCID names it: <code class="docutils literal notranslate"><span class="pre">FUNDREF</span></code>, <code class="docutils literal notranslate"><span class="pre">GRID</span></code> or
+<code class="docutils literal notranslate"><span class="pre">RINGGOLD</span></code>.
+value: The identifier, in the form ORCID gives it.</p>
+<p>Returns:
+The bare ROR ID, or None.</p>
+<p>Raises:
+RegistryUnavailable: ROR could not be asked or answered badly.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.services.registries.Ror.sole_id_from">
+<span class="sig-name descname"><span class="pre">sole_id_from</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: sole_id_from" href="#fairdm.contrib.contributors.services.registries.Ror.sole_id_from" title="Link to this definition">¶</a></dt>
+<dd><p>Read the ROR ID of the one active organization an identifier search found.</p>
 </dd></dl>
 
 </dd></dl>
@@ -848,16 +1030,23 @@ The organization.</p>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.TIMEOUT"><code class="docutils literal notranslate"><span class="pre">TIMEOUT</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.KEPT"><code class="docutils literal notranslate"><span class="pre">KEPT</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.JSON"><code class="docutils literal notranslate"><span class="pre">JSON</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.SEARCHES_PER_MINUTE"><code class="docutils literal notranslate"><span class="pre">SEARCHES_PER_MINUTE</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.FETCH_TIMEOUT"><code class="docutils literal notranslate"><span class="pre">FETCH_TIMEOUT</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.RegistryRateLimited"><code class="docutils literal notranslate"><span class="pre">RegistryRateLimited</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.seconds_to_wait"><code class="docutils literal notranslate"><span class="pre">seconds_to_wait()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.fetch_record"><code class="docutils literal notranslate"><span class="pre">fetch_record()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.RegistryUnavailable"><code class="docutils literal notranslate"><span class="pre">RegistryUnavailable</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.SearchLimitReached"><code class="docutils literal notranslate"><span class="pre">SearchLimitReached</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.count_search"><code class="docutils literal notranslate"><span class="pre">count_search()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.ask"><code class="docutils literal notranslate"><span class="pre">ask()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.Orcid"><code class="docutils literal notranslate"><span class="pre">Orcid</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.Orcid.SEARCH"><code class="docutils literal notranslate"><span class="pre">Orcid.SEARCH</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.Orcid.RECORD"><code class="docutils literal notranslate"><span class="pre">Orcid.RECORD</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.Orcid.ACTIVITIES"><code class="docutils literal notranslate"><span class="pre">Orcid.ACTIVITIES</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.Orcid.identifier_in"><code class="docutils literal notranslate"><span class="pre">Orcid.identifier_in()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.Orcid.words_of"><code class="docutils literal notranslate"><span class="pre">Orcid.words_of()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.Orcid.all_words"><code class="docutils literal notranslate"><span class="pre">Orcid.all_words()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.Orcid.queries_for"><code class="docutils literal notranslate"><span class="pre">Orcid.queries_for()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.Orcid.search"><code class="docutils literal notranslate"><span class="pre">Orcid.search()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.Orcid.results_from"><code class="docutils literal notranslate"><span class="pre">Orcid.results_from()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.Orcid.found_in"><code class="docutils literal notranslate"><span class="pre">Orcid.found_in()</span></code></a></li>
@@ -866,6 +1055,10 @@ The organization.</p>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.Orcid.read_record"><code class="docutils literal notranslate"><span class="pre">Orcid.read_record()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.Orcid.known"><code class="docutils literal notranslate"><span class="pre">Orcid.known()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.Orcid.profile"><code class="docutils literal notranslate"><span class="pre">Orcid.profile()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.Orcid.AFFILIATION_SECTIONS"><code class="docutils literal notranslate"><span class="pre">Orcid.AFFILIATION_SECTIONS</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.Orcid.affiliations"><code class="docutils literal notranslate"><span class="pre">Orcid.affiliations()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.Orcid.ror_for"><code class="docutils literal notranslate"><span class="pre">Orcid.ror_for()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.Orcid.affiliations_from"><code class="docutils literal notranslate"><span class="pre">Orcid.affiliations_from()</span></code></a></li>
 </ul>
 </li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.Ror"><code class="docutils literal notranslate"><span class="pre">Ror</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
@@ -878,6 +1071,9 @@ The organization.</p>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.Ror.fetch"><code class="docutils literal notranslate"><span class="pre">Ror.fetch()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.Ror.known"><code class="docutils literal notranslate"><span class="pre">Ror.known()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.Ror.profile"><code class="docutils literal notranslate"><span class="pre">Ror.profile()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.Ror.EXTERNAL_IDS"><code class="docutils literal notranslate"><span class="pre">Ror.EXTERNAL_IDS</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.Ror.resolve"><code class="docutils literal notranslate"><span class="pre">Ror.resolve()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.services.registries.Ror.sole_id_from"><code class="docutils literal notranslate"><span class="pre">Ror.sole_id_from()</span></code></a></li>
 </ul>
 </li>
 </ul>

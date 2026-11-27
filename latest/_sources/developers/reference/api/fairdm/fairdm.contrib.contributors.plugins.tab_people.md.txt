@@ -1,0 +1,283 @@
+# {py:mod}`fairdm.contrib.contributors.plugins.tab_people`
+
+```{py:module} fairdm.contrib.contributors.plugins.tab_people
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_people
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`AddPerson <fairdm.contrib.contributors.plugins.tab_people.AddPerson>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_people.AddPerson
+    :summary:
+    ```
+* - {py:obj}`AddPersonStep <fairdm.contrib.contributors.plugins.tab_people.AddPersonStep>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_people.AddPersonStep
+    :summary:
+    ```
+````
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`split_name <fairdm.contrib.contributors.plugins.tab_people.split_name>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_people.split_name
+    :summary:
+    ```
+* - {py:obj}`portal_organization <fairdm.contrib.contributors.plugins.tab_people.portal_organization>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_people.portal_organization
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`PORTAL_RESULTS <fairdm.contrib.contributors.plugins.tab_people.PORTAL_RESULTS>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_people.PORTAL_RESULTS
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} PORTAL_RESULTS
+:canonical: fairdm.contrib.contributors.plugins.tab_people.PORTAL_RESULTS
+:value: >
+   12
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_people.PORTAL_RESULTS
+```
+
+````
+
+````{py:function} split_name(typed)
+:canonical: fairdm.contrib.contributors.plugins.tab_people.split_name
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_people.split_name
+```
+````
+
+````{py:function} portal_organization(entry)
+:canonical: fairdm.contrib.contributors.plugins.tab_people.portal_organization
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_people.portal_organization
+```
+````
+
+`````{py:class} AddPerson(**kwargs)
+:canonical: fairdm.contrib.contributors.plugins.tab_people.AddPerson
+
+Bases: {py:obj}`fairdm.contrib.contributors.plugins.tab_base.ContributorsBase`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_people.AddPerson
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_people.AddPerson.__init__
+```
+
+````{py:attribute} name
+:canonical: fairdm.contrib.contributors.plugins.tab_people.AddPerson.name
+:value: >
+   'add-person'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_people.AddPerson.name
+```
+
+````
+
+````{py:attribute} url_path
+:canonical: fairdm.contrib.contributors.plugins.tab_people.AddPerson.url_path
+:value: >
+   'add-person'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_people.AddPerson.url_path
+```
+
+````
+
+````{py:method} get(request, *args, **kwargs)
+:canonical: fairdm.contrib.contributors.plugins.tab_people.AddPerson.get
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_people.AddPerson.get
+```
+
+````
+
+````{py:method} unknown_identifier(identifier, holders)
+:canonical: fairdm.contrib.contributors.plugins.tab_people.AddPerson.unknown_identifier
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_people.AddPerson.unknown_identifier
+```
+
+````
+
+`````
+
+`````{py:class} AddPersonStep(**kwargs)
+:canonical: fairdm.contrib.contributors.plugins.tab_people.AddPersonStep
+
+Bases: {py:obj}`fairdm.contrib.contributors.plugins.tab_base.ContributorsBase`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_people.AddPersonStep
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_people.AddPersonStep.__init__
+```
+
+````{py:attribute} name
+:canonical: fairdm.contrib.contributors.plugins.tab_people.AddPersonStep.name
+:value: >
+   'add-person-step'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_people.AddPersonStep.name
+```
+
+````
+
+````{py:attribute} url_path
+:canonical: fairdm.contrib.contributors.plugins.tab_people.AddPersonStep.url_path
+:value: >
+   'add-person/details'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_people.AddPersonStep.url_path
+```
+
+````
+
+````{py:attribute} AFFILIATION_KEYS
+:canonical: fairdm.contrib.contributors.plugins.tab_people.AddPersonStep.AFFILIATION_KEYS
+:value: >
+   ('stage', 'aq', 'org', 'ror', 'org_name', 'none', 'from')
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_people.AddPersonStep.AFFILIATION_KEYS
+```
+
+````
+
+````{py:method} step_url(new_name, **extra)
+:canonical: fairdm.contrib.contributors.plugins.tab_people.AddPersonStep.step_url
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_people.AddPersonStep.step_url
+```
+
+````
+
+````{py:method} search_url(**query)
+:canonical: fairdm.contrib.contributors.plugins.tab_people.AddPersonStep.search_url
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_people.AddPersonStep.search_url
+```
+
+````
+
+````{py:method} get(request, *args, **kwargs)
+:canonical: fairdm.contrib.contributors.plugins.tab_people.AddPersonStep.get
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_people.AddPersonStep.get
+```
+
+````
+
+````{py:method} orcid_person(orcid_id, typed, via, narrowed)
+:canonical: fairdm.contrib.contributors.plugins.tab_people.AddPersonStep.orcid_person
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_people.AddPersonStep.orcid_person
+```
+
+````
+
+````{py:method} affiliation_flow(person, new_name, back_url)
+:canonical: fairdm.contrib.contributors.plugins.tab_people.AddPersonStep.affiliation_flow
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_people.AddPersonStep.affiliation_flow
+```
+
+````
+
+````{py:method} ror_matches_step(here, query)
+:canonical: fairdm.contrib.contributors.plugins.tab_people.AddPersonStep.ror_matches_step
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_people.AddPersonStep.ror_matches_step
+```
+
+````
+
+````{py:method} affiliation_results(person, new_name, here, query)
+:canonical: fairdm.contrib.contributors.plugins.tab_people.AddPersonStep.affiliation_results
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_people.AddPersonStep.affiliation_results
+```
+
+````
+
+````{py:method} pick_url(here, organization, query)
+:canonical: fairdm.contrib.contributors.plugins.tab_people.AddPersonStep.pick_url
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_people.AddPersonStep.pick_url
+```
+
+````
+
+````{py:method} picked_affiliation(data)
+:canonical: fairdm.contrib.contributors.plugins.tab_people.AddPersonStep.picked_affiliation
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_people.AddPersonStep.picked_affiliation
+```
+
+````
+
+````{py:method} person_roles_step(person, new_name, here, head)
+:canonical: fairdm.contrib.contributors.plugins.tab_people.AddPersonStep.person_roles_step
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_people.AddPersonStep.person_roles_step
+```
+
+````
+
+````{py:method} orcid_matches_step(typed, via, narrowed, only_list=False, problem='')
+:canonical: fairdm.contrib.contributors.plugins.tab_people.AddPersonStep.orcid_matches_step
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_people.AddPersonStep.orcid_matches_step
+```
+
+````
+
+````{py:method} confirm_name_step(typed, narrowed, via, given=False)
+:canonical: fairdm.contrib.contributors.plugins.tab_people.AddPersonStep.confirm_name_step
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_people.AddPersonStep.confirm_name_step
+```
+
+````
+
+````{py:method} post(request, *args, **kwargs)
+:canonical: fairdm.contrib.contributors.plugins.tab_people.AddPersonStep.post
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_people.AddPersonStep.post
+```
+
+````
+
+`````

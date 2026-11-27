@@ -111,6 +111,7 @@ commentsRunWhenDOMLoaded(addUtterances);
             <li><a href="../../explanation/how-locations-are-stored-and-protected.html">How locations are stored and protected</a></li>
             <li><a href="../../explanation/dataset-publication-dois-and-datacite-metadata.html">Dataset publication, DOIs and DataCite metadata</a></li>
             <li><a href="../../reference/glossary.html">Glossary</a></li>
+            <li><a href="../../reference/contributor-roles.html">Contributor roles</a></li>
             <li><a href="../../contributing/index.html">Framework Contributors</a></li>
             <li><a href="../../adr/index.html">Architecture Decision Records</a></li>
             <li><a href="../../ROADMAP.html">Roadmap — FairDM</a></li>
@@ -185,6 +186,7 @@ commentsRunWhenDOMLoaded(addUtterances);
                 <li><a href="../../explanation/how-locations-are-stored-and-protected.html">How locations are stored and protected</a></li>
                 <li><a href="../../explanation/dataset-publication-dois-and-datacite-metadata.html">Dataset publication, DOIs and DataCite metadata</a></li>
                 <li><a href="../../reference/glossary.html">Glossary</a></li>
+                <li><a href="../../reference/contributor-roles.html">Contributor roles</a></li>
                 <li><a href="../../contributing/index.html">Framework Contributors</a></li>
                 <li><a href="../../adr/index.html">Architecture Decision Records</a></li>
                 <li><a href="../../ROADMAP.html">Roadmap — FairDM</a></li>
@@ -426,16 +428,12 @@ commentsRunWhenDOMLoaded(addUtterances);
 </div>
 <p>The codes are listed in <a class="reference internal" href="../reference/crediting.html#refusal-codes"><span class="std std-ref">Crediting</span></a>. Show the user the message, or attach it to a form field.</p>
 </li>
-<li><p>If your page lets the user choose the organization, use <code class="docutils literal notranslate"><span class="pre">AffiliationChoice</span></code>. It offers the person’s own affiliations, another organization by name, or none. Call <code class="docutils literal notranslate"><span class="pre">organization()</span></code> inside the transaction that saves the credit, so that an organization made for a save that is then refused is not kept.</p>
+<li><p>If your page lets the user choose the organization, offer the person’s own affiliations first and any other organization after them, and pass the one chosen as <code class="docutils literal notranslate"><span class="pre">organization</span></code>. Make an organization the user named inside the transaction that saves the credit, so that one made for a save that is then refused is not kept.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">django.db</span><span class="w"> </span><span class="kn">import</span> <span class="n">transaction</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">fairdm.contrib.contributors.plugins.shared</span><span class="w"> </span><span class="kn">import</span> <span class="n">AffiliationChoice</span>
-
-<span class="n">choice</span> <span class="o">=</span> <span class="n">AffiliationChoice</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">,</span> <span class="n">person</span><span class="o">=</span><span class="n">person</span><span class="p">)</span>
-<span class="k">if</span> <span class="n">choice</span><span class="o">.</span><span class="n">is_valid</span><span class="p">():</span>
-    <span class="k">with</span> <span class="n">transaction</span><span class="o">.</span><span class="n">atomic</span><span class="p">():</span>
-        <span class="n">organization</span> <span class="o">=</span> <span class="n">choice</span><span class="o">.</span><span class="n">organization</span><span class="p">()</span>
-        <span class="n">Crediting</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">person</span><span class="p">,</span> <span class="n">organization</span><span class="o">=</span><span class="n">organization</span><span class="p">)</span>
+<span class="k">with</span> <span class="n">transaction</span><span class="o">.</span><span class="n">atomic</span><span class="p">():</span>
+    <span class="n">organization</span> <span class="o">=</span> <span class="n">Organization</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">typed_name</span><span class="p">)</span>
+    <span class="n">Crediting</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">person</span><span class="p">,</span> <span class="n">organization</span><span class="o">=</span><span class="n">organization</span><span class="p">)</span>
 </pre></div>
 </div>
 </li>

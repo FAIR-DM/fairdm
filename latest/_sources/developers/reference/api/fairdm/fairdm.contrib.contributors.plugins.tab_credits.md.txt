@@ -1,0 +1,344 @@
+# {py:mod}`fairdm.contrib.contributors.plugins.tab_credits`
+
+```{py:module} fairdm.contrib.contributors.plugins.tab_credits
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_credits
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`EditCredit <fairdm.contrib.contributors.plugins.tab_credits.EditCredit>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_credits.EditCredit
+    :summary:
+    ```
+* - {py:obj}`CreditOrganization <fairdm.contrib.contributors.plugins.tab_credits.CreditOrganization>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_credits.CreditOrganization
+    :summary:
+    ```
+* - {py:obj}`RemoveCredit <fairdm.contrib.contributors.plugins.tab_credits.RemoveCredit>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_credits.RemoveCredit
+    :summary:
+    ```
+* - {py:obj}`UndoRemove <fairdm.contrib.contributors.plugins.tab_credits.UndoRemove>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_credits.UndoRemove
+    :summary:
+    ```
+* - {py:obj}`Reorder <fairdm.contrib.contributors.plugins.tab_credits.Reorder>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_credits.Reorder
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`UNDO_SALT <fairdm.contrib.contributors.plugins.tab_credits.UNDO_SALT>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_credits.UNDO_SALT
+    :summary:
+    ```
+* - {py:obj}`UNDO_SECONDS <fairdm.contrib.contributors.plugins.tab_credits.UNDO_SECONDS>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_credits.UNDO_SECONDS
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} UNDO_SALT
+:canonical: fairdm.contrib.contributors.plugins.tab_credits.UNDO_SALT
+:value: >
+   'contributors-undo'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_credits.UNDO_SALT
+```
+
+````
+
+````{py:data} UNDO_SECONDS
+:canonical: fairdm.contrib.contributors.plugins.tab_credits.UNDO_SECONDS
+:value: >
+   300
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_credits.UNDO_SECONDS
+```
+
+````
+
+`````{py:class} EditCredit(**kwargs)
+:canonical: fairdm.contrib.contributors.plugins.tab_credits.EditCredit
+
+Bases: {py:obj}`fairdm.contrib.contributors.plugins.tab_base.ContributorsBase`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_credits.EditCredit
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_credits.EditCredit.__init__
+```
+
+````{py:attribute} name
+:canonical: fairdm.contrib.contributors.plugins.tab_credits.EditCredit.name
+:value: >
+   'edit'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_credits.EditCredit.name
+```
+
+````
+
+````{py:attribute} url_path
+:canonical: fairdm.contrib.contributors.plugins.tab_credits.EditCredit.url_path
+:value: >
+   '<int:pk>/edit'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_credits.EditCredit.url_path
+```
+
+````
+
+````{py:method} get(request, *args, **kwargs)
+:canonical: fairdm.contrib.contributors.plugins.tab_credits.EditCredit.get
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_credits.EditCredit.get
+```
+
+````
+
+````{py:method} person_fields(person, credit)
+:canonical: fairdm.contrib.contributors.plugins.tab_credits.EditCredit.person_fields
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_credits.EditCredit.person_fields
+```
+
+````
+
+````{py:method} post(request, *args, **kwargs)
+:canonical: fairdm.contrib.contributors.plugins.tab_credits.EditCredit.post
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_credits.EditCredit.post
+```
+
+````
+
+````{py:method} chosen_affiliation()
+:canonical: fairdm.contrib.contributors.plugins.tab_credits.EditCredit.chosen_affiliation
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_credits.EditCredit.chosen_affiliation
+```
+
+````
+
+````{py:method} chosen_level()
+:canonical: fairdm.contrib.contributors.plugins.tab_credits.EditCredit.chosen_level
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_credits.EditCredit.chosen_level
+```
+
+````
+
+`````
+
+`````{py:class} CreditOrganization(**kwargs)
+:canonical: fairdm.contrib.contributors.plugins.tab_credits.CreditOrganization
+
+Bases: {py:obj}`fairdm.contrib.contributors.plugins.tab_base.ContributorsBase`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_credits.CreditOrganization
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_credits.CreditOrganization.__init__
+```
+
+````{py:attribute} name
+:canonical: fairdm.contrib.contributors.plugins.tab_credits.CreditOrganization.name
+:value: >
+   'credit-organization'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_credits.CreditOrganization.name
+```
+
+````
+
+````{py:attribute} url_path
+:canonical: fairdm.contrib.contributors.plugins.tab_credits.CreditOrganization.url_path
+:value: >
+   'organization/<int:pk>/roles'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_credits.CreditOrganization.url_path
+```
+
+````
+
+````{py:method} get(request, *args, **kwargs)
+:canonical: fairdm.contrib.contributors.plugins.tab_credits.CreditOrganization.get
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_credits.CreditOrganization.get
+```
+
+````
+
+````{py:method} post(request, *args, **kwargs)
+:canonical: fairdm.contrib.contributors.plugins.tab_credits.CreditOrganization.post
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_credits.CreditOrganization.post
+```
+
+````
+
+`````
+
+`````{py:class} RemoveCredit(**kwargs)
+:canonical: fairdm.contrib.contributors.plugins.tab_credits.RemoveCredit
+
+Bases: {py:obj}`fairdm.contrib.contributors.plugins.tab_base.ContributorsBase`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_credits.RemoveCredit
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_credits.RemoveCredit.__init__
+```
+
+````{py:attribute} name
+:canonical: fairdm.contrib.contributors.plugins.tab_credits.RemoveCredit.name
+:value: >
+   'remove'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_credits.RemoveCredit.name
+```
+
+````
+
+````{py:attribute} url_path
+:canonical: fairdm.contrib.contributors.plugins.tab_credits.RemoveCredit.url_path
+:value: >
+   '<int:pk>/remove'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_credits.RemoveCredit.url_path
+```
+
+````
+
+````{py:method} post(request, *args, **kwargs)
+:canonical: fairdm.contrib.contributors.plugins.tab_credits.RemoveCredit.post
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_credits.RemoveCredit.post
+```
+
+````
+
+`````
+
+`````{py:class} UndoRemove(**kwargs)
+:canonical: fairdm.contrib.contributors.plugins.tab_credits.UndoRemove
+
+Bases: {py:obj}`fairdm.contrib.contributors.plugins.tab_base.ContributorsBase`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_credits.UndoRemove
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_credits.UndoRemove.__init__
+```
+
+````{py:attribute} name
+:canonical: fairdm.contrib.contributors.plugins.tab_credits.UndoRemove.name
+:value: >
+   'undo'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_credits.UndoRemove.name
+```
+
+````
+
+````{py:attribute} url_path
+:canonical: fairdm.contrib.contributors.plugins.tab_credits.UndoRemove.url_path
+:value: >
+   'undo'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_credits.UndoRemove.url_path
+```
+
+````
+
+````{py:method} post(request, *args, **kwargs)
+:canonical: fairdm.contrib.contributors.plugins.tab_credits.UndoRemove.post
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_credits.UndoRemove.post
+```
+
+````
+
+`````
+
+`````{py:class} Reorder(**kwargs)
+:canonical: fairdm.contrib.contributors.plugins.tab_credits.Reorder
+
+Bases: {py:obj}`fairdm.contrib.contributors.plugins.tab_base.ContributorsBase`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_credits.Reorder
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_credits.Reorder.__init__
+```
+
+````{py:attribute} name
+:canonical: fairdm.contrib.contributors.plugins.tab_credits.Reorder.name
+:value: >
+   'reorder'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_credits.Reorder.name
+```
+
+````
+
+````{py:attribute} url_path
+:canonical: fairdm.contrib.contributors.plugins.tab_credits.Reorder.url_path
+:value: >
+   'reorder'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_credits.Reorder.url_path
+```
+
+````
+
+````{py:method} get(request, *args, **kwargs)
+:canonical: fairdm.contrib.contributors.plugins.tab_credits.Reorder.get
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_credits.Reorder.get
+```
+
+````
+
+````{py:method} post(request, *args, **kwargs)
+:canonical: fairdm.contrib.contributors.plugins.tab_credits.Reorder.post
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_credits.Reorder.post
+```
+
+````
+
+`````

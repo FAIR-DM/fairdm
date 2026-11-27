@@ -11,10 +11,10 @@ A level can be set for a person who has no active account yet. It takes effect w
 ## Steps
 
 1. Open the record's page and choose its **Contributors** tab.
-2. Choose **Add person**.
-3. On the **Already in the portal** tab, type your colleague's name and choose **Search**, then choose **Choose** beside the right match. To find them in ORCID or add them by hand, see [How to add a person or organization](add-a-person-or-organization.md).
-4. Choose the organization they are credited from, or **No affiliation**, and choose **Add to this** followed by the record's kind. You arrive on the **Edit a contributor** screen. Your colleague is already added, at **Can view**.
-5. Under "What they may do on" the record's kind, choose the level you want:
+2. Choose **Add** beside **People**.
+3. Type your colleague's name and choose the right match. To find them in ORCID or add them by name alone, see [How to add a person or organization](add-a-person-or-organization.md).
+4. Choose the organization they are credited from, or none, tick their roles and choose **Add**. Your colleague is added at **Can view**.
+5. To give them more, choose **Edit** on their row. Under their access, choose the level you want:
     - **Can view** lets them open the record and nothing more.
     - **Can edit** lets them also change the record and the data in it.
     - **Can manage** lets them also change its contributors and their levels, change its visibility and delete it.
