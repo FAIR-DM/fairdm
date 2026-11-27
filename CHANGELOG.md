@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.7.0] - 2026-11-27
+
 ### Added
 
 - **A portal can be installed as an app.** A visitor can add the portal to a phone's home screen or a computer's desktop, where it opens in its own window. **Install the app**, under a new **Resources** heading in the sidebar menu, opens a page with the steps for the visitor's device and browser. The app is named after `SITE_NAME`, takes FairDM's mark as its icon and the light header colour as its own. The same `SITE_NAME` now ends every page title, which read `example.com` on a portal that had not renamed its `Site`. Set `MVP_CONFIG["pwa"] = False` to turn it off. See [How to change the portal theme](docs/developers/how-to/change-the-portal-theme.md) to give the app a portal's own icons.
