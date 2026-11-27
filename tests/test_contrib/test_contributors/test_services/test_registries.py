@@ -72,7 +72,7 @@ def keeping_cache(settings):
 
 
 class TestAsk:
-    """Every lookup goes through ``ask``, so what a registry that fails does is shown here."""
+    """Every lookup goes through ``ask``, so a registry that fails is shown here."""
 
     ADDRESS = "https://registry.example/lookup"
 

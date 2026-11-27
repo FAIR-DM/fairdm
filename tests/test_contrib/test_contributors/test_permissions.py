@@ -354,7 +354,8 @@ class TestAPersonHoldingTwoRolesHoldsBothSets:
 
 VIEW, EDIT, MANAGE = 1, 2, 3
 
-#: ``(kind, permission, level held, allowed)``: each level the table asks for, at and just
+#: ``(kind, permission, level held, allowed)``: each level the table asks for, at and
+#: just
 #: below it, on a dataset, then one case for each other kind.
 LEVEL_CASES = [
     ("dataset", "view_dataset", VIEW, True),

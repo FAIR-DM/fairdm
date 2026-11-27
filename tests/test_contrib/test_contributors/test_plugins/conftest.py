@@ -67,7 +67,7 @@ def public_chain(db):
 
 @pytest.fixture
 def dataset_pair(db):
-    """A public project and a public dataset inside it, for access held from a record above."""
+    """A public project and a public dataset inside it, for access held above."""
     project = ProjectFactory(visibility=Visibility.PUBLIC)
     dataset = DatasetFactory(
         project=project, visibility=Visibility.PUBLIC, published=True

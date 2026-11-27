@@ -1326,7 +1326,7 @@ class TestOrganizationChecklist:
 
 @pytest.fixture(scope="class")
 def keeper_world(django_db_setup, django_db_blocker):
-    """The organization and the people around it, built once for a class that only reads them.
+    """The organization and the people around it, built once for a reading class.
 
     Each test rolls back to this point, and the class rolls back to where it started.
     """

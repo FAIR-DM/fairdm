@@ -420,11 +420,12 @@ class TestOrganizationProfileForm:
 
 @pytest.fixture
 def stored_record_failing_validation(db, profile_data):
-    """A person whose stored identifier fails the model's validation, and the form for it.
+    """A person whose stored identifier fails the model's validation, and its form.
 
-    The identifier is not a field of the form, so the failure is one the form lacks a field
-    for. A malformed value can only be stored by bypassing ``ContributorIdentifier.clean``.
-    The failure is handled by the base class both profile forms share.
+    The identifier is not a field of the form, so the failure is one the form lacks a
+    field for. A malformed value can only be stored by bypassing
+    ``ContributorIdentifier.clean``. The failure is handled by the base class both
+    profile forms share.
     """
     record = PersonFactory(name="Before")
     ContributorIdentifier.objects.create(

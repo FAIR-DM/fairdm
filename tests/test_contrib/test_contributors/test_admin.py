@@ -806,7 +806,8 @@ class TestPersonAdmin:
 
 @pytest.mark.django_db
 class TestContributorAdminSmoke:
-    #: The status each registered model's changelist, add page and change page answer with.
+    #: The status each registered model's changelist, add page and change page answer
+    #: with.
     EXPECTED = {
         "person": (200, 200, 200),
         "organization": (200, 200, 200),

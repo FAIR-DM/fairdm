@@ -1,8 +1,8 @@
 """Tests for a record's Contributors tab as a page, through the test client.
 
 The tab is opened on a project as a manager, as a signed-in reader and as a visitor, and
-once on each other kind of record. Elements are found by id, link target and context value.
-Nothing here asserts a sentence or a layout.
+once on each other kind of record. Elements are found by id, link target and context
+value. Nothing here asserts a sentence or a layout.
 """
 
 import pytest
@@ -130,7 +130,7 @@ class TestContributorsTab:
 class TestContributorsTabQueries:
     @staticmethod
     def queries_with(record, manager, others):
-        """Count the queries the tab takes once the record also lists this many people."""
+        """Count the tab's queries once the record also lists this many people."""
         for _number in range(others):
             ContributionFactory(
                 content_object=record,
