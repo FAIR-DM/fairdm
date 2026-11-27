@@ -149,6 +149,7 @@ class AddOrganization(ContributorsBase):
             "new_name": new_name,
             "ror": ror,
             "adding": True,
+            "for_organization": True,
             "credit": None,
             **self.role_context(None),
             "action": self.record_url("contribution-list-add-organization"),

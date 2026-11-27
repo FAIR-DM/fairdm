@@ -66,6 +66,38 @@ class TestAddOrganization:
         credit = record.contributors.get(contributor=organization)
         assert roles[0] in credit.roles.all()
 
+    def test_the_roles_step_submits_which_organization_it_adds(self, record, manager):
+        organization = OrganizationFactory()
+        browser = browser_as(manager)
+
+        for query, field in [
+            ({"organization": organization.uuid}, "organization"),
+            ({"new_name": "Brand New Institute", "skip": 1}, "new_name"),
+        ]:
+            form = soup_of(browser.get(page_of(record, "add-organization"), query))
+            tag = form.select_one(f"#contrib-form input[name={field}]")
+            assert tag is not None, field
+
+    def test_a_new_organization_is_added_with_what_its_form_submits(
+        self, record, manager
+    ):
+        browser = browser_as(manager)
+        step = soup_of(
+            browser.get(
+                page_of(record, "add-organization"),
+                {"new_name": "Brand New Institute", "skip": 1},
+            )
+        )
+        sent = {
+            tag["name"]: tag.get("value", "")
+            for tag in step.select("#contrib-form input[type=hidden]")
+        }
+
+        response = browser.post(page_of(record, "add-organization"), sent)
+
+        assert response.status_code == 200
+        assert Organization.objects.filter(name="Brand New Institute").exists()
+
     def test_a_name_alone_makes_an_organization(self, record, manager):
         browser_as(manager).post(
             page_of(record, "add-organization"), {"new_name": "Brand New Institute"}
