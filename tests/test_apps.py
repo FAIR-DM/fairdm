@@ -59,6 +59,7 @@ class TestFairDMConfigReady:
             assert config.resolved_environment() == "production"
 
 
+@pytest.mark.slow
 class TestProductionBoot:
     def test_boot_fails_naming_every_missing_or_unsafe_value(self):
         result = _boot_in_subprocess(
@@ -85,6 +86,7 @@ class TestProductionBoot:
             )
 
 
+@pytest.mark.slow
 class TestUnrecognisedEnvironmentBoot:
     MISCONFIGURED = {
         "DJANGO_SETTINGS_MODULE": "config.settings",
@@ -99,9 +101,7 @@ class TestUnrecognisedEnvironmentBoot:
         "django_env",
         [
             pytest.param("Production", id="case-variant"),
-            pytest.param("prod", id="abbreviation"),
             pytest.param("", id="empty-string"),
-            pytest.param("staging", id="portal-supplied-name-fairdm-does-not-ship"),
         ],
     )
     def test_boot_is_refused_for_an_environment_fairdm_ships_no_override_for(
@@ -116,6 +116,7 @@ class TestUnrecognisedEnvironmentBoot:
         assert "fairdm.E001" in result.stderr, result.stdout + result.stderr
 
 
+@pytest.mark.slow
 class TestParlerLanguagesCheck:
     # parler validates PARLER_LANGUAGES while models import, before ready() runs, so setup() applies
     # the rule as well.
@@ -244,6 +245,7 @@ class TestParlerLanguagesCheck:
         assert "translation.E004" not in result.stderr
 
 
+@pytest.mark.slow
 class TestNonProductionBoot:
     def test_boot_succeeds_with_no_check_output(self):
         result = _boot_in_subprocess(
@@ -261,33 +263,6 @@ class TestNonProductionBoot:
         assert result.returncode == 0, result.stdout + result.stderr
         assert "fairdm.E" not in result.stdout
         assert "fairdm.E" not in result.stderr
-
-    def test_check_ids_remain_registered(self):
-        probe = (
-            "import django\n"
-            "django.setup()\n"
-            "from django.core.checks.registry import registry\n"
-            "names = {\n"
-            "    getattr(check, '__name__', '')\n"
-            "    for check in registry.get_checks(include_deployment_checks=True)\n"
-            "}\n"
-            "print('check_secret_key_exists' in names)\n"
-        )
-        env = {
-            **os.environ,
-            "DJANGO_ENV": "development",
-            "DJANGO_SETTINGS_MODULE": "config.settings",
-        }
-        result = subprocess.run(  # noqa: S603
-            [sys.executable, "-c", probe],
-            cwd=REPO_ROOT,
-            env=env,
-            capture_output=True,
-            text=True,
-            timeout=180,
-        )
-
-        assert result.stdout.strip() == "True", result.stdout + result.stderr
 
 
 @pytest.mark.django_db

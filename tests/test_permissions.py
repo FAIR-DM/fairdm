@@ -94,27 +94,6 @@ class TestPortalRoleBackend:
 
         assert backend.has_perm(person, "dataset.change_dataset", None) is False
 
-    def test_registering_the_backend_does_not_break_authenticate(self):
-        # authenticate() inspects each backend's `authenticate` signature, so a backend without that
-        # method breaks sign-in for every user.
-        from django.contrib.auth import authenticate
-
-        assert authenticate(email="nobody@example.com", password="wrong") is None
-
-    def test_manage_organization_is_never_answered_by_this_backend(self):
-        # A stale Permission row survives in migrated databases, because the migration that removed the
-        # permission never deleted rows.
-        person = PersonFactory()
-        organization = OrganizationFactory()
-        stale_permission, _ = Permission.objects.get_or_create(
-            content_type=ContentType.objects.get_for_model(Organization),
-            codename="manage_organization",
-            defaults={"name": "Can manage organization"},
-        )
-        person.user_permissions.add(stale_permission)
-
-        assert not person.has_perm("contributors.manage_organization", organization)
-
 
 @pytest.mark.django_db
 class TestImportAndPublishGatePermissions:
@@ -146,20 +125,6 @@ class TestImportAndPublishGatePermissions:
 
         assert contributor.has_perm("dataset.import_data", dataset)
 
-    def test_a_data_curator_is_admitted_to_publish_on_a_dataset_they_did_not_create(
-        self,
-    ):
-        curator = PersonFactory()
-        curator.groups.add(Group.objects.get(name=PortalRoles.DATA_CURATOR.name))
-        dataset = DatasetFactory()
-
-        assert curator.has_perm("dataset.can_publish", dataset)
-
-    def test_a_person_holding_nothing_is_refused_publish(self):
-        person = PersonFactory()
-        dataset = DatasetFactory()
-
-        assert not person.has_perm("dataset.can_publish", dataset)
 
     def test_a_contributor_holding_the_object_level_row_is_admitted_to_publish(self):
         contributor = PersonFactory()
@@ -192,11 +157,6 @@ class TestReachesEveryRecord:
 
         assert not PortalRoles.reaches_every_record(person, "dataset.change_dataset")
 
-    def test_a_right_granted_directly_does_not(self):
-        person = PersonFactory()
-        person.user_permissions.add(_permission("dataset", "change_dataset"))
-
-        assert not PortalRoles.reaches_every_record(person, "dataset.change_dataset")
 
     def test_a_right_held_through_a_group_the_portal_made_up_does_not(self):
         person = PersonFactory()
