@@ -1,10 +1,11 @@
 {% load i18n humanize %}
 {% comment %}
-  The community: what happened across the portal this month, who joined, the people the person
-  works with, and the latest changes to datasets anyone may open.
+  This month: what happened across the portal in the last 30 days against the 30 before, and
+  who joined.
 {% endcomment %}
 {% with c=dash.community %}
-  <c-overview.panel title="{% blocktranslate with name=c.name %}{{ name }} this month{% endblocktranslate %}" side id="community" class="dash-community">
+  <c-overview.panel title="{% translate 'This month' %}" side id="community" class="dash-community"
+                    sub="{% blocktranslate with name=c.name %}The last 30 days across {{ name }}{% endblocktranslate %}">
     <ul class="dash-pulse" aria-label="{% translate 'The last 30 days across the portal' %}">
       {% for f in c.figures %}
         <li>
@@ -25,20 +26,6 @@
         <c-contributor.stack :contributors="c.newcomers" max="6" size="md" total="{{ c.newcomer_count }}" more_url="{{ c.people_url }}" />
       </div>
     {% endif %}
-    {% if c.collaborators %}
-      <div class="dash-faces">
-        <h3 class="dash-subhead">{% translate "People you work with" %}</h3>
-        <c-contributor.stack :contributors="c.collaborators" max="6" size="md" />
-      </div>
-    {% endif %}
-
-    <div class="dash-feed">
-      <div class="dash-feed__head">
-        <h3 class="dash-subhead">{% translate "Latest across the portal" %}</h3>
-        <c-more-link href="{{ c.activity_url }}" text="{% translate 'See all' %}" only />
-      </div>
-      <c-mvp_community.activity.feed :actions="c.days" only />
-    </div>
 
     <div class="dash-links">
       <a href="{{ c.people_url }}" class="ov-link">{% translate "Browse people" %}</a>

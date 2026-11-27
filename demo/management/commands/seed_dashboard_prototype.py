@@ -29,7 +29,7 @@ from fairdm.contrib.contributors.models import (
     Organization,
     Person,
 )
-from fairdm.contrib.dashboard.models import DashboardState, RecordUse
+from fairdm.contrib.dashboard.models import DashboardState, RecentRecord, RecordUse
 from fairdm.contrib.import_export.definitions import get_definition
 from fairdm.contrib.import_export.matching import HeadingMatcher
 from fairdm.contrib.import_export.models import ImportJob
@@ -67,6 +67,7 @@ class Command(BaseCommand):
             self.portal_identity()
             DashboardState.objects.filter(person__email__in=[USER, NEW_USER]).delete()
         self.imports(user)
+        self.recent_pages(user)
         self.stdout.write(self.style.SUCCESS("Dashboard prototype data seeded."))
 
     # ------------------------------------------------------------------------------- dates
@@ -222,6 +223,36 @@ class Command(BaseCommand):
         RecordUse.objects.bulk_create(rows)
 
     # -------------------------------------------------------------------------------- imports
+
+    def recent_pages(self, user):
+        """Leave regular.user four records they had open lately, each on a different page."""
+        from django.contrib.contenttypes.models import ContentType
+        from django.urls import reverse
+
+        from fairdm.contrib.contributors.choices import ContributionLevel
+
+        RecentRecord.objects.filter(person__email__in=[USER, NEW_USER]).delete()
+        datasets = list(Dataset.all_objects.with_level(user, ContributionLevel.EDIT).order_by("-modified")[:3])
+        project = Project.objects.with_level(user, ContributionLevel.EDIT).order_by("-modified").first()
+        now = timezone.now()
+        visits = [
+            (datasets[0], "descriptions", "Descriptions", timedelta(minutes=25)),
+            (datasets[1], "samples", "Samples", timedelta(hours=3)),
+            (project, "overview", "Overview", timedelta(days=1, hours=2)),
+            (datasets[2], "imports", "Imports", timedelta(days=4)),
+        ]
+        for record, page, label, ago in visits:
+            if record is None:
+                continue
+            kind = "dataset" if isinstance(record, Dataset) else "project"
+            RecentRecord.objects.create(
+                person=user,
+                content_type=ContentType.objects.get_for_model(type(record)),
+                object_id=record.pk,
+                page=label,
+                path=reverse(f"{kind}:{page}", kwargs={"uuid": record.uuid}),
+                seen=now - ago,
+            )
 
     def imports(self, user):
         """Upload two real files as regular.user and check them: one with rows to fix, one ready."""

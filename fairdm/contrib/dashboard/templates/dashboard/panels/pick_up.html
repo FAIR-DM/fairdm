@@ -1,0 +1,29 @@
+{% load i18n humanize %}
+{% comment %}
+  Pick up where you left off: the projects and datasets the person last had open, each linking
+  straight to the page they were on. A dataset they can edit that is not yet published says
+  what it still needs. Left out for an account with no records.
+{% endcomment %}
+{% if dash.pick_up %}
+  <c-overview.panel title="{% translate 'Pick up where you left off' %}" id="pick-up" class="dash-pickup">
+    <ul class="ov-rows" aria-label="{% translate 'The records you last had open' %}">
+      {% for row in dash.pick_up %}
+        <li class="record-{{ row.kind }}">
+          <span class="ov-mark" aria-hidden="true"><c-icon name="{{ row.kind }}" only /></span>
+          <div class="ov-row__main">
+            <a href="{{ row.url }}" class="ov-row__title">{{ row.record.name }}</a>
+            <div class="ov-row__meta">
+              {% if row.page %}
+                <span>{% blocktranslate with page=row.page %}You were on {{ page }}{% endblocktranslate %}</span>
+                <span>{{ row.seen|naturaltime }}</span>
+              {% else %}
+                <span>{% blocktranslate with when=row.changed|naturalday:"SHORT_DATE_FORMAT" %}Changed {{ when }}{% endblocktranslate %}</span>
+              {% endif %}
+              {% if row.still_needs %}<span class="dash-pickup__next">{{ row.still_needs }}</span>{% endif %}
+            </div>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  </c-overview.panel>
+{% endif %}

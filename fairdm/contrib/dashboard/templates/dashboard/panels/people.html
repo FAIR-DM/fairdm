@@ -1,0 +1,10 @@
+{% load i18n %}
+{% comment %}
+  People you work with: everyone who shares a project or dataset with the person. Left out
+  until there is someone.
+{% endcomment %}
+{% if dash.community.collaborators %}
+  <c-overview.panel title="{% translate 'People you work with' %}" side id="people">
+    <c-contributor.stack :contributors="dash.community.collaborators" max="6" size="md" />
+  </c-overview.panel>
+{% endif %}

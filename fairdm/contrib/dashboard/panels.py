@@ -23,7 +23,7 @@ from fairdm.contrib.activity.lines import ActivityLines, group_days
 from fairdm.contrib.activity.receivers import PUBLISHED
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.contrib.contributors.models import Affiliation, Contribution, Person
-from fairdm.contrib.dashboard.models import DashboardState, RecordUse
+from fairdm.contrib.dashboard.models import DashboardState, RecentRecord, RecordUse
 from fairdm.contrib.identity.models import Authority, Identity
 from fairdm.contrib.import_export.models import ImportJob
 from fairdm.core.dataset.models import Dataset, DatasetDate, DatasetDescription
@@ -142,31 +142,14 @@ def holds(person, role):
 # ----------------------------------------------------------------------------------- header
 
 
-def header(person, scope, use):
-    identifier = person.orcid()
-    orcid = identifier.value if identifier else ""
-    affiliation = person.primary_affiliation()
+def header(person, scope):
     returning = scope.datasets.exists() or scope.projects.exists()
     name = person.first_name or person.get_full_name() or person.email
     return {
         "title": (_("Welcome back, %(name)s") if returning else _("Welcome, %(name)s")) % {"name": name},
-        "orcid": orcid,
-        "affiliation": affiliation.organization if affiliation else None,
         "profile_url": person.get_absolute_url(),
         "edit_url": url("contributor:overview-update", uuid=person.uuid),
         "returning": returning,
-        "figures": [
-            {"value": scope.datasets.count(), "label": _("Datasets"), "record": "dataset",
-             "href": "#your-work"},
-            {"value": scope.projects.count(), "label": _("Projects"), "record": "project",
-             "href": "#your-work"},
-            {"value": scope.samples.count(), "label": _("Samples"), "record": "sample",
-             "href": url("contributor:samples", uuid=person.uuid)},
-            {"value": scope.measurements.count(), "label": _("Measurements"),
-             "record": "measurement", "href": url("contributor:measurements", uuid=person.uuid)},
-            {"value": use["views"] if use else 0, "label": _("Opens in 30 days"),
-             "href": "#in-use" if use else ""},
-        ],
     }
 
 
@@ -318,6 +301,50 @@ def attention(person, scope):
         if sum(1 for r in rows if r["kind"] in ("readiness", "public")) >= 3:
             break
     return rows
+
+
+# ------------------------------------------------------------------------------ pick up
+
+
+PICK_UP = 4
+
+
+def pick_up(person, scope):
+    """The records the person last had open, newest first, each linking to the page they were on.
+
+    A dataset they can edit that is not yet published also says what it still needs. Someone
+    who has opened nothing yet gets their most recently changed records instead.
+    """
+    kinds = {
+        ContentType.objects.get_for_model(Dataset).pk: ("dataset", scope.datasets),
+        ContentType.objects.get_for_model(Project).pk: ("project", scope.projects),
+    }
+    recents = list(RecentRecord.objects.filter(person=person).order_by("-seen")[: PICK_UP * 2])
+    found = {}
+    for ct, (kind, qs) in kinds.items():
+        ids = [r.object_id for r in recents if r.content_type_id == ct]
+        found.update({(ct, o.pk): o for o in qs.filter(pk__in=ids)})
+    rows = []
+    for recent in recents:
+        record = found.get((recent.content_type_id, recent.object_id))
+        if record is None:
+            continue
+        rows.append({"kind": kinds[recent.content_type_id][0], "record": record,
+                     "page": recent.page, "url": recent.path, "seen": recent.seen})
+        if len(rows) == PICK_UP:
+            break
+    if not rows:
+        changed = [("dataset", d) for d in scope.editable.order_by("-modified")[:PICK_UP]]
+        changed += [("project", p) for p in Project.objects.with_level(person, L.EDIT).order_by("-modified")[:PICK_UP]]
+        changed.sort(key=lambda kr: kr[1].modified, reverse=True)
+        rows = [{"kind": k, "record": r, "page": "", "url": r.get_absolute_url(), "changed": r.modified}
+                for k, r in changed[:PICK_UP]]
+    editable = set(scope.editable.values_list("pk", flat=True))
+    for row in rows:
+        record = row["record"]
+        if row["kind"] == "dataset" and not record.published and record.pk in editable:
+            row["still_needs"] = still_needs(readiness(record)["required_missing"])
+    return rows or None
 
 
 # ------------------------------------------------------------------------------ your work
@@ -674,7 +701,8 @@ def dashboard_context(request, portal_name):
     use = data_in_use(scope)
     return {
         "dash": {
-            "header": header(person, scope, use),
+            "header": header(person, scope),
+            "pick_up": pick_up(person, scope),
             "start": start_new(scope),
             "getting_started": getting_started(person, scope),
             "attention": attention(person, scope),

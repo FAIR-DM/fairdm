@@ -46,6 +46,52 @@ class RecordUse(models.Model):
         return f"{self.content_type.model} {self.object_id} on {self.day}"
 
 
+class RecentRecord(models.Model):
+    """The last page a person had open on one project or dataset of their own.
+
+    Kept for records the person holds access to, so the dashboard can take them back to
+    where they left off.
+    """
+
+    person = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="recent_records",
+        verbose_name=_("person"),
+        help_text=_("Who had the page open."),
+    )
+    content_type = models.ForeignKey(
+        ContentType,
+        on_delete=models.CASCADE,
+        verbose_name=_("record type"),
+        help_text=_("Project or dataset."),
+    )
+    object_id = models.PositiveBigIntegerField(
+        _("record"), help_text=_("The key of the project or dataset.")
+    )
+    record = GenericForeignKey("content_type", "object_id")
+    page = models.CharField(
+        _("page"), max_length=60, help_text=_("The name of the record's page they were on.")
+    )
+    path = models.CharField(
+        _("address"), max_length=500, help_text=_("The address of that page, to go back to.")
+    )
+    seen = models.DateTimeField(_("last open"), help_text=_("When they last had it open."))
+
+    class Meta:
+        verbose_name = _("recent record")
+        verbose_name_plural = _("recent records")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["person", "content_type", "object_id"], name="dashboard_one_recent_per_record"
+            )
+        ]
+        indexes = [models.Index(fields=["person", "-seen"])]
+
+    def __str__(self):
+        return f"{self.person} on {self.content_type.model} {self.object_id}"
+
+
 class DashboardState(models.Model):
     """What one person has chosen about their dashboard."""
 

@@ -1820,33 +1820,14 @@ a.ov-row__title:hover { text-decoration: underline; }
 
 /* ------------------------------------------------------------------------------------------------
  * The signed-in dashboard: the overview page's anatomy, for a person rather than a record.
- * The header band and every panel are the overview's own. What follows is only what a record
- * page has no use for: the start choices, the getting-started steps, counts, and the community
- * column's figures and tools.
+ * Every panel is the overview's own. What follows is only what a record page has no use for:
+ * the start choices, the getting-started steps, counts, and the community column's figures
+ * and tools.
  * --------------------------------------------------------------------------------------------- */
 
 .record-portal {
   --record: var(--color-primary);
   --record-tint: color-mix(in oklch, var(--color-primary) 12%, transparent);
-}
-
-.dash-hero__face { overflow: hidden; padding: 0; background: var(--color-base-100); }
-.dash-hero__face .avatar, .dash-hero__face .avatar > div { width: 100%; height: 100%; }
-.dash-hero__face img { width: 100%; height: 100%; object-fit: cover; }
-
-.dash-hero__eyebrow {
-  font-size: 0.75rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
-  color: var(--ov-muted);
-}
-
-@media (max-width: 639px) {
-  /* An odd figure left over takes the whole last row, rather than half of it. */
-  .dash-hero .ov-figures > :last-child:nth-child(odd) { grid-column: 1 / -1; }
-}
-
-.dash-orcid {
-  display: inline-grid; place-items: center; width: 1.1rem; height: 1.1rem; border-radius: 999px;
-  background: #a6ce39; color: #fff; font-size: 0.55rem; font-weight: 700; line-height: 1;
 }
 
 /* Start something new: three choices side by side, stacked on a phone. */
@@ -1974,8 +1955,6 @@ a.dash-count .dash-count__label { color: var(--ov-link); }
 .dash-pulse__change--flat { color: var(--ov-muted); }
 
 .dash-faces { display: flex; flex-direction: column; gap: 0.5rem; }
-.dash-feed { display: flex; flex-direction: column; gap: 0.5rem; }
-.dash-feed__head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
 .dash-links { display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem; font-size: 0.875rem; padding-top: 0.75rem; border-top: 1px solid var(--ov-line); }
 
 .dash-tools { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.25rem; }

@@ -1,0 +1,19 @@
+{% load i18n %}
+{% comment %}
+  Latest news: the newest changes to datasets anyone may open, by day, with the full feed one
+  link away. The first card of the side column.
+{% endcomment %}
+{% with c=dash.community %}
+  <c-overview.panel title="{% translate 'Latest news' %}" side id="news" more_url="{{ c.activity_url }}" class="dash-news">
+    {% if c.days %}
+      {# The feed component draws its own card, so its entries are drawn here straight into the panel. #}
+      <c-list only>
+        {% for action in c.days %}
+          <c-mvp_community.activity.entry :action="action" only />
+        {% endfor %}
+      </c-list>
+    {% else %}
+      <p class="ov-empty">{% translate "Nothing has changed on a public dataset yet." %}</p>
+    {% endif %}
+  </c-overview.panel>
+{% endwith %}

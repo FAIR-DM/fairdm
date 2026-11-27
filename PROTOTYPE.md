@@ -21,9 +21,9 @@ Each entry is a new way for a person to do something. Build order is top to bott
 ones above it.
 
 1. **A signed-in person's home page is a dashboard of their own work.** Today `/` shows a signed-in
-   person an empty page titled "My Dashboard". On the prototype it shows a header band with them and
-   their headline figures, three ways to start something new, their datasets and projects with what
-   they may do with each, their organizations and their tools. Screens: `/` as `regular.user` and
+   person an empty page titled "My Dashboard". On the prototype it greets them in the page's own
+   title with a link to their public profile, then shows three ways to start something new, their
+   datasets and projects with what they may do with each, their organizations and their tools. Screens: `/` as `regular.user` and
    as `regular.user2`. Models: none. Depends on nothing.
 2. **The page tells a person what needs them.** "Needs your attention" lists imports with rows to
    fix or ready to run, requests to join an organization they run, their datasets still missing
@@ -48,10 +48,16 @@ ones above it.
 
    Screens: `/` as each role account. Models: none. Depends on 1. The four panels are independent of
    each other.
-6. **A person sees the community around them.** The portal this month (new datasets, samples added,
-   new members, each against the month before), the newest members, the people they work with, and
-   the latest changes to datasets anyone may open, with a full page at `/community/activity/`.
-   Screen: `/` side column, and `/community/activity/`. Models: none. Depends on 1.
+6. **A person sees the community around them.** Separate cards in the side column: Latest news (the
+   latest changes to datasets anyone may open, with See all opening `/community/activity/`), This
+   month (new datasets, samples added and new members against the month before, and the newest
+   members), and the people they work with. Screen: `/` side column, and `/community/activity/`.
+   Models: none. Depends on 1.
+7. **A person picks up where they left off.** "Pick up where you left off" lists the four projects
+   and datasets they last had open, each linking straight back to the page they were on (Samples,
+   Descriptions, Imports and so on), with when, and for an unpublished dataset they can edit, what
+   it still needs. Screen: `/` as `regular.user`. Model: `RecentRecord`, filled by
+   `RecordUseMiddleware`. Depends on 1.
 
 Resolve work, giving nobody a new way:
 
@@ -86,8 +92,9 @@ Resolve work, giving nobody a new way:
 | `…/panels/getting_started.html` | Feature 3 | same path |
 | `…/panels/in_use.html` | Feature 4 | same path |
 | `…/panels/role_curator.html`, `role_community.html`, `role_administrator.html`, `role_developer.html`, `…/dashboard/publication_queue.html` | Feature 5 | same paths |
-| `…/panels/community.html`, `…/dashboard/community_activity.html` | Feature 6 | same paths |
-| `fairdm/static/css/fairdm.css`, the block headed "The signed-in dashboard" at the end | Each feature ports its own rules: `.record-portal`, `.dash-hero*`, `.dash-start*`, `.dash-stretch`, `.dash-work`, `.dash-tool*` with 1; `.dash-ring`, `.dash-task*` with 2; `.dash-gs*`, `.dash-step*` with 3; `.dash-use*` with 4; `.dash-role*`, `.dash-count*`, `.dash-admin*`, `.dash-dev`, `.dash-schemas*`, `.dash-subhead` with 5; `.dash-pulse*`, `.dash-faces`, `.dash-feed*`, `.dash-links` with 6 | same file |
+| `…/panels/news.html`, `community.html`, `people.html`, `…/dashboard/community_activity.html` | Feature 6 | same paths |
+| `…/panels/pick_up.html` | Feature 7 | same path |
+| `fairdm/static/css/fairdm.css`, the block headed "The signed-in dashboard" at the end | Each feature ports its own rules: `.record-portal`, `.dash-start*`, `.dash-stretch`, `.dash-work`, `.dash-tool*` with 1; `.dash-ring`, `.dash-task*` with 2; `.dash-gs*`, `.dash-step*` with 3; `.dash-use*` with 4; `.dash-role*`, `.dash-count*`, `.dash-admin*`, `.dash-dev`, `.dash-schemas*`, `.dash-subhead` with 5; `.dash-pulse*`, `.dash-faces`, `.dash-links` with 6 | same file |
 
 Screens to compare, each at 390 and 1280 wide:
 
@@ -110,24 +117,34 @@ Screens to compare, each at 390 and 1280 wide:
 |---|---|---|
 | `dashboard.RecordUse` | Feature 4 | Per record per day: opens and downloads by people outside the record's team |
 | `dashboard.DashboardState` | Feature 3 | Per person: whether the getting-started list is hidden |
+| `dashboard.RecentRecord` | Feature 7 | Per person per record they hold access to: the last page they had open on it, its address and when |
 
 `RecordUseMiddleware` counts a full-page open of `project:overview` and `dataset:overview`, and a
 `?export=` download from the project and dataset sample and measurement tables. Visits by anyone
-holding view access on the record are not counted.
+holding view access on the record are not counted. Those visits instead update the person's
+`RecentRecord` for that record, on any of its pages worth going back to.
 
 ## Decisions
 
-None yet.
+- No header band. It made the page look like a profile page and like a record's page. The page
+  starts with the welcome as its title and "Start something new" under it.
+- No Edit profile button on the dashboard. The one profile link reads "Your public profile".
+- No card inside a card. Latest news is its own card at the top of the side column, with See all in
+  the card's heading. The people the person works with are their own card, not part of This month.
+- The portal's figures card is titled "This month", not the portal's name.
+- A "Pick up where you left off" panel takes the person back to the page they were last on.
 
 ## Decided on my own
 
-- The dashboard reuses the overview page's anatomy (header band, wide column, side column) and its
-  panels, rows, figures and rings, so it reads as part of the same portal.
+- The dashboard reuses the overview page's wide and side columns and its panels, rows and rings,
+  so it reads as part of the same portal.
+- Pick up sits straight under Start something new, and lists four records. A person who has opened
+  none of their records yet gets their most recently changed ones.
+- Latest news draws the activity entries straight into its card, because the activity feed
+  component wraps itself in a card of its own.
 - The wide column runs from what to do next to what has happened. Work before community on a phone.
 - Getting started shows only until every step is done, and never to an account that already has
   data unless it still has steps left. It can be hidden and brought back.
-- A returning person's header carries five figures. A new account's carries none, since every one
-  would be nought.
 - Opens and downloads count only people outside the team, so a person never reads their own visits
   as interest.
 - "Needs your attention" holds at most three dataset rows, so imports and requests are never pushed
