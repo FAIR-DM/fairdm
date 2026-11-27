@@ -1,4 +1,4 @@
-"""Tests for the rules the core factories keep for a portal that builds records with them."""
+"""Tests for the rules the core factories keep for the records a portal builds."""
 
 import pytest
 
@@ -72,7 +72,8 @@ class TestFactoryImages:
         assert not DatasetFactory().image
 
     def test_an_image_asked_for_is_generated_under_the_media_root(self, tmp_path):
-        # MEDIA_ROOT was once a fixed path shared by every run, and nothing removed what landed there (#323).
+        # MEDIA_ROOT was once a fixed path shared by every run, and nothing removed
+        # what landed there (#323).
         from pathlib import Path
 
         from django.conf import settings
