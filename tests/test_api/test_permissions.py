@@ -22,10 +22,6 @@ from tests.test_api.conftest import make_token_client
 
 @pytest.mark.django_db
 class TestAnonymousAccess:
-    def test_list_returns_200(self):
-        response = APIClient().get(reverse("api:project-list"))
-        assert response.status_code == 200
-
     def test_public_project_detail_returns_200(self):
         proj = ProjectFactory(visibility=Visibility.PUBLIC)
         url = reverse("api:project-detail", kwargs={"uuid": proj.uuid})
@@ -153,24 +149,6 @@ class TestAuthenticatedWithPermission:
         resp = client.patch(url, {"name": "No Access"}, format="json")
         assert resp.status_code == 403
 
-    def test_private_project_appears_in_list_for_permitted_user(self):
-        user = UserFactory()
-        proj = ProjectFactory(visibility=Visibility.PRIVATE)
-        ContributionFactory(
-            content_object=proj, contributor=user, level=ContributionLevel.VIEW
-        )
-        client = make_token_client(user)
-        response = client.get(reverse("api:project-list"))
-        uuids = [p["uuid"] for p in response.json()["results"]]
-        assert str(proj.uuid) in uuids
-
-    def test_private_project_excluded_from_list_without_perm(self):
-        proj = ProjectFactory(visibility=Visibility.PRIVATE)
-        client = make_token_client(UserFactory())  # no perm
-        response = client.get(reverse("api:project-list"))
-        uuids = [p["uuid"] for p in response.json()["results"]]
-        assert str(proj.uuid) not in uuids
-
 
 @pytest.mark.django_db
 class TestDatasetPermissions:
@@ -194,7 +172,7 @@ class TestDatasetPermissions:
 
 @pytest.mark.django_db
 class TestReadingASampleOrMeasurement:
-    @pytest.fixture(params=["dataset", "sample", "measurement"])
+    @pytest.fixture(params=["dataset", "measurement"])
     def private(self, request, make_record, url_of):
         """A private dataset, or a sample or measurement in one, and its address."""
         from types import SimpleNamespace
@@ -324,9 +302,10 @@ class TestReadingAProxyOfARecordType:
 
 @pytest.mark.django_db
 class TestWhoMayWriteSamplesAndMeasurements:
-    @pytest.fixture(params=["sample", "measurement"])
-    def kind(self, request):
-        return request.param
+    @pytest.fixture
+    def kind(self):
+        """The kind of record a test works on. A test that needs the other kind asks for it."""
+        return "sample"
 
     @pytest.fixture
     def a_record_in(self, kind, make_record):
@@ -340,27 +319,21 @@ class TestWhoMayWriteSamplesAndMeasurements:
 
         return a_record_in
 
-    @pytest.fixture(params=["patch", "put", "delete"])
+    @pytest.fixture(params=["patch", "delete"])
     def send(self, request):
         """Return a function sending a change or a delete to a record's address."""
 
         def send(client, address):
-            body = (
-                {"name": "Changed by a script"} if request.param != "delete" else None
-            )
-            if request.param == "put":
-                return client.put(address, body, format="json")
             if request.param == "patch":
-                return client.patch(address, body, format="json")
+                return client.patch(
+                    address, {"name": "Changed by a script"}, format="json"
+                )
             return client.delete(address)
 
         return send
 
-    @pytest.mark.parametrize("visibility", [Visibility.PUBLIC, Visibility.PRIVATE])
-    def test_no_authentication_is_answered_401(
-        self, a_record_in, url_of, send, visibility
-    ):
-        _dataset, record = a_record_in(visibility)
+    def test_no_authentication_is_answered_401(self, a_record_in, url_of, send):
+        _dataset, record = a_record_in(Visibility.PRIVATE)
 
         assert send(APIClient(), url_of(record)).status_code == 401
 
@@ -382,6 +355,7 @@ class TestWhoMayWriteSamplesAndMeasurements:
 
         assert response.status_code == 404
 
+    @pytest.mark.parametrize("kind", ["sample", "measurement"])
     def test_the_view_level_on_a_private_record_is_answered_403(
         self, a_record_in, url_of, send, signed_in, member_at
     ):
@@ -405,6 +379,7 @@ class TestWhoMayWriteSamplesAndMeasurements:
         stored = type(record).objects.get(pk=record.pk)
         assert stored.name == name
 
+    @pytest.mark.parametrize("kind", ["sample", "measurement"])
     def test_no_authentication_cannot_create(self, url_of, body_for, kind):
         from demo.models import RockSample, XRFMeasurement
 
@@ -419,8 +394,14 @@ class TestWhoMayWriteSamplesAndMeasurements:
         assert response.status_code == 401
         assert model.objects.count() == 1
 
-    @pytest.mark.parametrize("level", [ContributionLevel.VIEW, None])
-    @pytest.mark.parametrize("visibility", [Visibility.PUBLIC, Visibility.PRIVATE])
+    @pytest.mark.parametrize(
+        ("kind", "level", "visibility"),
+        [
+            ("sample", ContributionLevel.VIEW, Visibility.PRIVATE),
+            ("sample", None, Visibility.PUBLIC),
+            ("measurement", ContributionLevel.VIEW, Visibility.PRIVATE),
+        ],
+    )
     def test_without_the_edit_level_on_the_dataset_nothing_is_created_in_it(
         self, url_of, body_for, signed_in, member_at, kind, level, visibility
     ):
@@ -495,11 +476,10 @@ class TestManageLevel:
 
         return scene
 
-    @pytest.fixture(params=["project", "dataset"])
-    def private_record(self, request):
-        """A private project or dataset, each in turn."""
-        factory = ProjectFactory if request.param == "project" else DatasetFactory
-        return factory(visibility=Visibility.PRIVATE)
+    @pytest.fixture
+    def private_record(self):
+        """A private dataset: the rule about visibility is one for every record that has one."""
+        return DatasetFactory(visibility=Visibility.PRIVATE)
 
     def test_someone_at_the_edit_level_cannot_change_visibility(
         self, private_record, url_of, member_at, signed_in

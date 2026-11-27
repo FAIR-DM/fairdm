@@ -9,10 +9,11 @@ from rest_framework.test import APIClient
 LIST_PARAMETERS = {"ordering", "page", "page_size"}
 
 
-@pytest.fixture
-def schema(db):
-    """Return the generated schema as the schema address serves it."""
-    response = APIClient().get(reverse("api:api-schema"), {"format": "json"})
+@pytest.fixture(scope="module")
+def schema(django_db_setup, django_db_blocker):
+    """Return the generated schema as the schema address serves it, built once for the module."""
+    with django_db_blocker.unblock():
+        response = APIClient().get(reverse("api:api-schema"), {"format": "json"})
     assert response.status_code == 200
     return response.json()
 

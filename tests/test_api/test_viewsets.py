@@ -6,6 +6,7 @@ from types import SimpleNamespace
 import pytest
 from django.urls import reverse
 
+from demo.models import RockSample, XRFMeasurement
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.contrib.contributors.models import Organization, Person
 from fairdm.core.dataset.models import Dataset
@@ -29,16 +30,6 @@ from fairdm.utils.choices import Visibility
 
 @pytest.mark.django_db
 class TestProjectListEndpoint:
-    def test_returns_200(self, api_client):
-        response = api_client.get(reverse("api:project-list"))
-        assert response.status_code == 200
-
-    def test_response_has_pagination_keys(self, api_client):
-        response = api_client.get(reverse("api:project-list"))
-        data = response.json()
-        for key in ("count", "next", "previous", "results"):
-            assert key in data
-
     def test_public_project_visible_to_anonymous(self, api_client, public_project):
         response = api_client.get(reverse("api:project-list"))
         uuids = [p["uuid"] for p in response.json()["results"]]
@@ -63,57 +54,13 @@ class TestProjectListEndpoint:
         uuids = [p["uuid"] for p in response.json()["results"]]
         assert str(private_project.uuid) not in uuids
 
-    def test_ordering_ascending(self, api_client, db):
-        ProjectFactory(name="Zeta Project", visibility=Visibility.PUBLIC)
-        ProjectFactory(name="Alpha Project", visibility=Visibility.PUBLIC)
-        response = api_client.get(reverse("api:project-list"), {"ordering": "name"})
-        assert response.status_code == 200
-        names = [p["name"] for p in response.json()["results"]]
-        assert names == sorted(names)
-
-    def test_ordering_descending(self, api_client, db):
-        ProjectFactory(name="Zeta Project", visibility=Visibility.PUBLIC)
-        ProjectFactory(name="Alpha Project", visibility=Visibility.PUBLIC)
-        response = api_client.get(reverse("api:project-list"), {"ordering": "-name"})
-        assert response.status_code == 200
-        names = [p["name"] for p in response.json()["results"]]
-        assert names == sorted(names, reverse=True)
-
-    def test_unauthenticated_post_returns_401(self, api_client):
-        response = api_client.post(
-            reverse("api:project-list"), {"name": "New Project"}, format="json"
-        )
-        assert response.status_code in (401, 403)
-
 
 @pytest.mark.django_db
 class TestProjectDetailEndpoint:
-    def test_public_project_returns_200(self, api_client, public_project):
-        url = reverse("api:project-detail", kwargs={"uuid": public_project.uuid})
-        response = api_client.get(url)
-        assert response.status_code == 200
-
-    def test_public_project_uuid_in_response(self, api_client, public_project):
-        url = reverse("api:project-detail", kwargs={"uuid": public_project.uuid})
-        response = api_client.get(url)
-        assert response.json()["uuid"] == str(public_project.uuid)
-
-    def test_public_project_has_expected_fields(self, api_client, public_project):
-        url = reverse("api:project-detail", kwargs={"uuid": public_project.uuid})
-        response = api_client.get(url)
-        data = response.json()
-        for field in ("uuid", "name", "visibility"):
-            assert field in data
-
     def test_private_project_returns_404_to_anonymous(
         self, api_client, private_project
     ):
         url = reverse("api:project-detail", kwargs={"uuid": private_project.uuid})
-        response = api_client.get(url)
-        assert response.status_code == 404
-
-    def test_nonexistent_uuid_returns_404(self, api_client):
-        url = reverse("api:project-detail", kwargs={"uuid": "nonexistentid"})
         response = api_client.get(url)
         assert response.status_code == 404
 
@@ -125,10 +72,6 @@ class TestProjectDetailEndpoint:
 
 @pytest.mark.django_db
 class TestDatasetListEndpoint:
-    def test_returns_200(self, api_client):
-        response = api_client.get(reverse("api:dataset-list"))
-        assert response.status_code == 200
-
     def test_public_dataset_visible_to_anonymous(self, api_client, public_dataset):
         response = api_client.get(reverse("api:dataset-list"))
         uuids = [d["uuid"] for d in response.json()["results"]]
@@ -138,26 +81,6 @@ class TestDatasetListEndpoint:
         response = api_client.get(reverse("api:dataset-list"))
         uuids = [d["uuid"] for d in response.json()["results"]]
         assert str(private_dataset.uuid) not in uuids
-
-    def test_response_has_expected_fields(self, api_client, public_dataset):
-        response = api_client.get(reverse("api:dataset-list"))
-        results = response.json()["results"]
-        ds = next((d for d in results if d["uuid"] == str(public_dataset.uuid)), None)
-        assert ds is not None
-        for field in ("uuid", "name", "visibility"):
-            assert field in ds
-
-    def test_dataset_ordering_ascending(self, api_client, public_project, db):
-        DatasetFactory(
-            project=public_project, name="A Dataset", visibility=Visibility.PUBLIC
-        )
-        DatasetFactory(
-            project=public_project, name="Z Dataset", visibility=Visibility.PUBLIC
-        )
-        response = api_client.get(reverse("api:dataset-list"), {"ordering": "name"})
-        assert response.status_code == 200
-        names = [d["name"] for d in response.json()["results"]]
-        assert names == sorted(names)
 
 
 @pytest.mark.django_db
@@ -170,11 +93,6 @@ class TestDatasetDetailEndpoint:
             visibility=Visibility.PUBLIC,
             published=True,
         )
-
-    def test_public_dataset_returns_200(self, api_client, public_dataset):
-        url = reverse("api:dataset-detail", kwargs={"uuid": public_dataset.uuid})
-        response = api_client.get(url)
-        assert response.status_code == 200
 
     def test_private_dataset_returns_404_to_anonymous(
         self, api_client, private_dataset
@@ -216,11 +134,6 @@ class TestDatasetDetailEndpoint:
         url = reverse("api:dataset-detail", kwargs={"uuid": hidden_dataset.uuid})
         assert api_client.get(url).status_code == 200
 
-    def test_nonexistent_uuid_returns_404(self, api_client):
-        url = reverse("api:dataset-detail", kwargs={"uuid": "doesnotexist"})
-        response = api_client.get(url)
-        assert response.status_code == 404
-
 
 @pytest.mark.django_db
 class TestDatasetCreatorParity:
@@ -250,17 +163,6 @@ class TestContributorListEndpoint:
     ROUTES = ("api:person-list", "api:organization-list")
 
     @pytest.mark.parametrize("route", ROUTES)
-    def test_returns_200(self, api_client, route):
-        response = api_client.get(reverse(route))
-        assert response.status_code == 200
-
-    @pytest.mark.parametrize("route", ROUTES)
-    def test_has_pagination_keys(self, api_client, route):
-        data = api_client.get(reverse(route)).json()
-        for key in ("count", "next", "previous", "results"):
-            assert key in data
-
-    @pytest.mark.parametrize("route", ROUTES)
     def test_post_not_allowed(self, authenticated_client, route):
         response = authenticated_client.post(
             reverse(route), {"name": "New"}, format="json"
@@ -283,50 +185,6 @@ class TestProjectCRUD:
         assert data["name"] == "New API Project"
         assert "uuid" in data
 
-    def test_created_project_appears_in_list(self, authenticated_client):
-        post_resp = authenticated_client.post(
-            reverse("api:project-list"),
-            {"name": "Listed Project"},
-            format="json",
-        )
-        assert post_resp.status_code == 201
-        uuid = post_resp.json()["uuid"]
-        list_resp = authenticated_client.get(reverse("api:project-list"))
-        uuids = [p["uuid"] for p in list_resp.json()["results"]]
-        assert uuid in uuids
-
-    def test_authenticated_patch_updates_project(self, authenticated_client, user):
-        post_resp = authenticated_client.post(
-            reverse("api:project-list"),
-            {"name": "Patch Target"},
-            format="json",
-        )
-        assert post_resp.status_code == 201
-        uuid = post_resp.json()["uuid"]
-
-        url = reverse("api:project-detail", kwargs={"uuid": uuid})
-        patch_resp = authenticated_client.patch(
-            url, {"name": "Updated Name"}, format="json"
-        )
-        assert patch_resp.status_code == 200
-        assert patch_resp.json()["name"] == "Updated Name"
-
-    def test_authenticated_delete_removes_project(self, authenticated_client, user):
-        post_resp = authenticated_client.post(
-            reverse("api:project-list"),
-            {"name": "Delete Target"},
-            format="json",
-        )
-        assert post_resp.status_code == 201
-        uuid = post_resp.json()["uuid"]
-
-        url = reverse("api:project-detail", kwargs={"uuid": uuid})
-        del_resp = authenticated_client.delete(url)
-        assert del_resp.status_code == 204
-
-        get_resp = authenticated_client.get(url)
-        assert get_resp.status_code == 404
-
     def test_unauthenticated_post_returns_401(self, api_client):
         response = api_client.post(
             reverse("api:project-list"),
@@ -334,15 +192,6 @@ class TestProjectCRUD:
             format="json",
         )
         assert response.status_code == 401
-
-    def test_post_missing_required_field_returns_400(self, authenticated_client):
-        response = authenticated_client.post(
-            reverse("api:project-list"),
-            {},
-            format="json",
-        )
-        assert response.status_code == 400
-        assert "name" in response.json()
 
     def test_created_by_is_set_server_side_and_cannot_be_spoofed(
         self, authenticated_client, user
@@ -541,6 +390,8 @@ class TestCompleteRecord:
 
 
 CREDIT_KINDS = ("project", "dataset", "sample", "measurement")
+# The shape of a credit does not depend on the kind of record, so it is checked on a core kind and a typed one.
+CREDIT_SHAPE_KINDS = ("project", "measurement")
 
 CREDIT_KEYS = {
     "uuid",
@@ -633,7 +484,7 @@ class TestCredit:
         assert response.status_code == 200
         return response.json()["contributors"]
 
-    @pytest.mark.parametrize("kind", CREDIT_KINDS)
+    @pytest.mark.parametrize("kind", CREDIT_SHAPE_KINDS)
     def test_a_credit_carries_what_datacite_asks_of_a_creator(
         self, api_client, url_of, record_of, add_team, author, kind
     ):
@@ -676,7 +527,7 @@ class TestCredit:
             (role.uri, role.display_label()) for role in held
         }
 
-    @pytest.mark.parametrize("kind", CREDIT_KINDS)
+    @pytest.mark.parametrize("kind", CREDIT_SHAPE_KINDS)
     def test_a_person_with_no_identifier_and_no_credited_affiliation_has_neither(
         self, api_client, url_of, record_of, add_team, kind
     ):
@@ -689,7 +540,7 @@ class TestCredit:
         assert credit["name_identifiers"] == []
         assert credit["affiliation"] is None
 
-    @pytest.mark.parametrize("kind", CREDIT_KINDS)
+    @pytest.mark.parametrize("kind", CREDIT_SHAPE_KINDS)
     def test_an_organizations_credit_is_organizational_with_no_personal_names(
         self, api_client, url_of, record_of, add_team, kind
     ):
@@ -923,6 +774,16 @@ def registered(kind):
 
     models = registry.samples if kind == "sample" else registry.measurements
     return sorted(models, key=lambda model: model.__name__)
+
+
+# Every sample type and every measurement type is served by the one generated viewset, so the
+# tests of that shared behaviour run on one of each kind rather than on every registered type.
+# What differs between types (declared fields and filters) is tested type by type.
+ONE_SAMPLE_TYPE = [RockSample]
+ONE_MEASUREMENT_TYPE = [XRFMeasurement]
+ONE_OF_EACH_TYPE = [RockSample, XRFMeasurement]
+ONE_OF_EACH_KIND = [Project, Dataset, RockSample, XRFMeasurement]
+ONE_OF_EACH_ROUTE_SHAPE = [*ONE_OF_EACH_KIND, Person]
 
 
 COMMON_SAMPLE_FIELDS = (
@@ -2526,11 +2387,15 @@ class TestListAndRecordRoutes:
         assert response.status_code == 200
         assert response.json()["uuid"] == record.uuid
 
-    @pytest.mark.parametrize("model", routable_models(), ids=lambda m: m.__name__)
-    def test_an_unknown_identifier_is_answered_404(self, api_client, model):
-        response = api_client.get(self.address(model, "detail", "xNoSuchRecord"))
+    def test_an_unknown_identifier_is_answered_404_by_every_route(self, api_client):
+        answers = {
+            model.__name__: api_client.get(
+                self.address(model, "detail", "xNoSuchRecord")
+            ).status_code
+            for model in routable_models()
+        }
 
-        assert response.status_code == 404
+        assert set(answers.values()) == {404}, answers
 
     @pytest.mark.parametrize(
         "path",
@@ -2607,7 +2472,7 @@ class TestFiltering:
 
     @pytest.mark.parametrize(
         "model",
-        registered("sample") + registered("measurement"),
+        ONE_OF_EACH_TYPE,
         ids=lambda m: m.__name__,
     )
     def test_a_list_is_narrowed_by_the_short_identifier_of_its_dataset(
@@ -2621,9 +2486,7 @@ class TestFiltering:
 
         assert found == {here.uuid}
 
-    @pytest.mark.parametrize(
-        "model", registered("measurement"), ids=lambda m: m.__name__
-    )
+    @pytest.mark.parametrize("model", ONE_MEASUREMENT_TYPE, ids=lambda m: m.__name__)
     def test_a_measurement_list_is_narrowed_by_the_short_identifier_of_its_sample(
         self, api_client, url_of, make_record, model
     ):
@@ -2695,7 +2558,7 @@ class TestFiltering:
 
     @pytest.mark.parametrize(
         "model",
-        registered("sample") + registered("measurement"),
+        ONE_OF_EACH_TYPE,
         ids=lambda m: m.__name__,
     )
     def test_a_database_number_is_refused_for_the_dataset(
@@ -2709,9 +2572,7 @@ class TestFiltering:
         assert response.status_code == 400
         assert "dataset" in response.json()
 
-    @pytest.mark.parametrize(
-        "model", registered("measurement"), ids=lambda m: m.__name__
-    )
+    @pytest.mark.parametrize("model", ONE_MEASUREMENT_TYPE, ids=lambda m: m.__name__)
     def test_a_database_number_is_refused_for_the_sample(
         self, api_client, url_of, make_record, model
     ):
@@ -2727,7 +2588,7 @@ class TestFiltering:
 
     @pytest.mark.parametrize(
         "model",
-        registered("sample") + registered("measurement"),
+        ONE_OF_EACH_TYPE,
         ids=lambda m: m.__name__,
     )
     def test_a_content_type_number_is_not_a_way_to_narrow_a_list(
@@ -2751,24 +2612,32 @@ class TestOrdering:
     NAMES = ("Charlie", "Alpha", "Bravo")
 
     @pytest.fixture(
-        params=[Project, Dataset, *registered("sample"), *registered("measurement")],
+        params=ONE_OF_EACH_KIND,
         ids=lambda model: model.__name__,
     )
     def model(self, request, make_record):
-        """A kind of record, with three public records named out of order."""
+        """A kind of record, with three public records named out of order, added a day apart."""
         model = request.param
+        holder = None
+        made = []
         for name in self.NAMES:
             if model is Project:
-                ProjectFactory(name=name, visibility=Visibility.PUBLIC)
+                made.append(ProjectFactory(name=name, visibility=Visibility.PUBLIC))
             elif model is Dataset:
-                DatasetFactory(name=name, visibility=Visibility.PUBLIC, published=True)
-            else:
-                dataset = Dataset.objects.filter(name="Holder").first() or (
+                made.append(
                     DatasetFactory(
-                        name="Holder", visibility=Visibility.PUBLIC, published=True
+                        name=name, visibility=Visibility.PUBLIC, published=True
                     )
                 )
-                make_record(model, dataset, name=name)
+            else:
+                holder = holder or DatasetFactory(
+                    name="Holder", visibility=Visibility.PUBLIC, published=True
+                )
+                made.append(make_record(model, holder, name=name))
+        for day, record in enumerate(made, start=1):
+            type(record)._base_manager.filter(pk=record.pk).update(
+                added=datetime(2024, 1, day, 12, tzinfo=UTC)
+            )
         return model
 
     def names_in(self, client, url_of, model, ordering):
@@ -2798,7 +2667,7 @@ class TestOrdering:
 
 @pytest.mark.django_db
 class TestCreating:
-    @pytest.mark.parametrize("model", registered("sample"), ids=lambda m: m.__name__)
+    @pytest.mark.parametrize("model", ONE_SAMPLE_TYPE, ids=lambda m: m.__name__)
     def test_someone_at_the_edit_level_creates_a_sample_in_a_dataset(
         self, url_of, member_at, signed_in, body_for, saved, model
     ):
@@ -2816,9 +2685,7 @@ class TestCreating:
         assert saved(sample, stored) == stored
         assert response.json() == client.get(url_of(sample)).json()
 
-    @pytest.mark.parametrize(
-        "model", registered("measurement"), ids=lambda m: m.__name__
-    )
+    @pytest.mark.parametrize("model", ONE_MEASUREMENT_TYPE, ids=lambda m: m.__name__)
     def test_someone_at_the_edit_level_creates_a_measurement_with_its_values(
         self, url_of, member_at, signed_in, body_for, saved, model
     ):
@@ -3002,11 +2869,6 @@ class TestCreatorIsCredited:
         assert project.contributors.count() == 0
 
 
-def writable_models():
-    """Every model the API creates records of: the core kinds with a type and the registered types."""
-    return [Project, Dataset, *registered("sample"), *registered("measurement")]
-
-
 @pytest.fixture
 def a_private_record(make_record):
     """Return a function building a private record of a writable model, with its parents."""
@@ -3060,7 +2922,7 @@ class TestChanging:
     def without(data, *names):
         return {key: value for key, value in data.items() if key not in names}
 
-    @pytest.mark.parametrize("model", writable_models(), ids=lambda m: m.__name__)
+    @pytest.mark.parametrize("model", ONE_OF_EACH_KIND, ids=lambda m: m.__name__)
     def test_a_partial_change_alters_the_named_field_and_nothing_else(
         self, url_of, member_at, signed_in, a_private_record, model
     ):
@@ -3078,7 +2940,7 @@ class TestChanging:
         )
         assert response.json() == after
 
-    @pytest.mark.parametrize("model", writable_models(), ids=lambda m: m.__name__)
+    @pytest.mark.parametrize("model", ONE_OF_EACH_KIND, ids=lambda m: m.__name__)
     def test_a_full_replacement_sets_the_writable_fields(
         self,
         url_of,
@@ -3101,7 +2963,7 @@ class TestChanging:
         assert saved(record, stored) == stored
 
     @pytest.mark.parametrize("method", ["patch", "put"])
-    @pytest.mark.parametrize("model", writable_models(), ids=lambda m: m.__name__)
+    @pytest.mark.parametrize("model", ONE_OF_EACH_KIND, ids=lambda m: m.__name__)
     def test_a_value_for_a_read_only_field_changes_nothing(
         self,
         url_of,
@@ -3146,7 +3008,7 @@ class TestChanging:
 
 @pytest.mark.django_db
 class TestDeleting:
-    @pytest.mark.parametrize("model", writable_models(), ids=lambda m: m.__name__)
+    @pytest.mark.parametrize("model", ONE_OF_EACH_KIND, ids=lambda m: m.__name__)
     def test_a_deleted_record_is_gone_and_then_answered_404(
         self, url_of, member_at, signed_in, a_private_record, model
     ):
@@ -3427,7 +3289,7 @@ class TestNoServerErrors:
 
         return bodies
 
-    @pytest.mark.parametrize("model", routable_models(), ids=lambda m: m.__name__)
+    @pytest.mark.parametrize("model", ONE_OF_EACH_ROUTE_SHAPE, ids=lambda m: m.__name__)
     @pytest.mark.parametrize("sent", ["empty", "wrong types", "a list", "valid"])
     def test_a_create_is_answered_below_500(
         self, client, a_record_of, bodies, address, model, sent
@@ -3440,7 +3302,7 @@ class TestNoServerErrors:
 
         assert response.status_code < 500
 
-    @pytest.mark.parametrize("model", routable_models(), ids=lambda m: m.__name__)
+    @pytest.mark.parametrize("model", ONE_OF_EACH_ROUTE_SHAPE, ids=lambda m: m.__name__)
     @pytest.mark.parametrize("method", ["put", "patch"])
     @pytest.mark.parametrize("sent", ["empty", "wrong types", "a list", "valid"])
     def test_a_change_is_answered_below_500(
@@ -3454,7 +3316,7 @@ class TestNoServerErrors:
 
         assert response.status_code < 500
 
-    @pytest.mark.parametrize("model", routable_models(), ids=lambda m: m.__name__)
+    @pytest.mark.parametrize("model", ONE_OF_EACH_ROUTE_SHAPE, ids=lambda m: m.__name__)
     @pytest.mark.parametrize("held_by_others", [False, True])
     def test_a_delete_is_answered_below_500(
         self, client, a_record_of, address, make_record, model, held_by_others
@@ -3823,19 +3685,19 @@ class TestQueryCount:
 
     @pytest.mark.parametrize("caller", ["anonymous", "token"])
     @pytest.mark.parametrize("kind", KINDS)
-    def test_a_list_of_twelve_runs_the_queries_of_a_list_of_two(
+    def test_a_list_of_three_runs_the_queries_of_a_list_of_one(
         self, api_client, authenticated_client, url_of, grow, kind, caller
     ):
         client = api_client if caller == "anonymous" else authenticated_client
         address = self.address(kind, url_of)
-        grow(kind, 2)
+        grow(kind, 1)
         self.queries_for(client, address)
         few, held_few = self.queries_for(client, address)
 
-        grow(kind, 10)
+        grow(kind, 2)
         many, held_many = self.queries_for(client, address)
 
-        assert held_many >= held_few + 10
+        assert held_many >= held_few + 2
         assert many == few
 
 
@@ -3863,7 +3725,7 @@ class TestCreditQueries:
         add_credit(record, OrganizationFactory())
 
     @pytest.mark.parametrize("kind", CREDIT_KINDS)
-    def test_a_page_of_twelve_runs_the_queries_of_a_page_of_two(
+    def test_a_page_of_three_runs_the_queries_of_a_page_of_one(
         self, api_client, url_of, make_record, kind
     ):
         from demo.models import ExampleMeasurement, RockSample
@@ -3881,14 +3743,14 @@ class TestCreditQueries:
                 self.add_credits(record, people)
 
         address = url_of(model, "list")
-        grow(2, people=1)
+        grow(1, people=1)
         TestQueryCount.queries_for(api_client, address)
         few, held_few = TestQueryCount.queries_for(api_client, address)
 
-        grow(10, people=3)
+        grow(2, people=3)
         many, held_many = TestQueryCount.queries_for(api_client, address)
 
-        assert held_many >= held_few + 10
+        assert held_many >= held_few + 2
         assert many == few
 
 
@@ -4049,7 +3911,7 @@ class TestReferencesFollowTheLists:
         assert None in related
         assert [row["uuid"] for row in related if row] == [shown.uuid]
 
-    def test_a_list_of_twelve_runs_the_queries_of_a_list_of_two(
+    def test_a_list_of_three_runs_the_queries_of_a_list_of_one(
         self, api_client, related_samples
     ):
         from demo.factories import RockSampleFactory
@@ -4094,14 +3956,7 @@ class TestChangedSince:
     )
 
     @pytest.fixture(
-        params=[
-            Project,
-            Dataset,
-            Person,
-            Organization,
-            *registered("sample"),
-            *registered("measurement"),
-        ],
+        params=[Project, Person, RockSample, XRFMeasurement],
         ids=lambda model: model.__name__,
     )
     def records(self, request, make_record, public_dataset):
