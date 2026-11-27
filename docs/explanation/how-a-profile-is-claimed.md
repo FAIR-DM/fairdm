@@ -36,7 +36,7 @@ Registering a new account does not reach this route. The portal treats an addres
 
 An administrator who holds the right to change people can generate a claim link on the administration page of an unclaimed person, with the **Generate claim link** action, and send it to the person it belongs to. The link carries a signed token. It stops working after the number of seconds in `CLAIM_TOKEN_MAX_AGE`, seven days by default, and once the profile is claimed.
 
-A visitor who is not signed in is sent to sign in first, and the link is kept for when they return. A signed-in person sees the profile the link names and confirms the claim there. Nothing is claimed by opening the link. An expired or altered link, and a deactivated profile, show an error instead of the profile.
+A visitor who is not signed in is sent to sign in first and comes back to the link afterwards. A signed-in person sees the profile the link names and confirms the claim there. Nothing is claimed by opening the link. An expired or altered link, and a deactivated profile, show an error instead of the profile.
 
 ### Merging into an existing account
 
