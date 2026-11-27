@@ -122,7 +122,7 @@ class TestVisibilityFilterDatasets:
 class TestVisibilityOfSamplesAndMeasurements:
     @pytest.fixture
     def kind(self):
-        """The kind of record a test works on. A test that needs the other kind asks for it."""
+        """The kind of record a test works on; a test needing the other kind asks."""
         return "sample"
 
     @pytest.fixture
@@ -234,7 +234,7 @@ class TestVisibilityOfSamplesAndMeasurements:
 class TestUnpublishedDataset:
     @pytest.fixture
     def kind(self):
-        """The kind of record a test works on. A test that needs the other kind asks for it."""
+        """The kind of record a test works on; a test needing the other kind asks."""
         return "sample"
 
     @pytest.fixture

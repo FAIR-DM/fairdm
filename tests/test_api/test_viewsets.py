@@ -390,7 +390,8 @@ class TestCompleteRecord:
 
 
 CREDIT_KINDS = ("project", "dataset", "sample", "measurement")
-# The shape of a credit does not depend on the kind of record, so it is checked on a core kind and a typed one.
+# A credit has one shape whatever the record, so it is checked on a core kind
+# and a typed one.
 CREDIT_SHAPE_KINDS = ("project", "measurement")
 
 CREDIT_KEYS = {
@@ -776,9 +777,9 @@ def registered(kind):
     return sorted(models, key=lambda model: model.__name__)
 
 
-# Every sample type and every measurement type is served by the one generated viewset, so the
-# tests of that shared behaviour run on one of each kind rather than on every registered type.
-# What differs between types (declared fields and filters) is tested type by type.
+# Every sample type and every measurement type is served by one generated
+# viewset, so tests of that shared behaviour run on one type of each kind.
+# What differs between types (declared fields and filters) is tested per type.
 ONE_SAMPLE_TYPE = [RockSample]
 ONE_MEASUREMENT_TYPE = [XRFMeasurement]
 ONE_OF_EACH_TYPE = [RockSample, XRFMeasurement]
@@ -2616,7 +2617,7 @@ class TestOrdering:
         ids=lambda model: model.__name__,
     )
     def model(self, request, make_record):
-        """A kind of record, with three public records named out of order, added a day apart."""
+        """A kind of record with three public records, named out of order."""
         model = request.param
         holder = None
         made = []

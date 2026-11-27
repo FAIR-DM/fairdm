@@ -304,7 +304,7 @@ class TestReadingAProxyOfARecordType:
 class TestWhoMayWriteSamplesAndMeasurements:
     @pytest.fixture
     def kind(self):
-        """The kind of record a test works on. A test that needs the other kind asks for it."""
+        """The kind of record a test works on; a test needing the other kind asks."""
         return "sample"
 
     @pytest.fixture
@@ -478,7 +478,7 @@ class TestManageLevel:
 
     @pytest.fixture
     def private_record(self):
-        """A private dataset: the rule about visibility is one for every record that has one."""
+        """A private dataset: visibility is one rule for every record that has it."""
         return DatasetFactory(visibility=Visibility.PRIVATE)
 
     def test_someone_at_the_edit_level_cannot_change_visibility(

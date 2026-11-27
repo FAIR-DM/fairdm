@@ -11,7 +11,7 @@ LIST_PARAMETERS = {"ordering", "page", "page_size"}
 
 @pytest.fixture(scope="module")
 def schema(django_db_setup, django_db_blocker):
-    """Return the generated schema as the schema address serves it, built once for the module."""
+    """Return the schema as its address serves it, built once for the module."""
     with django_db_blocker.unblock():
         response = APIClient().get(reverse("api:api-schema"), {"format": "json"})
     assert response.status_code == 200
