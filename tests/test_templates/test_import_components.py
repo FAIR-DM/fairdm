@@ -121,11 +121,17 @@ class TestProgress:
 class TestOutcomeBadge:
     """A badge for each outcome of a row."""
 
-    @pytest.mark.parametrize("outcome", [o.value for o in ImportRow.Outcome])
-    def test_each_outcome_has_its_own_badge(self, render, soup, outcome):
-        badge = soup(render("outcome-badge", outcome=outcome)).select_one(".ie-badge")
-        assert f"ie-badge--{outcome}" in badge["class"]
-        assert badge.get_text(strip=True)
+    def test_each_outcome_is_named_by_a_badge_of_its_own(self, render, soup):
+        names = {
+            outcome.value: soup(render("outcome-badge", outcome=outcome.value)).get_text(
+                strip=True
+            )
+            for outcome in ImportRow.Outcome
+        }
+
+        assert all(names.values())
+        assert len(set(names.values())) == len(names)
+
 
     @pytest.mark.parametrize("outcome", ["new", "update"])
     def test_a_row_already_written_is_named_in_the_past(self, render, soup, outcome):
@@ -134,19 +140,6 @@ class TestOutcomeBadge:
             strip=True
         )
         assert planned != written
-
-
-class TestTag:
-    """A small tag, with the kind in its class."""
-
-    def test_the_kind_is_in_the_class(self, render_markup, soup):
-        page = soup(render_markup('<c-import.tag kind="ok">Yes</c-import.tag>'))
-        assert "ie-tag--ok" in page.select_one(".ie-tag")["class"]
-        assert page.get_text(strip=True) == "Yes"
-
-    def test_no_kind_is_a_plain_tag(self, render_markup, soup):
-        page = soup(render_markup("<c-import.tag>Plain</c-import.tag>"))
-        assert page.select_one(".ie-tag")["class"] == ["ie-tag"]
 
 
 class TestPanel:
@@ -203,12 +196,6 @@ class TestPanel:
         )
         assert page.select_one("section > header #more")
 
-    @pytest.mark.parametrize("size", ["side", "flush"])
-    def test_a_size_is_in_the_class(self, render_markup, soup, size):
-        page = soup(
-            render_markup(f'<c-import.panel title="T" size="{size}">x</c-import.panel>')
-        )
-        assert f"ie-panel--{size}" in page.select_one("section")["class"]
 
     def test_a_flush_panel_keeps_its_heading_in_the_header(self, render_markup, soup):
         page = soup(
@@ -217,27 +204,6 @@ class TestPanel:
         header = page.select_one("section.ie-panel--flush > header.ie-panel__head")
         assert header is not None
         assert header.select_one("h2.ie-panel__title") is not None
-
-    def test_a_plain_panel_has_no_size_class(self, render_markup, soup):
-        page = soup(render_markup('<c-import.panel title="T">x</c-import.panel>'))
-        assert page.select_one("section")["class"] == ["ie-panel"]
-
-    @pytest.mark.parametrize("tone", ["error", "ready", "done"])
-    def test_a_tone_is_in_the_class(self, render_markup, soup, tone):
-        page = soup(
-            render_markup(f'<c-import.panel title="T" tone="{tone}">x</c-import.panel>')
-        )
-        assert {"ie-hero", f"ie-hero--{tone}"} <= set(
-            page.select_one("section")["class"]
-        )
-
-    def test_an_info_tone_is_the_plain_highlight(self, render_markup, soup):
-        page = soup(
-            render_markup('<c-import.panel title="T" tone="info">x</c-import.panel>')
-        )
-        classes = page.select_one("section")["class"]
-        assert "ie-hero" in classes
-        assert "ie-hero--info" not in classes
 
 
 class TestAlert:

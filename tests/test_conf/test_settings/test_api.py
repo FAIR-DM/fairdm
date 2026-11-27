@@ -1,8 +1,6 @@
 """Tests for ``fairdm/conf/settings/api.py``."""
 
-import importlib.util
 import os
-from pathlib import Path
 
 
 class TestApi:

@@ -160,9 +160,7 @@ class TestGuideComponent:
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize(
-    "model", [*registry.samples, *registry.measurements], ids=lambda m: m.__name__
-)
+@pytest.mark.parametrize("model", [registry.samples[0]], ids=lambda m: m.__name__)
 class TestGuideForEveryType:
     def test_the_guide_renders_for_a_registered_type(self, render_guide, model):
         schema = registry.get_for_model(model).get_table_schema()

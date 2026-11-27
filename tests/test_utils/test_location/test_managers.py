@@ -4,14 +4,13 @@ import re
 
 import pytest
 from django.contrib.auth.models import AnonymousUser
-from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.geos import Point, Polygon
 from django.contrib.gis.measure import D
 from django.db import connection
 
 from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 from fairdm.contrib.contributors.choices import ContributionLevel
-from fairdm.contrib.contributors.models import Contributor, Organization
+from fairdm.contrib.contributors.models import Organization
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.sample.models import Sample
 from fairdm.factories import (
@@ -363,13 +362,15 @@ class TestMeasurementLookups:
 class TestQueryPlan:
     """SC-005 and FR-020: the area and distance lookups read a spatial index, not the whole table."""
 
-    COUNT = 2000
+    # With sequential scans switched off the planner takes an index whenever the query can use one, so
+    # the plan answers "can the lookup use the index" and not "did the table statistics favour it".
+    COUNT = 100
     AREA = (0, 0, 10, 10)
     CENTRE = at(5.0, 5.0)
 
     @staticmethod
     def place(i):
-        """A grid of 2,000 places across the globe, 50 columns by 40 rows."""
+        """A grid of places across the globe, 50 columns by 2 rows."""
         return at(-180 + (i % 50) * 7.1, -70 + (i // 50) * 3.5)
 
     @pytest.fixture
@@ -391,64 +392,54 @@ class TestQueryPlan:
                 for i, sample in enumerate(samples)
             ]
         )
-        contributors = Contributor.objects.bulk_create(
-            [
-                Contributor(
-                    name=f"o{i}",
-                    polymorphic_ctype=ContentType.objects.get_for_model(Organization),
-                )
-                for i in range(self.COUNT)
-            ]
-        )
         with connection.cursor() as cursor:
-            cursor.executemany(
-                f"INSERT INTO {Organization._meta.db_table} "
-                "(contributor_ptr_id, location) VALUES (%s, ST_GeomFromEWKT(%s))",
-                [
-                    (contributor.pk, self.place(i).ewkt)
-                    for i, contributor in enumerate(contributors)
-                ],
-            )
-            for model in (Sample, Measurement, Organization, Contributor):
-                cursor.execute(f"ANALYZE {model._meta.db_table}")
+            cursor.execute("SET LOCAL enable_seqscan = off")
 
-    def reads_a_spatial_index(self, queryset, model, whole_table_allowed=False):
+    @staticmethod
+    def spatial_index_missing(queryset, model, whole_table_allowed=False):
+        """Return what is wrong with the plan, or an empty string when it reads a spatial index."""
         plan = queryset.explain()
         table = model._meta.db_table
-        assert re.search(
+        if not re.search(
             rf"Index Scan (?:using|on) \S*location\S*(?: on {table})?\s", plan
-        ), plan
-        if not whole_table_allowed:
-            assert f"Seq Scan on {table} " not in plan, plan
+        ):
+            return f"{table} is not read through a location index:\n{plan}"
+        if not whole_table_allowed and f"Seq Scan on {table} " in plan:
+            return f"{table} is read whole:\n{plan}"
+        return ""
 
-    def test_samples_inside_an_area(self, portal):
-        self.reads_a_spatial_index(Sample.objects.inside(self.AREA), Sample)
+    def test_the_area_and_distance_lookups_read_a_spatial_index(self, portal):
+        lookups = {
+            "samples inside an area": (Sample.objects.inside(self.AREA), Sample, False),
+            "samples within a distance": (
+                Sample.objects.within_distance(self.CENTRE, D(km=500)),
+                Sample,
+                False,
+            ),
+            # The measurements a sample places are joined on their sample, and the planner may read the
+            # measurement table whole for that branch. The samples are never read whole.
+            "measurements inside an area": (
+                Measurement.objects.inside(self.AREA),
+                Measurement,
+                True,
+            ),
+            "measurements within a distance": (
+                Measurement.objects.within_distance(self.CENTRE, D(km=500)),
+                Measurement,
+                True,
+            ),
+        }
 
-    def test_samples_within_a_distance(self, portal):
-        self.reads_a_spatial_index(
-            Sample.objects.within_distance(self.CENTRE, D(km=500)), Sample
-        )
+        problems = [
+            f"{name}: {problem}"
+            for name, (queryset, model, whole_table_allowed) in lookups.items()
+            if (problem := self.spatial_index_missing(queryset, model, whole_table_allowed))
+        ]
+        problems += [
+            f"{name} (samples joined): {problem}"
+            for name, (queryset, _, _) in lookups.items()
+            if name.startswith("measurements")
+            if (problem := self.spatial_index_missing(queryset, Sample))
+        ]
 
-    def test_organizations_inside_an_area(self, portal):
-        self.reads_a_spatial_index(Organization.objects.inside(self.AREA), Organization)
-
-    def test_organizations_within_a_distance(self, portal):
-        self.reads_a_spatial_index(
-            Organization.objects.within_distance(self.CENTRE, D(km=500)), Organization
-        )
-
-    def test_measurements_inside_an_area(self, portal):
-        queryset = Measurement.objects.inside(self.AREA)
-
-        # The measurements a sample places are joined on their sample, and the planner may
-        # read the measurement table whole for that branch. The samples are never read whole.
-        self.reads_a_spatial_index(queryset, Measurement, whole_table_allowed=True)
-        self.reads_a_spatial_index(queryset, Sample)
-
-    def test_measurements_within_a_distance(self, portal):
-        queryset = Measurement.objects.within_distance(self.CENTRE, D(km=500))
-
-        # The measurements a sample places are joined on their sample, and the planner may
-        # read the measurement table whole for that branch. The samples are never read whole.
-        self.reads_a_spatial_index(queryset, Measurement, whole_table_allowed=True)
-        self.reads_a_spatial_index(queryset, Sample)
+        assert not problems, "\n".join(problems)

@@ -165,85 +165,39 @@ class TestFieldInspector:
         assert "document" in file_fields
         assert "name" not in file_fields
 
-    def test_suggest_widget_date(self):
+    def test_each_field_type_suggests_its_own_widget(self):
         inspector = FieldInspector(TestSampleModel)
-        widget = inspector.suggest_widget("collected_at")
-        assert widget == "DateInput"
+        expected = {
+            "collected_at": "DateInput",
+            "analyzed_at": "SplitDateTimeWidget",
+            "image": "ImageWidget",
+            "document": "FileInput",
+            "parent": "Select",
+            "description": "Textarea",
+            "website": "URLInput",
+            "contact_email": "EmailInput",
+            "status": "RadioSelect",
+            "is_published": "CheckboxInput",
+        }
 
-    def test_suggest_widget_datetime(self):
-        inspector = FieldInspector(TestSampleModel)
-        widget = inspector.suggest_widget("analyzed_at")
-        assert widget == "SplitDateTimeWidget"
+        suggested = {name: inspector.suggest_widget(name) for name in expected}
 
-    def test_suggest_widget_image(self):
-        inspector = FieldInspector(TestSampleModel)
-        widget = inspector.suggest_widget("image")
-        assert widget == "ImageWidget"
+        assert suggested == expected
 
-    def test_suggest_widget_file(self):
+    def test_each_field_type_suggests_its_own_filter(self):
         inspector = FieldInspector(TestSampleModel)
-        widget = inspector.suggest_widget("document")
-        assert widget == "FileInput"
+        expected = {
+            "collected_at": "DateFromToRangeFilter",
+            "is_published": "BooleanFilter",
+            "status": "MultipleChoiceFilter",
+            "parent": "ModelChoiceFilter",
+            "count": "RangeFilter",
+            "name": "CharFilter",
+        }
 
-    def test_suggest_widget_foreign_key(self):
-        inspector = FieldInspector(TestSampleModel)
-        widget = inspector.suggest_widget("parent")
-        assert widget == "Select"
+        suggested = {name: inspector.suggest_filter_type(name) for name in expected}
 
-    def test_suggest_widget_text(self):
-        inspector = FieldInspector(TestSampleModel)
-        widget = inspector.suggest_widget("description")
-        assert widget == "Textarea"
-
-    def test_suggest_widget_url(self):
-        inspector = FieldInspector(TestSampleModel)
-        widget = inspector.suggest_widget("website")
-        assert widget == "URLInput"
-
-    def test_suggest_widget_email(self):
-        inspector = FieldInspector(TestSampleModel)
-        widget = inspector.suggest_widget("contact_email")
-        assert widget == "EmailInput"
-
-    def test_suggest_widget_choice(self):
-        inspector = FieldInspector(TestSampleModel)
-        widget = inspector.suggest_widget("status")
-        assert widget == "RadioSelect"
-
-    def test_suggest_widget_boolean(self):
-        inspector = FieldInspector(TestSampleModel)
-        widget = inspector.suggest_widget("is_published")
-        assert widget == "CheckboxInput"
-
-    def test_suggest_filter_type_date(self):
-        inspector = FieldInspector(TestSampleModel)
-        filter_type = inspector.suggest_filter_type("collected_at")
-        assert filter_type == "DateFromToRangeFilter"
-
-    def test_suggest_filter_type_boolean(self):
-        inspector = FieldInspector(TestSampleModel)
-        filter_type = inspector.suggest_filter_type("is_published")
-        assert filter_type == "BooleanFilter"
-
-    def test_suggest_filter_type_choice(self):
-        inspector = FieldInspector(TestSampleModel)
-        filter_type = inspector.suggest_filter_type("status")
-        assert filter_type == "MultipleChoiceFilter"
-
-    def test_suggest_filter_type_foreign_key(self):
-        inspector = FieldInspector(TestSampleModel)
-        filter_type = inspector.suggest_filter_type("parent")
-        assert filter_type == "ModelChoiceFilter"
-
-    def test_suggest_filter_type_numeric(self):
-        inspector = FieldInspector(TestSampleModel)
-        filter_type = inspector.suggest_filter_type("count")
-        assert filter_type == "RangeFilter"
-
-    def test_suggest_filter_type_text(self):
-        inspector = FieldInspector(TestSampleModel)
-        filter_type = inspector.suggest_filter_type("name")
-        assert filter_type == "CharFilter"
+        assert suggested == expected
 
     def test_get_default_list_fields(self):
         inspector = FieldInspector(TestSampleModel)

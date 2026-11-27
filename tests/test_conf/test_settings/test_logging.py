@@ -1,8 +1,6 @@
 """Tests for ``fairdm/conf/settings/logging.py``."""
 
-import importlib.util
 import os
-from pathlib import Path
 from unittest import mock
 
 

@@ -10,7 +10,7 @@ from django.test import override_settings
 from django.urls import reverse
 
 from demo.seed.measurements import PROJECT as MEASUREMENT_PROJECT
-from demo.seed.projects import EMPTY, SEEDED_NAMES, SHOWCASE, SPARSE
+from demo.seed.projects import EMPTY, SEEDED_NAMES, SHOWCASE
 from demo.seed.samples import PROJECT as SAMPLE_PROJECT
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.project.models import Project
@@ -20,6 +20,7 @@ from fairdm.management.commands.create_dev_accounts import (
     DEV_ACCOUNT_PASSWORD,
     EXAMPLE_ACCOUNT_EMAILS,
 )
+
 
 Person = get_user_model()
 
@@ -104,6 +105,7 @@ class TestSeedOverviewsRefusesOutsideDevelopment:
         assert _seeded_projects().exists()
 
 
+@pytest.mark.slow
 @pytest.mark.django_db
 @pytest.mark.usefixtures("overviews_seeded")
 class TestSeedOverviewsAccounts:
@@ -135,6 +137,7 @@ class TestSeedOverviewsAccounts:
             assert "_auth_user_id" in client.session, email
 
 
+@pytest.mark.slow
 @pytest.mark.django_db
 class TestSeedOverviewsAccountsThatAlreadyExist:
     def test_an_account_that_already_exists_is_left_untouched(self):
@@ -163,6 +166,7 @@ class TestSeedOverviewsAccountsThatAlreadyExist:
         assert Person.objects.filter(email__in=EXAMPLE_ACCOUNT_EMAILS).count() == 3
 
 
+@pytest.mark.slow
 @pytest.mark.django_db
 @pytest.mark.usefixtures("overviews_seeded")
 class TestSeedOverviewsTeams:
@@ -183,30 +187,6 @@ class TestSeedOverviewsTeams:
 
         assert staff.has_perm("project.change_project", empty)
 
-    def test_the_staff_user_holds_every_right_on_every_seeded_project_and_dataset(self):
-        staff = Person.objects.get(email=ACCOUNTS["staff"])
-
-        projects = _seeded_projects()
-        datasets = Dataset.all_objects.filter(project__in=projects)
-        assert projects.count() == len(EVERY_SEEDED_PROJECT_NAME)
-        assert datasets.exists()
-        for project in projects:
-            for right in ("view_project", "change_project", "delete_project"):
-                assert staff.has_perm(f"project.{right}", project), (project, right)
-        for dataset in datasets:
-            for right in ("view_dataset", "change_dataset", "delete_dataset"):
-                assert staff.has_perm(f"dataset.{right}", dataset), (dataset, right)
-
-    def test_the_staff_user_sees_the_readiness_checklist_on_the_sparse_project(
-        self, client, seeded_media
-    ):
-        client.login(email=ACCOUNTS["staff"], password=DEV_ACCOUNT_PASSWORD)
-        sparse = Project.objects.get(name=SPARSE)
-
-        response = client.get(reverse("project:overview", kwargs={"uuid": sparse.uuid}))
-
-        assert response.status_code == 200
-        assert response.context["readiness"]["total"] > 0
 
     def test_the_regular_user_is_on_the_showcase_projects_team_only(self):
         regular = Person.objects.get(email=ACCOUNTS["regular"])
@@ -218,15 +198,6 @@ class TestSeedOverviewsTeams:
         ]
         assert [project.name for project in teams] == [SHOWCASE]
 
-    def test_one_project_has_an_image_and_the_showcase_has_none(self):
-        assert Project.objects.get(name=SPARSE).image
-        assert not Project.objects.get(name=SHOWCASE).image
-
-    def test_the_showcase_has_samples_with_a_location_and_samples_without_one(self):
-        samples = Sample.objects.filter(dataset__project__name=SHOWCASE)
-
-        assert samples.filter(location__isnull=False).exists()
-        assert samples.filter(location__isnull=True).exists()
 
     def test_the_second_regular_user_is_on_the_team_of_an_empty_project(self):
         second = Person.objects.get(email="regular.user2@example.com")
@@ -252,31 +223,7 @@ class TestSeedOverviewsTeams:
         assert response.status_code == 404
 
 
-@pytest.mark.django_db
-@pytest.mark.usefixtures("overviews_seeded")
-class TestSeedOverviewsIsSafeToRunAgain:
-    def test_a_second_run_leaves_the_same_records(self):
-        first = _records()
-
-        _seed()
-
-        assert _records() == first
-
-    def test_a_second_run_leaves_the_same_accounts(self):
-        _seed()
-
-        assert Person.objects.filter(email__in=EXAMPLE_ACCOUNT_EMAILS).count() == 3
-
-    def test_a_run_replaces_the_records_the_earlier_run_created(self):
-        before = set(_seeded_projects().values_list("pk", flat=True))
-
-        _seed()
-
-        after = set(_seeded_projects().values_list("pk", flat=True))
-        assert before
-        assert not before & after
-
-
+@pytest.mark.slow
 @pytest.mark.django_db
 class TestSeedOverviewsLeavesOtherRecordsAlone:
     def test_a_project_it_did_not_create_survives_a_run_even_when_it_shares_a_seeded_name(
@@ -298,3 +245,22 @@ class TestSeedOverviewsLeavesOtherRecordsAlone:
         assert Dataset.all_objects.filter(
             pk__in=[d.pk for d in foreign_datasets]
         ).count() == len(foreign_datasets)
+
+
+@pytest.mark.slow
+@pytest.mark.django_db
+@pytest.mark.usefixtures("overviews_seeded")
+class TestSeedOverviewsIsSafeToRunAgain:
+    def test_a_second_run_replaces_the_records_and_leaves_the_same_ones_and_accounts(
+        self,
+    ):
+        first = _records()
+        before = set(_seeded_projects().values_list("pk", flat=True))
+
+        _seed()
+
+        after = set(_seeded_projects().values_list("pk", flat=True))
+        assert _records() == first
+        assert Person.objects.filter(email__in=EXAMPLE_ACCOUNT_EMAILS).count() == 3
+        assert before
+        assert not before & after

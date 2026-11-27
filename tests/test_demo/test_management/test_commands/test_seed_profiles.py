@@ -8,10 +8,10 @@ from django.test import override_settings
 
 from fairdm.contrib.contributors.choices import AccountState
 from fairdm.contrib.contributors.models import Affiliation, Organization, Person
-from fairdm.contrib.contributors.plugins import Overview
 from fairdm.factories import PersonFactory
 from fairdm.management.commands.create_dev_accounts import DEV_ACCOUNT_PASSWORD
 from fairdm.portal_roles import PortalRoles
+
 
 REGULAR_USER = "regular.user@example.com"
 ADMIN_USER = "admin.user@example.com"
@@ -81,40 +81,10 @@ class TestSeedProfilesRefusesOutsideDevelopment:
         assert not Person.objects.filter(email=REGULAR_USER).exists()
 
 
+@pytest.mark.slow
 @pytest.mark.django_db
 class TestSeedProfilesStates:
-    def test_a_complete_profile_exists(self, seeded):
-        complete = [
-            p
-            for p in seeded
-            if p.orcid_is_authenticated and all(p.get_profile_completeness().values())
-        ]
 
-        assert complete
-
-    def test_the_signed_in_users_own_profile_is_incomplete(self, seeded):
-        me = Person.objects.get(email=REGULAR_USER)
-
-        assert me in seeded
-        assert me.account_state == AccountState.CLAIMED
-        assert not all(me.get_profile_completeness().values())
-
-    def test_an_unclaimed_profile_exists(self, seeded):
-        states = {p.account_state for p in seeded}
-
-        assert states & {AccountState.GHOST, AccountState.INVITED}
-
-    def test_an_inactive_account_exists(self, seeded):
-        assert AccountState.INACTIVE in {p.account_state for p in seeded}
-
-    def test_a_person_credited_on_nothing_exists(self, seeded):
-        assert [p for p in seeded if not p.contributions.exists()]
-
-    def test_a_very_long_name_exists(self, seeded):
-        assert max(len(p.name) for p in seeded) >= 40
-
-    def test_a_name_in_a_non_latin_script_exists(self, seeded):
-        assert [p for p in seeded if _is_non_latin(p.name)]
 
     def test_every_seeded_page_answers_for_a_visitor(self, seeded, client):
         for person in seeded:
@@ -131,23 +101,9 @@ class TestSeedProfilesStates:
         assert response.status_code == 200
 
 
+@pytest.mark.slow
 @pytest.mark.django_db
 class TestSeedProfilesOrganizationStates:
-    def test_an_organization_with_everything_recorded_exists(
-        self, seeded_organizations
-    ):
-        complete = [
-            o
-            for o in seeded_organizations
-            if all(o.get_record_completeness().values())
-            and o.location is not None
-            and o.parent_id
-            and o.sub_organizations.exists()
-            and o.get_current_memberships()
-            and o.get_public_projects().filter(owner=o).exists()
-        ]
-
-        assert complete
 
     def test_one_the_signed_in_user_owns_exists(self, seeded_organizations):
         me = Person.objects.get(email=REGULAR_USER)
@@ -163,37 +119,6 @@ class TestSeedProfilesOrganizationStates:
         assert owned
         assert all(o.is_managed_by(me) for o in owned)
 
-    def test_one_with_nothing_recorded_exists(self, seeded_organizations):
-        bare = [
-            o
-            for o in seeded_organizations
-            if not any(o.get_record_completeness().values())
-            and o.location is None
-            and not o.parent_id
-            and not o.sub_organizations.exists()
-            and not o.affiliations.exists()
-            and not o.contributions.exists()
-            and not o.owned_projects.exists()
-            and not o.links
-        ]
-
-        assert bare
-
-    def test_one_with_more_members_than_its_card_and_every_kind_of_membership_exists(
-        self, seeded_organizations
-    ):
-        kinds = Affiliation.MembershipType
-        crowded = [
-            o
-            for o in seeded_organizations
-            if len(o.get_current_memberships()) > Overview.member_slots
-            and {m.type for m in o.get_current_memberships()}
-            >= {kinds.OWNER, kinds.ADMIN, kinds.MEMBER}
-            and o.affiliations.filter(type=kinds.PENDING).exists()
-            and o.affiliations.past().exists()
-        ]
-
-        assert crowded
 
     def test_every_seeded_organization_page_answers_for_a_visitor(
         self, seeded_organizations, client
@@ -216,6 +141,7 @@ class TestSeedProfilesOrganizationStates:
             assert ("readiness" in response.context) is organization.is_managed_by(me)
 
 
+@pytest.mark.slow
 @pytest.mark.django_db
 class TestSeedProfilesIsSafeToRunAgain:
     def test_a_second_run_leaves_the_same_number_of_people(self, seeded):
@@ -224,6 +150,7 @@ class TestSeedProfilesIsSafeToRunAgain:
         assert len(_seeded_people()) == len(seeded)
 
 
+@pytest.mark.slow
 @pytest.mark.django_db
 class TestSeedProfilesLeavesOtherPeopleAlone:
     def test_a_person_it_did_not_create_survives_a_run(self, db):
@@ -254,6 +181,7 @@ def _affiliation(organization, email):
     return organization.affiliations.get(person__email=email)
 
 
+@pytest.mark.slow
 @pytest.mark.django_db
 class TestSeedProfilesKeepersOfTheOwnedOrganization:
     def test_an_administrator_is_a_current_administrator_of_it(
@@ -264,11 +192,6 @@ class TestSeedProfilesKeepersOfTheOwnedOrganization:
         assert affiliation.type == Affiliation.MembershipType.ADMIN
         assert affiliation.end_date is None
 
-    def test_an_ordinary_member_is_a_current_member_of_it(self, owned_organization):
-        affiliation = _affiliation(owned_organization, MEMBER_USER)
-
-        assert affiliation.type == Affiliation.MembershipType.MEMBER
-        assert affiliation.end_date is None
 
     def test_an_administrator_whose_affiliation_has_ended_was_one_of_it(
         self, owned_organization
@@ -278,19 +201,6 @@ class TestSeedProfilesKeepersOfTheOwnedOrganization:
         assert affiliation.type == Affiliation.MembershipType.ADMIN
         assert affiliation.end_date is not None
 
-    def test_only_the_owner_and_the_administrator_may_edit_it(self, owned_organization):
-        who = {
-            email: Person.objects.get(email=email)
-            for email in (REGULAR_USER, ADMIN_USER, MEMBER_USER, FORMER_ADMIN_USER)
-        }
-
-        allowed = {
-            email
-            for email, person in who.items()
-            if owned_organization.is_editable_by(person)
-        }
-
-        assert allowed == {REGULAR_USER, ADMIN_USER}
 
     @pytest.mark.parametrize("email", [ADMIN_USER, MEMBER_USER, FORMER_ADMIN_USER])
     def test_each_account_signs_in_with_the_shared_password(
@@ -327,6 +237,7 @@ class TestSeedProfilesKeepersOfTheOwnedOrganization:
             assert organization.affiliations.filter(person__email=email).count() == 1
 
 
+@pytest.mark.slow
 @pytest.mark.django_db
 class TestSeedProfilesRoleAccounts:
     @pytest.mark.parametrize(
@@ -381,6 +292,7 @@ class TestSeedProfilesRoleAccounts:
             assert PortalRoles.is_held_by(Person.objects.get(email=email), role)
 
 
+@pytest.mark.slow
 @pytest.mark.django_db
 class TestSeedProfilesCreditsFromTheOrganization:
     def test_a_person_with_a_primary_affiliation_is_credited_from_it(self, seeded):

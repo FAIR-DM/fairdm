@@ -2,10 +2,8 @@
 
 import pytest
 from django.contrib.auth.models import AnonymousUser, Group, Permission
-from django.contrib.contenttypes.models import ContentType
 
 from fairdm.contrib.contributors.choices import ContributionLevel
-from fairdm.contrib.contributors.models import Organization
 from fairdm.factories import (
     ContributionFactory,
     DatasetFactory,

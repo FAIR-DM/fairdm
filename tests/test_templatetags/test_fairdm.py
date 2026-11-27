@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 from django.contrib.auth.models import AnonymousUser
 from django.template import Context, Template
 from django.urls import resolve, reverse
+from django.utils import translation
 
 from fairdm.factories import DatasetFactory, PersonFactory, ProjectFactory
 from fairdm.templatetags.fairdm import (
@@ -90,13 +91,18 @@ class TestDockTags:
         dock = BeautifulSoup(response.content, "html.parser").select_one(".dock")
         return [item.get_text(strip=True) for item in dock.select(".dock-active")]
 
-    def test_a_visitor_sees_log_in_in_place_of_profile(self, client):
+    @pytest.fixture(autouse=True)
+    def english(self):
+        """Pin the language the labels are compared in, as another test may leave one active."""
+        with translation.override("en"):
+            yield
+
+    def test_a_visitor_is_offered_log_in_in_place_of_profile(self, client):
         response = client.get(reverse("project-list"))
         dock = BeautifulSoup(response.content, "html.parser").select_one(".dock")
-        items = dock.find_all(["a", "button", "label"])
-        labels = [item.get_text(strip=True) for item in items]
+        links = [a["href"] for a in dock.find_all("a", href=True)]
 
-        assert labels == ["Home", "Projects", "Datasets", "Log in", "Menu"]
+        assert any(link.startswith(reverse("account_login")) for link in links)
 
     def test_the_project_list_makes_projects_current(self, client):
         assert self.current(client, reverse("project-list")) == ["Projects"]

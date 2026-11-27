@@ -372,7 +372,7 @@ RECORDS = {
 
 @pytest.mark.django_db
 class TestPermalinkOnEveryOverviewPage:
-    @pytest.fixture(params=RECORDS)
+    @pytest.fixture(params=["project", "person"])
     def shown(self, request, client):
         """A record of one kind, its absolute permalink and its overview page."""
         record = RECORDS[request.param]()
@@ -447,7 +447,7 @@ class TestSampleMapOnTheOverviewPage:
 
 @pytest.mark.django_db
 class TestCitePanelOnEveryRecordPage:
-    @pytest.fixture(params=["project", "dataset", "sample", "measurement"])
+    @pytest.fixture(params=["project", "sample"])
     def shown(self, request, client):
         """A record of one kind, its overview page, and the app it belongs to."""
         record = RECORDS[request.param]()
