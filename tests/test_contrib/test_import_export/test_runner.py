@@ -166,7 +166,12 @@ class TestCheck:
 
         checked(job)
 
-        assert recorded_cache.written[:2] == [10, 20]
+        written = [
+            value
+            for key, value in recorded_cache.written
+            if key == ImportRun(job).progress_key
+        ]
+        assert written[:2] == [10, 20]
         assert ImportRun(job).progress() is None
 
 

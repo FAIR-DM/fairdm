@@ -84,6 +84,11 @@ class TestUploadForm:
         assert not form.is_valid()
         assert form.has_error("file", code="too_large")
 
+    def test_a_file_at_the_size_limit_is_accepted(self, monkeypatch):
+        monkeypatch.setattr(FileReader, "MAX_BYTES", 4)
+
+        assert self.upload("rocks.csv", b"xxxx").is_valid()
+
     def test_a_form_with_no_file_is_refused(self):
         form = UploadForm(files={})
 

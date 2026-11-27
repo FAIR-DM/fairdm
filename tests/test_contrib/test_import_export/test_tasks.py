@@ -189,12 +189,6 @@ class TestUndoJob:
         assert tasks.undo_job(0, None) is None
 
 
-@pytest.fixture(autouse=True)
-def media(settings, tmp_path):
-    """Store the files of these tests in a folder of their own."""
-    settings.MEDIA_ROOT = tmp_path
-
-
 class TestDiscardStale:
     """An import left unfinished for 30 days is discarded and its file deleted."""
 

@@ -39,7 +39,8 @@ from fairdm.utils.choices import Visibility
 @pytest.fixture(autouse=True)
 def media_root(settings, tmp_path):
     """Store uploaded files in a folder of the test, never in the project's media."""
-    settings.MEDIA_ROOT = str(tmp_path / "media")
+    settings.MEDIA_ROOT = tmp_path
+    return tmp_path
 
 
 class RecordingCache(LocMemCache):
@@ -48,15 +49,15 @@ class RecordingCache(LocMemCache):
     written = []
 
     def set(self, key, value, *args, **kwargs):
-        """Store the value and note it when it is a number."""
+        """Store the value and note its key and value when it is a number."""
         if isinstance(value, int):
-            type(self).written.append(value)
+            type(self).written.append((key, value))
         return super().set(key, value, *args, **kwargs)
 
 
 @pytest.fixture
 def recorded_cache(settings):
-    """Use a local cache that keeps every whole number written to it, in order."""
+    """Use a local cache that keeps every (key, number) written to it, in order."""
     RecordingCache.written = []
     settings.CACHES = {
         "default": {

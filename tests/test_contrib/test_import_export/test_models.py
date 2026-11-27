@@ -15,13 +15,6 @@ RUNNING = {"checking", "importing", "undoing"}
 FINISHED = {"imported", "undone", "discarded", "failed"}
 
 
-@pytest.fixture
-def media(settings, tmp_path):
-    """Store uploaded files in a folder of the test's own."""
-    settings.MEDIA_ROOT = tmp_path
-    return tmp_path
-
-
 class TestImportJobProperties:
     """What a job reports about itself without being stored."""
 
@@ -76,7 +69,7 @@ class TestImportJob:
 
         assert list(dataset.import_jobs.all()) == [newer, older]
 
-    def test_deleting_a_job_deletes_its_stored_file(self, media):
+    def test_deleting_a_job_deletes_its_stored_file(self, media_root):
         job = ImportJobFactory(with_file=True)
         storage, name = job.file.storage, job.file.name
         assert storage.exists(name)
@@ -92,7 +85,7 @@ class TestImportJob:
 
         assert not ImportJob.objects.filter(pk=job.pk).exists()
 
-    def test_deleting_a_dataset_deletes_its_jobs_and_their_files(self, media):
+    def test_deleting_a_dataset_deletes_its_jobs_and_their_files(self, media_root):
         job = ImportJobFactory(with_file=True)
         storage, name = job.file.storage, job.file.name
 
@@ -139,7 +132,9 @@ class TestFieldDocumentation:
 class TestStoredFileName:
     """An uploaded file is stored under a name nobody can guess."""
 
-    def test_the_stored_name_holds_neither_the_upload_nor_a_date(self, make_job, media):
+    def test_the_stored_name_holds_neither_the_upload_nor_a_date(
+        self, make_job, media_root
+    ):
         from django.core.files.base import ContentFile
 
         job = make_job([{"name": "a", "local_id": "A"}])
@@ -147,7 +142,7 @@ class TestStoredFileName:
 
         assert re.fullmatch(r"imports/[0-9a-f]{32}\.xlsx", job.file.name)
 
-    def test_two_uploads_of_one_name_are_stored_apart(self, make_job, media):
+    def test_two_uploads_of_one_name_are_stored_apart(self, make_job, media_root):
         from django.core.files.base import ContentFile
 
         job = make_job([{"name": "a", "local_id": "A"}])

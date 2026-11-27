@@ -194,6 +194,7 @@ class TestPluginGetBreadcrumbs:
 
         breadcrumbs = mounted(TestPlugin, pk=sample.pk).get_breadcrumbs()
 
+        assert breadcrumbs
         assert all(isinstance(crumb, dict) and crumb["text"] for crumb in breadcrumbs)
 
     def test_a_missing_record_still_leaves_the_current_page(self):

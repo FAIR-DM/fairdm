@@ -226,6 +226,16 @@ class TestUndo:
         changed.refresh_from_db()
         assert str(changed.hardness_mohs) == "7.0"
 
+    def test_the_progress_counts_the_records_undone(self, undoing, recorded_cache):
+        job, _added, _changed = undoing
+        ImportUndo(job).undo(None)
+        written = [
+            value
+            for key, value in recorded_cache.written
+            if key == ImportRun(job).progress_key
+        ]
+        assert written[-1] == 2
+
     def test_the_job_moves_from_undoing_to_undone_with_who_and_when(
         self, undoing, editor_for_undo
     ):
