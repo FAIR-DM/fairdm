@@ -1265,7 +1265,8 @@ class TestOverviewCitation:
 
         response = _page(client, dataset)
 
-        formats = {f["key"]: f["value"] for f in response.context["citation"]["formats"]}
+        shown = response.context["citation"]["formats"]
+        formats = {f["key"]: f["value"] for f in shown}
         assert self._citation(client, dataset).startswith("Keller, A. (")
         assert "Oliveira" not in formats["bibtex"]
         assert "Oliveira" not in formats["ris"]

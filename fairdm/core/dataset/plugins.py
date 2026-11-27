@@ -433,8 +433,8 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
         """Gather the dataset's creators, and whether anyone is credited as its contact person.
 
         Returns:
-            The creators, each with whether the citation names them, whether a contact person
-            is credited, and how many contributions the dataset has.
+            The creators, each with whether the citation names them, whether a contact
+            person is credited, and how many contributions the dataset has.
         """
         contributions = self.get_contributions()
         creators, has_contact = [], False

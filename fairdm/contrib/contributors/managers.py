@@ -242,8 +242,8 @@ class ContributionQuerySet(OrderedModelQuerySet):
     def cited(self):
         """Filter contributions to those the record's citation and creator lists name.
 
-        An organization is always named, and a person is named unless their credit leaves
-        them out of the citation.
+        An organization is always named, and a person is named unless their credit
+        leaves them out of the citation.
 
         Returns:
             Contributions whose ``in_citation`` is on.

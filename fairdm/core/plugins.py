@@ -228,9 +228,9 @@ class RecordOverviewPlugin(OverviewPlugin):
         recorded on the credit itself, so a person credited with no organization has none.
 
         Returns:
-            One ``{"contributor", "roles": {address: label}, "affiliation", "cited"}`` entry per
-            credit, in the order of :meth:`get_contributions`. ``cited`` is False for a person
-            the credit leaves out of the citation.
+            One ``{"contributor", "roles": {address: label}, "affiliation", "cited"}``
+            entry per credit, in the order of :meth:`get_contributions`. ``cited`` is
+            False for a person the credit leaves out of the citation.
         """
         return [
             {
