@@ -567,6 +567,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.models.Contribution.roles"><code class="docutils literal notranslate"><span class="pre">Contribution.roles</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.models.Contribution.affiliation"><code class="docutils literal notranslate"><span class="pre">Contribution.affiliation</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.models.Contribution.level"><code class="docutils literal notranslate"><span class="pre">Contribution.level</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.models.Contribution.in_citation"><code class="docutils literal notranslate"><span class="pre">Contribution.in_citation</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.models.Contribution.Meta"><code class="docutils literal notranslate"><span class="pre">Contribution.Meta</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.models.Contribution.Meta.verbose_name"><code class="docutils literal notranslate"><span class="pre">Contribution.Meta.verbose_name</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.models.Contribution.Meta.verbose_name_plural"><code class="docutils literal notranslate"><span class="pre">Contribution.Meta.verbose_name_plural</span></code></a></li>
@@ -2008,7 +2009,10 @@ contributor: The person or organisation credited.
 roles: The roles held on this credit.
 affiliation: The organisation a person is credited from on this record, or None.
 It is kept with the record and does not follow the person’s profile.
-level: What a person may do on the credited object. Empty for an organisation.</p>
+level: What a person may do on the credited object. Empty for an organisation.
+in_citation: Whether a person is named in the record’s formal citation and in
+the creator lists of its metadata. Off, they are credited and listed but
+left out.</p>
 <p class="rubric">Initialization</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="fairdm.contrib.contributors.models.Contribution.objects">
@@ -2056,6 +2060,12 @@ level: What a person may do on the credited object. Empty for an organisation.</
 <dt class="sig sig-object py" id="fairdm.contrib.contributors.models.Contribution.level">
 <span class="sig-name descname"><span class="pre">level</span></span><a class="headerlink" aria-label="Link to this definition: level" href="#fairdm.contrib.contributors.models.Contribution.level" title="Link to this definition">¶</a></dt>
 <dd><p>‘PositiveSmallIntegerField(…)’</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.models.Contribution.in_citation">
+<span class="sig-name descname"><span class="pre">in_citation</span></span><a class="headerlink" aria-label="Link to this definition: in_citation" href="#fairdm.contrib.contributors.models.Contribution.in_citation" title="Link to this definition">¶</a></dt>
+<dd><p>‘BooleanField(…)’</p>
 </dd></dl>
 
 <dl class="py class">
@@ -2611,6 +2621,7 @@ details: Extra structured details.</p>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.models.Contribution.roles"><code class="docutils literal notranslate"><span class="pre">Contribution.roles</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.models.Contribution.affiliation"><code class="docutils literal notranslate"><span class="pre">Contribution.affiliation</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.models.Contribution.level"><code class="docutils literal notranslate"><span class="pre">Contribution.level</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.models.Contribution.in_citation"><code class="docutils literal notranslate"><span class="pre">Contribution.in_citation</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.models.Contribution.Meta"><code class="docutils literal notranslate"><span class="pre">Contribution.Meta</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.models.Contribution.Meta.verbose_name"><code class="docutils literal notranslate"><span class="pre">Contribution.Meta.verbose_name</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.models.Contribution.Meta.verbose_name_plural"><code class="docutils literal notranslate"><span class="pre">Contribution.Meta.verbose_name_plural</span></code></a></li>

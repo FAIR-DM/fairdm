@@ -259,6 +259,14 @@ Bases: {py:obj}`ordered_model.models.OrderedModelQuerySet`
 ```{autodoc2-docstring} fairdm.contrib.contributors.managers.ContributionQuerySet.__init__
 ```
 
+````{py:method} cited()
+:canonical: fairdm.contrib.contributors.managers.ContributionQuerySet.cited
+
+```{autodoc2-docstring} fairdm.contrib.contributors.managers.ContributionQuerySet.cited
+```
+
+````
+
 ````{py:method} by_role(role: str)
 :canonical: fairdm.contrib.contributors.managers.ContributionQuerySet.by_role
 

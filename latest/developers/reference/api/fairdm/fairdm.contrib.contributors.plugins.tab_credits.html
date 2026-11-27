@@ -451,7 +451,8 @@ record.</p></td>
 <td><p>Put a removed contributor back as they were.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.contrib.contributors.plugins.tab_credits.Reorder" title="fairdm.contrib.contributors.plugins.tab_credits.Reorder"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Reorder</span></code></a></p></td>
-<td><p>The Reorder sheet: drag people into the order the record credits them in.</p></td>
+<td><p>The Reorder sheet: drag people into the order the record credits them in, and
+switch each in or out of the record’s citation.</p></td>
 </tr>
 </tbody>
 </table>
@@ -640,7 +641,8 @@ request: The request.
 <dt class="sig sig-object py" id="fairdm.contrib.contributors.plugins.tab_credits.Reorder">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">Reorder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: Reorder" href="#fairdm.contrib.contributors.plugins.tab_credits.Reorder" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="fairdm.contrib.contributors.plugins.tab_base.html#fairdm.contrib.contributors.plugins.tab_base.ContributorsBase" title="fairdm.contrib.contributors.plugins.tab_base.ContributorsBase"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fairdm.contrib.contributors.plugins.tab_base.ContributorsBase</span></code></a></p>
-<p>The Reorder sheet: drag people into the order the record credits them in.</p>
+<p>The Reorder sheet: drag people into the order the record credits them in, and
+switch each in or out of the record’s citation.</p>
 <p class="rubric">Initialization</p>
 <p>Constructor. Called in the URLconf; can contain helpful extra
 keyword arguments, and other things.</p>
@@ -665,7 +667,8 @@ keyword arguments, and other things.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="fairdm.contrib.contributors.plugins.tab_credits.Reorder.post">
 <span class="sig-name descname"><span class="pre">post</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: post" href="#fairdm.contrib.contributors.plugins.tab_credits.Reorder.post" title="Link to this definition">¶</a></dt>
-<dd><p>Save the order the people were given in.</p>
+<dd><p>Save the order the people were given in and who the citation names.</p>
+<p>Everyone the form lists and does not mark as cited is left out of the citation.</p>
 </dd></dl>
 
 </dd></dl>

@@ -1644,6 +1644,16 @@ Bases: {py:obj}`django_lifecycle.mixins.LifecycleModelMixin`, {py:obj}`ordered_m
 
 ````
 
+````{py:attribute} in_citation
+:canonical: fairdm.contrib.contributors.models.Contribution.in_citation
+:value: >
+   'BooleanField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.models.Contribution.in_citation
+```
+
+````
+
 `````{py:class} Meta
 :canonical: fairdm.contrib.contributors.models.Contribution.Meta
 

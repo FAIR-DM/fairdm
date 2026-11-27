@@ -406,6 +406,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 </li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.managers.AffiliationManager"><code class="docutils literal notranslate"><span class="pre">AffiliationManager</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.managers.ContributionQuerySet"><code class="docutils literal notranslate"><span class="pre">ContributionQuerySet</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.managers.ContributionQuerySet.cited"><code class="docutils literal notranslate"><span class="pre">ContributionQuerySet.cited()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.managers.ContributionQuerySet.by_role"><code class="docutils literal notranslate"><span class="pre">ContributionQuerySet.by_role()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.managers.ContributionQuerySet.for_entity"><code class="docutils literal notranslate"><span class="pre">ContributionQuerySet.for_entity()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.managers.ContributionQuerySet.by_contributor"><code class="docutils literal notranslate"><span class="pre">ContributionQuerySet.by_contributor()</span></code></a></li>
@@ -652,6 +653,16 @@ Current affiliations with type OWNER.</p>
 <p>Contribution queryset with filters by role, entity and contributor.</p>
 <p class="rubric">Initialization</p>
 <dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.managers.ContributionQuerySet.cited">
+<span class="sig-name descname"><span class="pre">cited</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: cited" href="#fairdm.contrib.contributors.managers.ContributionQuerySet.cited" title="Link to this definition">¶</a></dt>
+<dd><p>Filter contributions to those the record’s citation and creator lists name.</p>
+<p>An organization is always named, and a person is named unless their credit
+leaves them out of the citation.</p>
+<p>Returns:
+Contributions whose <code class="docutils literal notranslate"><span class="pre">in_citation</span></code> is on.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="fairdm.contrib.contributors.managers.ContributionQuerySet.by_role">
 <span class="sig-name descname"><span class="pre">by_role</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">role</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: by_role" href="#fairdm.contrib.contributors.managers.ContributionQuerySet.by_role" title="Link to this definition">¶</a></dt>
 <dd><p>Filter contributions to those holding a role.</p>
@@ -767,6 +778,7 @@ Contributions whose contributor is an <code class="docutils literal notranslate"
 </li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.managers.AffiliationManager"><code class="docutils literal notranslate"><span class="pre">AffiliationManager</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.managers.ContributionQuerySet"><code class="docutils literal notranslate"><span class="pre">ContributionQuerySet</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.managers.ContributionQuerySet.cited"><code class="docutils literal notranslate"><span class="pre">ContributionQuerySet.cited()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.managers.ContributionQuerySet.by_role"><code class="docutils literal notranslate"><span class="pre">ContributionQuerySet.by_role()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.managers.ContributionQuerySet.for_entity"><code class="docutils literal notranslate"><span class="pre">ContributionQuerySet.for_entity()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.managers.ContributionQuerySet.by_contributor"><code class="docutils literal notranslate"><span class="pre">ContributionQuerySet.by_contributor()</span></code></a></li>

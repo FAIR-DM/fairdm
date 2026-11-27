@@ -240,7 +240,7 @@ Bases: {py:obj}`fairdm.core.plugins.OverviewPlugin`
 
 ````
 
-````{py:method} get_contributors_with_role(entries, role) -> list[fairdm.contrib.contributors.models.Contributor]
+````{py:method} get_contributors_with_role(entries, role, *, cited_only=False) -> list[fairdm.contrib.contributors.models.Contributor]
 :canonical: fairdm.core.plugins.RecordOverviewPlugin.get_contributors_with_role
 :staticmethod:
 
