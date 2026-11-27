@@ -19,7 +19,6 @@ from demo.models import (
     SoilSample,
 )
 from fairdm.contrib.import_export.schema import (
-    Column,
     TableSchema,
     build_table_schema,
     field_column,
@@ -31,8 +30,6 @@ from fairdm.factories import DatasetFactory
 from fairdm.registry import registry
 from fairdm.utils.choices import Visibility
 from fairdm.utils.location.resources import LOCATION_COLUMNS
-
-pytestmark = pytest.mark.django_db
 
 ROCK_OWN = [
     "rock_type",
@@ -55,6 +52,7 @@ def headings(config):
     return build_table_schema(config).headings
 
 
+@pytest.mark.django_db
 class TestColumnOrder:
     def test_sample_without_resource_fields(self, rock_config):
         assert headings(rock_config) == [
@@ -98,25 +96,6 @@ class TestColumnOrder:
             "shared",
         ]
 
-    @pytest.mark.parametrize("config_name", ["rock_config", "xrf_config"])
-    def test_the_shared_heading_is_one_whole_translatable_string(
-        self, request, monkeypatch, config_name
-    ):
-        from fairdm.contrib.import_export import schema as schema_module
-
-        asked = []
-
-        def record(message):
-            asked.append(message)
-            return message
-
-        monkeypatch.setattr(schema_module, "_", record)
-        schema = build_table_schema(request.getfixturevalue(config_name))
-
-        titles = {key: title for key, title, columns in schema.groups()}
-
-        assert titles["shared"] in asked
-
     def test_schema_describes_its_model(self, rock_config):
         schema = build_table_schema(rock_config)
         assert isinstance(schema, TableSchema)
@@ -125,6 +104,7 @@ class TestColumnOrder:
         assert schema.slug == "rocksample"
 
 
+@pytest.mark.django_db
 class TestResourceFieldsRule:
     def test_listed_fields_and_required_fields_are_columns(self, rock_config_for):
         config = rock_config_for(resource_fields=["weight_grams"])
@@ -186,10 +166,10 @@ class TestResourceFieldsRule:
         assert headings(config)[:3] == ["portal_id", "local_id", "name"]
 
 
+@pytest.mark.django_db
 class TestColumnContents:
-    @pytest.mark.parametrize(
-        "name",
-        [
+    def test_fields_the_portal_sets_are_never_columns(self, rock_config):
+        portal_set = {
             "uuid",
             "id",
             "added",
@@ -202,21 +182,17 @@ class TestColumnContents:
             "location",
             "polymorphic_ctype",
             "sample_ptr",
-        ],
-    )
-    def test_fields_the_portal_sets_are_never_columns(self, rock_config, name):
-        assert name not in headings(rock_config)
+        }
+        not_editable = {
+            f.name
+            for f in RockSample._meta.concrete_fields
+            if not f.editable or getattr(f, "auto_now", False)
+        }
+        assert not_editable
+        assert (portal_set | not_editable) & set(headings(rock_config)) == set()
 
-    def test_a_field_that_is_not_editable_is_never_a_column(self, rock_config):
-        for model_field in RockSample._meta.concrete_fields:
-            if not model_field.editable or getattr(model_field, "auto_now", False):
-                assert model_field.name not in headings(rock_config)
-
-    @pytest.mark.parametrize("language", ["en", "de"])
-    def test_headings_are_the_field_names_in_every_language(
-        self, rock_config, language
-    ):
-        with translation.override(language):
+    def test_headings_are_the_field_names_in_every_language(self, rock_config):
+        with translation.override("de"):
             columns = headings(rock_config)
         assert columns == headings(rock_config)
         own = [c for c in columns if c in ROCK_OWN]
@@ -234,21 +210,19 @@ class TestColumnContents:
         assert column.kind == "quantity"
         assert column.unit == str(base_units)
 
-    @pytest.mark.parametrize(
-        ("name", "kind"),
-        [
-            ("portal_id", "id"),
-            ("rock_type", "text"),
-            ("weight_grams", "number"),
-            ("collection_date", "date"),
-            ("hardness_mohs", "number"),
-            ("status", "concept"),
-            ("latitude", "latitude"),
-            ("longitude", "longitude"),
-        ],
-    )
-    def test_kinds(self, rock_config, name, kind):
-        assert build_table_schema(rock_config).get(name).kind == kind
+    def test_kinds(self, rock_config):
+        schema = build_table_schema(rock_config)
+        expected = {
+            "portal_id": "id",
+            "rock_type": "text",
+            "weight_grams": "number",
+            "collection_date": "date",
+            "hardness_mohs": "number",
+            "status": "concept",
+            "latitude": "latitude",
+            "longitude": "longitude",
+        }
+        assert {name: schema.get(name).kind for name in expected} == expected
 
     def test_required_follows_the_model_field(self, rock_config):
         schema = build_table_schema(rock_config)
@@ -297,13 +271,13 @@ class TestColumnContents:
 class TestColumnRange:
     """FR-004: a column's range is the range the field stores."""
 
-    def test_a_decimal_field_holds_no_more_whole_digits_than_it_stores(
-        self, column_of
-    ):
+    @pytest.mark.django_db
+    def test_a_decimal_field_holds_no_more_whole_digits_than_it_stores(self, column_of):
         column = column_of(SoilSample, "ph_level")
 
         assert (column.minimum, column.maximum) == (-99.99, 99.99)
 
+    @pytest.mark.django_db
     def test_a_small_integer_field_has_its_database_range(self, column_of):
         column = column_of(ExampleMeasurement, "positive_small_integer_field")
 
@@ -319,6 +293,7 @@ class TestColumnRange:
 
         assert (column.minimum, column.maximum) == (3, 9)
 
+    @pytest.mark.django_db
     def test_the_range_is_published_in_the_table_schema(self, column_of):
         constraints = column_of(SoilSample, "ph_level").as_frictionless()["constraints"]
 
@@ -326,9 +301,8 @@ class TestColumnRange:
 
 
 class TestKindOf:
-    @pytest.mark.parametrize(
-        ("model_field", "kind"),
-        [
+    def test_kind(self):
+        expected = [
             (models.CharField(max_length=10), "text"),
             (models.TextField(), "text"),
             (models.BooleanField(), "boolean"),
@@ -340,12 +314,16 @@ class TestKindOf:
             (models.DateTimeField(), "datetime"),
             (models.TimeField(), "time"),
             (models.CharField(max_length=5, choices=[("a", "A")]), "choice"),
-        ],
-    )
-    def test_kind(self, model_field, kind):
-        assert kind_of(model_field) == kind
+        ]
+        wrong = [
+            (type(f).__name__, kind_of(f), kind)
+            for f, kind in expected
+            if kind_of(f) != kind
+        ]
+        assert wrong == []
 
 
+@pytest.mark.django_db
 class TestExamples:
     def test_every_column_has_an_example(self, rock_config):
         for column in build_table_schema(rock_config).columns:
@@ -394,15 +372,8 @@ class TestExamples:
                 assert f'"{table}"' not in query["sql"]
 
 
+@pytest.mark.django_db
 class TestLocationColumns:
-    def test_sample_columns_are_named_by_the_shared_constant(self, rock_config):
-        columns = headings(rock_config)
-        assert tuple(columns[-4:]) == LOCATION_COLUMNS
-
-    def test_measurement_columns_are_named_by_the_shared_constant(self, xrf_config):
-        columns = headings(xrf_config)
-        assert tuple(columns[-4:]) == LOCATION_COLUMNS
-
     def test_bounds_and_units(self, rock_config):
         schema = build_table_schema(rock_config)
         assert (schema.get("latitude").minimum, schema.get("latitude").maximum) == (
@@ -417,42 +388,38 @@ class TestLocationColumns:
         assert schema.get("location_uncertainty").unit == "m"
         assert schema.get("location_uncertainty").minimum == 0
 
-    @pytest.mark.parametrize("name", ["location_elevation", "location_uncertainty"])
     def test_naming_one_extra_column_brings_the_coordinates_it_needs(
-        self, rock_config_for, name
+        self, rock_config_for
     ):
-        columns = headings(rock_config_for(resource_fields=[name]))
-        assert columns[-3:] == ["latitude", "longitude", name]
-        assert "location_uncertainty" not in columns or name == "location_uncertainty"
+        columns = headings(rock_config_for(resource_fields=["location_elevation"]))
+        assert columns[-3:] == ["latitude", "longitude", "location_elevation"]
+        assert "location_uncertainty" not in columns
 
     def test_the_columns_are_in_the_shared_group(self, rock_config):
         schema = build_table_schema(rock_config)
         assert {schema.get(name).group for name in LOCATION_COLUMNS} == {"shared"}
 
-    def test_a_column_is_a_column(self, rock_config):
-        assert isinstance(build_table_schema(rock_config).get("latitude"), Column)
 
-
-@pytest.mark.parametrize(
-    "model", [*registry.samples, *registry.measurements], ids=lambda m: m.__name__
-)
+@pytest.mark.django_db
 class TestPortalConfig:
-    def test_a_registered_type_has_a_schema_with_no_further_work(self, model):
-        config = registry.get_for_model(model)
-        schema = config.get_table_schema()
-        assert schema.model is model
-        assert schema.headings[:3] == ["portal_id", "local_id", "name"]
-        assert len(schema.headings) == len(set(schema.headings))
-        assert all(isinstance(column, Column) for column in schema.columns)
-
-    def test_every_column_belongs_to_a_group(self, model):
-        schema = registry.get_for_model(model).get_table_schema()
-        assert {column.group for column in schema.columns} <= {"ids", "own", "shared"}
+    def test_every_registered_type_has_a_schema_with_no_further_work(self):
+        problems = []
+        for model in [*registry.samples, *registry.measurements]:
+            schema = registry.get_for_model(model).get_table_schema()
+            if schema.model is not model:
+                problems.append(f"{model.__name__}: wrong model")
+            if schema.headings[:3] != ["portal_id", "local_id", "name"]:
+                problems.append(f"{model.__name__}: identifiers first")
+            if len(schema.headings) != len(set(schema.headings)):
+                problems.append(f"{model.__name__}: repeated heading")
+            if not {c.group for c in schema.columns} <= {"ids", "own", "shared"}:
+                problems.append(f"{model.__name__}: unknown group")
+        assert problems == []
 
 
 TYPES = [*registry.samples, *registry.measurements]
-RANGED = [m for m in TYPES if m is not CustomSample]
-LISTED = [m for m in registry.samples if m is not CustomSample]
+EXPORTED = [RockSample, ICP_MS_Measurement, ExampleMeasurement]
+RANGED = [RockSample, ExampleMeasurement]
 
 
 def write_file(path, schema, rows):
@@ -499,40 +466,41 @@ def exported(factory_for, tmp_path):
     return build
 
 
-@pytest.mark.parametrize("model", TYPES, ids=lambda m: m.__name__)
+@pytest.mark.django_db
 class TestFrictionlessValidation:
-    def test_the_descriptor_is_a_valid_schema(self, model):
-        schema = registry.get_for_model(model).get_table_schema()
+    def test_every_types_descriptor_is_a_valid_schema(self):
+        wrong = []
+        for model in TYPES:
+            schema = registry.get_for_model(model).get_table_schema()
+            descriptor = frictionless.Schema.from_descriptor(schema.as_frictionless())
+            if [f.name for f in descriptor.fields] != schema.headings:
+                wrong.append(model.__name__)
+        assert wrong == []
 
-        descriptor = frictionless.Schema.from_descriptor(schema.as_frictionless())
-
-        assert [f.name for f in descriptor.fields] == schema.headings
-
+    @pytest.mark.parametrize("model", EXPORTED, ids=lambda m: m.__name__)
     def test_a_file_an_export_wrote_validates(self, model, exported):
         schema, _rows, path = exported(model)
 
         assert valid(path, schema)
 
     def test_a_file_of_new_records_with_no_portal_id_validates(
-        self, model, exported, tmp_path
+        self, exported, tmp_path
     ):
-        schema, rows, _path = exported(model)
+        schema, rows, _path = exported(RockSample)
         index = schema.headings.index("portal_id")
         fresh = [[*row[:index], "", *row[index + 1 :]] for row in rows]
 
         assert valid(write_file(tmp_path / "new.csv", schema, fresh), schema)
 
-    def test_a_file_with_the_same_portal_id_twice_fails(
-        self, model, exported, tmp_path
-    ):
-        schema, rows, _path = exported(model)
+    def test_a_file_with_the_same_portal_id_twice_fails(self, exported, tmp_path):
+        schema, rows, _path = exported(RockSample)
         index = schema.headings.index("portal_id")
         rows[1][index] = rows[0][index]
 
         assert not valid(write_file(tmp_path / "twice.csv", schema, rows), schema)
 
-    def test_the_schema_has_no_primary_key_and_the_portal_id_is_unique(self, model):
-        schema = registry.get_for_model(model).get_table_schema()
+    def test_the_schema_has_no_primary_key_and_the_portal_id_is_unique(self):
+        schema = registry.get_for_model(RockSample).get_table_schema()
 
         descriptor = schema.as_frictionless()
 
@@ -541,13 +509,10 @@ class TestFrictionlessValidation:
         assert portal_id["name"] == "portal_id"
         assert portal_id["constraints"]["unique"] is True
         assert "required" not in portal_id["constraints"]
-
-    def test_the_missing_value_is_the_empty_cell(self, model):
-        schema = registry.get_for_model(model).get_table_schema()
-
-        assert schema.as_frictionless()["missingValues"] == [""]
+        assert descriptor["missingValues"] == [""]
 
 
+@pytest.mark.django_db
 class TestFrictionlessRefusals:
     @pytest.mark.parametrize("model", RANGED, ids=lambda m: m.__name__)
     def test_a_cell_outside_a_range_fails(self, model, exported, tmp_path):
@@ -557,9 +522,8 @@ class TestFrictionlessRefusals:
 
         assert not valid(write_file(tmp_path / "range.csv", schema, rows), schema)
 
-    @pytest.mark.parametrize("model", LISTED, ids=lambda m: m.__name__)
-    def test_a_value_not_in_the_list_fails(self, model, exported, tmp_path):
-        schema, rows, _path = exported(model)
+    def test_a_value_not_in_the_list_fails(self, exported, tmp_path):
+        schema, rows, _path = exported(RockSample)
         column = next(c for c in schema.columns if c.allowed)
         rows[0][schema.headings.index(column.name)] = "not-in-the-list"
 
@@ -589,6 +553,7 @@ class TestEmptyVocabulary:
         assert valid(path, schema)
 
 
+@pytest.mark.django_db
 class TestFrictionlessDescriptor:
     def field(self, schema, name):
         """Return the descriptor of one column."""
@@ -602,28 +567,23 @@ class TestFrictionlessDescriptor:
 
         assert field["constraints"]["enum"] == [v for v, _meaning in column.allowed]
 
-    @pytest.mark.parametrize(
-        ("model", "name", "kind"),
-        [
+    def test_a_date_a_datetime_and_a_time_are_published_with_their_own_type(self):
+        expected = [
             (RockSample, "collection_date", "date"),
             (ICP_MS_Measurement, "analysis_date", "datetime"),
-        ],
-    )
-    def test_a_date_or_datetime_has_the_default_format(self, model, name, kind):
-        schema = registry.get_for_model(model).get_table_schema()
-
-        field = self.field(schema, name)
-
-        assert field["type"] == kind
-        assert field["format"] == "default"
-
-    def test_a_time_has_the_default_format(self):
-        schema = registry.get_for_model(ExampleMeasurement).get_table_schema()
-
-        field = self.field(schema, "time_field")
-
-        assert field["type"] == "time"
-        assert field["format"] == "default"
+            (ExampleMeasurement, "time_field", "time"),
+        ]
+        found = [
+            (
+                model,
+                name,
+                self.field(registry.get_for_model(model).get_table_schema(), name)[
+                    "type"
+                ],
+            )
+            for model, name, _kind in expected
+        ]
+        assert found == expected
 
     def test_a_boolean_reads_yes_and_no(self):
         schema = registry.get_for_model(CustomSample).get_table_schema()

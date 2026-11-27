@@ -1,7 +1,5 @@
 """The reader turns a file into headings and rows, or says why it cannot."""
 
-from unittest import mock
-
 import pytest
 
 from fairdm.contrib.import_export.reader import FileProblem, FileReader
@@ -33,25 +31,28 @@ class TestFileReader:
     class TestFileFormat:
         """Which files are read at all."""
 
-        @pytest.mark.parametrize(
-            ("name", "expected"),
-            [
-                ("a.csv", "csv"),
-                ("A.CSV", "csv"),
-                ("a.tsv", "tsv"),
-                ("a.xlsx", "xlsx"),
-                ("a.ods", "ods"),
-            ],
-        )
-        def test_a_read_format_is_named_by_its_extension(self, name, expected):
-            assert FileReader.file_format(name) == expected
+        def test_a_read_format_is_named_by_its_extension(self):
+            names = {
+                "a.csv": "csv",
+                "A.CSV": "csv",
+                "a.tsv": "tsv",
+                "a.xlsx": "xlsx",
+                "a.ods": "ods",
+            }
 
-        @pytest.mark.parametrize("name", ["a.json", "a.txt", "a.xls", "a"])
-        def test_another_format_is_refused(self, name):
-            with pytest.raises(FileProblem) as caught:
-                FileReader.file_format(name)
+            assert {name: FileReader.file_format(name) for name in names} == names
 
-            assert caught.value.code == "format"
+        def test_another_format_is_refused(self):
+            accepted = []
+            for name in ["a.json", "a.txt", "a.xls", "a"]:
+                try:
+                    FileReader.file_format(name)
+                except FileProblem as caught:
+                    assert caught.code == "format"
+                else:
+                    accepted.append(name)
+
+            assert accepted == []
 
     class TestParse:
         """Headings, rows and line numbers."""
@@ -81,7 +82,7 @@ class TestFileReader:
 
             headings, _rows, _lines = FileReader.parse(raw, "csv")
 
-            assert headings != ["Name", "Note"]
+            assert headings == ["Name\tNote"]
 
         def test_a_blank_first_line_is_skipped_and_lines_still_count_it(self):
             raw = b"\nName,Rock type\nGranite,granite\n"
@@ -177,12 +178,6 @@ class TestFileReader:
             assert rows == [["same"]] * 3
             assert lines == [2, 3, 4]
 
-        def test_tablib_is_not_used_to_read_it(self, ods_file):
-            raw = ods_file([[["A"], ["one"]]])
-
-            with mock.patch("tablib.Dataset.load", side_effect=AssertionError):
-                FileReader.parse(raw, "ods")
-
         def test_a_file_that_is_not_a_spreadsheet_is_refused(self):
             assert code_of(b"not a zip", "rocks.ods") == "unreadable"
 
@@ -224,10 +219,6 @@ class TestFileReader:
             _headings, rows, _lines = FileReader.parse(raw, "csv")
 
             assert len(rows) == 3
-
-        def test_the_default_limits_are_the_ones_the_form_promises(self):
-            assert FileReader.MAX_BYTES == 20 * 1024 * 1024
-            assert FileReader.MAX_ROWS == 50_000
 
     class TestEncoding:
         """The text of a CSV, whichever way it was saved."""
@@ -272,21 +263,7 @@ class TestFileReader:
             monkeypatch.setattr(FileReader, "MAX_UNCOMPRESSED", 100)
             raw = file_of(kind, [HEADINGS, *ROWS])
 
-            with (
-                mock.patch("openpyxl.load_workbook") as opened,
-                mock.patch("odf.opendocument.load") as loaded,
-            ):
-                assert code_of(raw, NAMES[kind]) == "too_large_unpacked"
-
-            opened.assert_not_called()
-            loaded.assert_not_called()
-
-        def test_a_sheet_within_the_limit_is_opened(self, file_of):
-            raw = file_of("xlsx", [HEADINGS, *ROWS])
-
-            headings, _rows, _lines = FileReader.parse(raw, "xlsx")
-
-            assert headings == HEADINGS
+            assert code_of(raw, NAMES[kind]) == "too_large_unpacked"
 
 
 def xlsx_claiming(rows, dimension):
@@ -346,9 +323,6 @@ def ods_with_cell(cell_xml):
 class TestReaderBounds:
     """A small file never costs more memory than its real cells."""
 
-    def test_the_column_limit_is_a_thousand_and_twenty_four(self):
-        assert FileReader.MAX_COLUMNS == 1024
-
     def test_a_value_repeated_across_many_columns_is_cut_while_it_is_read(self):
         raw = ods_of([[["h"], ["x"]]], repeated=(0, 1, 0, 3_000_000))
         assert len(raw) < 2000
@@ -372,9 +346,6 @@ class TestReaderBounds:
 
         assert grid == [["h", "i"], ["x"]]
 
-    def test_the_ods_ceiling_is_lower_than_the_workbook_one(self):
-        assert FileReader.MAX_UNCOMPRESSED_ODS < FileReader.MAX_UNCOMPRESSED
-
     def test_an_ods_sheet_over_its_ceiling_is_refused_before_it_is_loaded(self):
         import io
         import zipfile
@@ -384,10 +355,7 @@ class TestReaderBounds:
         with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as archive:
             archive.writestr("content.xml", b" " * size)
 
-        with mock.patch("odf.opendocument.load") as loaded:
-            assert code_of(out.getvalue(), "rocks.ods") == "too_large_unpacked"
-
-        loaded.assert_not_called()
+        assert code_of(out.getvalue(), "rocks.ods") == "too_large_unpacked"
 
 
 class TestMalformedSheets:

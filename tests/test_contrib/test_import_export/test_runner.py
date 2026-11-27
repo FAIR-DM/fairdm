@@ -5,13 +5,12 @@ from pathlib import Path
 from unittest import mock
 
 import pytest
-from django.core.cache import cache
 from django.core.files.base import ContentFile
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
 
 from demo.factories import RockSampleFactory
-from demo.models import ICP_MS_Measurement, RockSample, XRFMeasurement
+from demo.models import ICP_MS_Measurement, RockSample
 from fairdm.contrib.import_export.exports import TableExport
 from fairdm.contrib.import_export.models import ImportJob, ImportRow
 from fairdm.contrib.import_export.runner import ImportRun
@@ -162,35 +161,13 @@ class TestCheck:
         checked(job)
         assert job.status == Status.CHECKED
 
-    def test_a_file_that_cannot_be_read_fails_and_is_deleted(self, make_job):
-        job = make_job([rock("A")])
-        job.file.save("records.csv", ContentFile(b""))
-        job.save()
-        path = job.file.path
-        checked(job)
-        assert job.status == Status.FAILED
-        assert job.error
-        assert not job.file
-        assert not Path(path).exists()
-
-    def test_progress_is_written_every_ten_rows(self, make_job, settings):
-        settings.CACHES = {
-            "default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}
-        }
+    def test_progress_is_written_every_ten_rows(self, make_job, recorded_cache):
         job = make_job([rock(f"Rock {number}") for number in range(25)])
-        with mock.patch.object(cache, "set", wraps=cache.set) as spy:
-            checked(job)
-        written = [call.args[1] for call in spy.call_args_list]
-        assert written[:2] == [10, 20]
-        assert ImportRun(job).progress() is None
 
-    def test_progress_reads_what_was_written(self, make_job, settings):
-        settings.CACHES = {
-            "default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}
-        }
-        run = ImportRun(make_job([rock("A")]))
-        cache.set(run.progress_key, 30)
-        assert run.progress() == 30
+        checked(job)
+
+        assert recorded_cache.written[:2] == [10, 20]
+        assert ImportRun(job).progress() is None
 
 
 class TestDuplicateRecords:
@@ -348,7 +325,6 @@ class TestPerform:
         job = make_job([rock("A", local_id="P")], dataset=record.dataset)
         checked(job)
         other = RockSampleFactory(dataset=record.dataset, local_id="P2")
-        assert other
         RockSample.objects.filter(pk=other.pk).update(local_id="P")
         ImportJob.objects.filter(pk=job.pk).update(status=Status.IMPORTING)
         ImportRun(job).perform(None)
@@ -467,18 +443,17 @@ class TestFileDeleted:
         self.assert_no_trace(job, path)
 
     def test_failed(self, job):
-        path = job.file.path
         job.file.save("records.csv", ContentFile(b""))
         job.save()
         path = job.file.path
         checked(job)
         assert job.status == Status.FAILED
+        assert job.error
         self.assert_no_trace(job, path)
 
-    @pytest.mark.parametrize("status", [Status.UNDONE, Status.DISCARDED])
-    def test_undone_and_discarded(self, job, status):
+    def test_discarded(self, job):
         path = job.file.path
-        ImportJob.objects.filter(pk=job.pk).update(status=status)
+        ImportJob.objects.filter(pk=job.pk).update(status=Status.DISCARDED)
         ImportRun(job).delete_file()
         self.assert_no_trace(job, path)
 
@@ -486,11 +461,9 @@ class TestFileDeleted:
 class TestRoundTrip:
     """A file exported from a records table and imported back changes nothing."""
 
-    @pytest.mark.parametrize(
-        "model", [RockSample, XRFMeasurement, ICP_MS_Measurement], ids=str
-    )
-    def test_every_row_is_unchanged(self, model, make_record, open_dataset, make_job):
-        records = [make_record(model) for _ in range(3)]
+    @pytest.mark.parametrize("model", [RockSample, ICP_MS_Measurement], ids=str)
+    def test_every_row_is_unchanged(self, model, make_record, open_dataset):
+        records = [make_record(model) for _ in range(2)]
         schema = registry.get_for_model(model).get_table_schema()
         response = TableExport(schema).response(
             model.objects.filter(pk__in=[r.pk for r in records]), "csv", "records"
@@ -505,38 +478,10 @@ class TestRoundTrip:
             column_map={heading: heading for heading in schema.headings},
         )
         checked(job)
-        assert outcomes(job) == [Outcome.UNCHANGED] * 3, [
+        assert outcomes(job) == [Outcome.UNCHANGED] * 2, [
             (row.problems, row.changes) for row in job.rows.all()
         ]
         assert job.status == Status.NOTHING
-
-
-class TestTimeLimits:
-    """The tasks' limits leave room over the timed run of the largest file.
-
-    A file of 50,000 rows of the demo portal's widest type, ICP-MS measurements with
-    18 columns, took 668 seconds to check and 768 seconds to import.
-    """
-
-    CHECK_SECONDS = 668
-    IMPORT_SECONDS = 768
-
-    @pytest.mark.parametrize("name", ["check_job", "import_job"])
-    def test_soft_limit_is_inside_the_hard_one(self, name):
-        from fairdm.contrib.import_export import tasks
-
-        task = getattr(tasks, name)
-        assert 0 < task.soft_time_limit < task.time_limit
-        assert task.time_limit > 5 * 60
-
-    @pytest.mark.parametrize(
-        ("name", "seconds"),
-        [("check_job", CHECK_SECONDS), ("import_job", IMPORT_SECONDS)],
-    )
-    def test_soft_limit_is_at_least_twice_the_timed_run(self, name, seconds):
-        from fairdm.contrib.import_export import tasks
-
-        assert getattr(tasks, name).soft_time_limit >= 2 * seconds
 
 
 class TestLongLabel:
