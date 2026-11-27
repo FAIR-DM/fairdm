@@ -1,0 +1,260 @@
+# {py:mod}`fairdm.db.models`
+
+```{py:module} fairdm.db.models
+```
+
+```{autodoc2-docstring} fairdm.db.models
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`PrefetchBase <fairdm.db.models.PrefetchBase>`
+  - ```{autodoc2-docstring} fairdm.db.models.PrefetchBase
+    :summary:
+    ```
+* - {py:obj}`Model <fairdm.db.models.Model>`
+  - ```{autodoc2-docstring} fairdm.db.models.Model
+    :summary:
+    ```
+* - {py:obj}`PrefetchPolymorphicBase <fairdm.db.models.PrefetchPolymorphicBase>`
+  - ```{autodoc2-docstring} fairdm.db.models.PrefetchPolymorphicBase
+    :summary:
+    ```
+* - {py:obj}`PrefetchPolymorphicQuerySet <fairdm.db.models.PrefetchPolymorphicQuerySet>`
+  - ```{autodoc2-docstring} fairdm.db.models.PrefetchPolymorphicQuerySet
+    :summary:
+    ```
+* - {py:obj}`PrefetchPolymorphicManager <fairdm.db.models.PrefetchPolymorphicManager>`
+  - ```{autodoc2-docstring} fairdm.db.models.PrefetchPolymorphicManager
+    :summary:
+    ```
+* - {py:obj}`PolymorphicQuerySet <fairdm.db.models.PolymorphicQuerySet>`
+  - ```{autodoc2-docstring} fairdm.db.models.PolymorphicQuerySet
+    :summary:
+    ```
+* - {py:obj}`PolymorphicManager <fairdm.db.models.PolymorphicManager>`
+  - ```{autodoc2-docstring} fairdm.db.models.PolymorphicManager
+    :summary:
+    ```
+* - {py:obj}`PolymorphicModel <fairdm.db.models.PolymorphicModel>`
+  - ```{autodoc2-docstring} fairdm.db.models.PolymorphicModel
+    :summary:
+    ```
+````
+
+### API
+
+````{py:class} PrefetchBase
+:canonical: fairdm.db.models.PrefetchBase
+
+Bases: {py:obj}`django.db.models.base.ModelBase`
+
+```{autodoc2-docstring} fairdm.db.models.PrefetchBase
+```
+
+````
+
+``````{py:class} Model(*args, **kwargs)
+:canonical: fairdm.db.models.Model
+
+Bases: {py:obj}`django_lifecycle.LifecycleModelMixin`, {py:obj}`auto_prefetch.Model`
+
+```{autodoc2-docstring} fairdm.db.models.Model
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.db.models.Model.__init__
+```
+
+````{py:attribute} added
+:canonical: fairdm.db.models.Model.added
+:value: >
+   'DateTimeField(...)'
+
+```{autodoc2-docstring} fairdm.db.models.Model.added
+```
+
+````
+
+````{py:attribute} modified
+:canonical: fairdm.db.models.Model.modified
+:value: >
+   'DateTimeField(...)'
+
+```{autodoc2-docstring} fairdm.db.models.Model.modified
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.db.models.Model.Meta
+
+```{autodoc2-docstring} fairdm.db.models.Model.Meta
+```
+
+````{py:attribute} abstract
+:canonical: fairdm.db.models.Model.Meta.abstract
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.db.models.Model.Meta.abstract
+```
+
+````
+
+`````
+
+``````
+
+````{py:class} PrefetchPolymorphicBase
+:canonical: fairdm.db.models.PrefetchPolymorphicBase
+
+Bases: {py:obj}`fairdm.db.models.PrefetchBase`, {py:obj}`polymorphic.base.PolymorphicModelBase`
+
+```{autodoc2-docstring} fairdm.db.models.PrefetchPolymorphicBase
+```
+
+````
+
+````{py:class} PrefetchPolymorphicQuerySet(model=None, query=None, using=None, hints=None)
+:canonical: fairdm.db.models.PrefetchPolymorphicQuerySet
+
+Bases: {py:obj}`auto_prefetch.QuerySet`, {py:obj}`polymorphic.managers.PolymorphicQuerySet`
+
+```{autodoc2-docstring} fairdm.db.models.PrefetchPolymorphicQuerySet
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.db.models.PrefetchPolymorphicQuerySet.__init__
+```
+
+````
+
+`````{py:class} PrefetchPolymorphicManager
+:canonical: fairdm.db.models.PrefetchPolymorphicManager
+
+Bases: {py:obj}`polymorphic.managers.PolymorphicManager`
+
+```{autodoc2-docstring} fairdm.db.models.PrefetchPolymorphicManager
+```
+
+````{py:attribute} queryset_class
+:canonical: fairdm.db.models.PrefetchPolymorphicManager.queryset_class
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.db.models.PrefetchPolymorphicManager.queryset_class
+```
+
+````
+
+`````
+
+`````{py:class} PolymorphicQuerySet(*args: typing.Any, **kwargs: typing.Any)
+:canonical: fairdm.db.models.PolymorphicQuerySet
+
+Bases: {py:obj}`polymorphic.managers.PolymorphicQuerySet`
+
+```{autodoc2-docstring} fairdm.db.models.PolymorphicQuerySet
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.db.models.PolymorphicQuerySet.__init__
+```
+
+````{py:method} delete()
+:canonical: fairdm.db.models.PolymorphicQuerySet.delete
+
+```{autodoc2-docstring} fairdm.db.models.PolymorphicQuerySet.delete
+```
+
+````
+
+`````
+
+`````{py:class} PolymorphicManager
+:canonical: fairdm.db.models.PolymorphicManager
+
+Bases: {py:obj}`polymorphic.managers.PolymorphicManager`
+
+```{autodoc2-docstring} fairdm.db.models.PolymorphicManager
+```
+
+````{py:attribute} queryset_class
+:canonical: fairdm.db.models.PolymorphicManager.queryset_class
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.db.models.PolymorphicManager.queryset_class
+```
+
+````
+
+`````
+
+``````{py:class} PolymorphicModel(*args, **kwargs)
+:canonical: fairdm.db.models.PolymorphicModel
+
+Bases: {py:obj}`polymorphic.models.PolymorphicModel`
+
+```{autodoc2-docstring} fairdm.db.models.PolymorphicModel
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.db.models.PolymorphicModel.__init__
+```
+
+````{py:attribute} objects
+:canonical: fairdm.db.models.PolymorphicModel.objects
+:value: >
+   'PrefetchPolymorphicManager(...)'
+
+```{autodoc2-docstring} fairdm.db.models.PolymorphicModel.objects
+```
+
+````
+
+````{py:attribute} prefetch_manager
+:canonical: fairdm.db.models.PolymorphicModel.prefetch_manager
+:value: >
+   'PrefetchPolymorphicManager(...)'
+
+```{autodoc2-docstring} fairdm.db.models.PolymorphicModel.prefetch_manager
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.db.models.PolymorphicModel.Meta
+
+```{autodoc2-docstring} fairdm.db.models.PolymorphicModel.Meta
+```
+
+````{py:attribute} abstract
+:canonical: fairdm.db.models.PolymorphicModel.Meta.abstract
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.db.models.PolymorphicModel.Meta.abstract
+```
+
+````
+
+`````
+
+``````

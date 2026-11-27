@@ -1,0 +1,498 @@
+# {py:mod}`fairdm.api.viewsets`
+
+```{py:module} fairdm.api.viewsets
+```
+
+```{autodoc2-docstring} fairdm.api.viewsets
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`BaseViewSet <fairdm.api.viewsets.BaseViewSet>`
+  - ```{autodoc2-docstring} fairdm.api.viewsets.BaseViewSet
+    :summary:
+    ```
+* - {py:obj}`ProjectViewSet <fairdm.api.viewsets.ProjectViewSet>`
+  - ```{autodoc2-docstring} fairdm.api.viewsets.ProjectViewSet
+    :summary:
+    ```
+* - {py:obj}`DatasetViewSet <fairdm.api.viewsets.DatasetViewSet>`
+  - ```{autodoc2-docstring} fairdm.api.viewsets.DatasetViewSet
+    :summary:
+    ```
+* - {py:obj}`PersonViewSet <fairdm.api.viewsets.PersonViewSet>`
+  - ```{autodoc2-docstring} fairdm.api.viewsets.PersonViewSet
+    :summary:
+    ```
+* - {py:obj}`OrganizationViewSet <fairdm.api.viewsets.OrganizationViewSet>`
+  - ```{autodoc2-docstring} fairdm.api.viewsets.OrganizationViewSet
+    :summary:
+    ```
+````
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`under_heading <fairdm.api.viewsets.under_heading>`
+  - ```{autodoc2-docstring} fairdm.api.viewsets.under_heading
+    :summary:
+    ```
+* - {py:obj}`sortable_fields <fairdm.api.viewsets.sortable_fields>`
+  - ```{autodoc2-docstring} fairdm.api.viewsets.sortable_fields
+    :summary:
+    ```
+* - {py:obj}`load_relations <fairdm.api.viewsets.load_relations>`
+  - ```{autodoc2-docstring} fairdm.api.viewsets.load_relations
+    :summary:
+    ```
+* - {py:obj}`generate_viewset <fairdm.api.viewsets.generate_viewset>`
+  - ```{autodoc2-docstring} fairdm.api.viewsets.generate_viewset
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`ACTIONS <fairdm.api.viewsets.ACTIONS>`
+  - ```{autodoc2-docstring} fairdm.api.viewsets.ACTIONS
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} ACTIONS
+:canonical: fairdm.api.viewsets.ACTIONS
+:value: >
+   ('list', 'retrieve', 'create', 'update', 'partial_update', 'destroy')
+
+```{autodoc2-docstring} fairdm.api.viewsets.ACTIONS
+```
+
+````
+
+````{py:function} under_heading(heading: str, actions: tuple[str, ...] = ACTIONS)
+:canonical: fairdm.api.viewsets.under_heading
+
+```{autodoc2-docstring} fairdm.api.viewsets.under_heading
+```
+````
+
+`````{py:exception} DeleteRefused(detail=None, code=None)
+:canonical: fairdm.api.viewsets.DeleteRefused
+
+Bases: {py:obj}`rest_framework.exceptions.APIException`
+
+```{autodoc2-docstring} fairdm.api.viewsets.DeleteRefused
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.viewsets.DeleteRefused.__init__
+```
+
+````{py:attribute} status_code
+:canonical: fairdm.api.viewsets.DeleteRefused.status_code
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.api.viewsets.DeleteRefused.status_code
+```
+
+````
+
+````{py:attribute} default_detail
+:canonical: fairdm.api.viewsets.DeleteRefused.default_detail
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.api.viewsets.DeleteRefused.default_detail
+```
+
+````
+
+````{py:attribute} default_code
+:canonical: fairdm.api.viewsets.DeleteRefused.default_code
+:value: >
+   'delete_refused'
+
+```{autodoc2-docstring} fairdm.api.viewsets.DeleteRefused.default_code
+```
+
+````
+
+`````
+
+`````{py:class} BaseViewSet(**kwargs)
+:canonical: fairdm.api.viewsets.BaseViewSet
+
+Bases: {py:obj}`rest_framework.viewsets.ModelViewSet`
+
+```{autodoc2-docstring} fairdm.api.viewsets.BaseViewSet
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.viewsets.BaseViewSet.__init__
+```
+
+````{py:attribute} lookup_field
+:canonical: fairdm.api.viewsets.BaseViewSet.lookup_field
+:value: >
+   'uuid'
+
+```{autodoc2-docstring} fairdm.api.viewsets.BaseViewSet.lookup_field
+```
+
+````
+
+````{py:method} perform_create(serializer: rest_framework.serializers.BaseSerializer) -> None
+:canonical: fairdm.api.viewsets.BaseViewSet.perform_create
+
+```{autodoc2-docstring} fairdm.api.viewsets.BaseViewSet.perform_create
+```
+
+````
+
+````{py:method} perform_update(serializer: rest_framework.serializers.BaseSerializer) -> None
+:canonical: fairdm.api.viewsets.BaseViewSet.perform_update
+
+```{autodoc2-docstring} fairdm.api.viewsets.BaseViewSet.perform_update
+```
+
+````
+
+````{py:method} perform_destroy(instance) -> None
+:canonical: fairdm.api.viewsets.BaseViewSet.perform_destroy
+
+```{autodoc2-docstring} fairdm.api.viewsets.BaseViewSet.perform_destroy
+```
+
+````
+
+`````
+
+`````{py:class} ProjectViewSet(**kwargs)
+:canonical: fairdm.api.viewsets.ProjectViewSet
+
+Bases: {py:obj}`fairdm.api.viewsets.BaseViewSet`
+
+```{autodoc2-docstring} fairdm.api.viewsets.ProjectViewSet
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.viewsets.ProjectViewSet.__init__
+```
+
+````{py:attribute} serializer_class
+:canonical: fairdm.api.viewsets.ProjectViewSet.serializer_class
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.api.viewsets.ProjectViewSet.serializer_class
+```
+
+````
+
+````{py:attribute} filterset_class
+:canonical: fairdm.api.viewsets.ProjectViewSet.filterset_class
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.api.viewsets.ProjectViewSet.filterset_class
+```
+
+````
+
+````{py:attribute} ordering_fields
+:canonical: fairdm.api.viewsets.ProjectViewSet.ordering_fields
+:value: >
+   ('name', 'added', 'modified', 'status', 'uuid')
+
+```{autodoc2-docstring} fairdm.api.viewsets.ProjectViewSet.ordering_fields
+```
+
+````
+
+````{py:method} get_queryset()
+:canonical: fairdm.api.viewsets.ProjectViewSet.get_queryset
+
+```{autodoc2-docstring} fairdm.api.viewsets.ProjectViewSet.get_queryset
+```
+
+````
+
+````{py:method} perform_create(serializer: rest_framework.serializers.BaseSerializer) -> None
+:canonical: fairdm.api.viewsets.ProjectViewSet.perform_create
+
+```{autodoc2-docstring} fairdm.api.viewsets.ProjectViewSet.perform_create
+```
+
+````
+
+`````
+
+`````{py:class} DatasetViewSet(**kwargs)
+:canonical: fairdm.api.viewsets.DatasetViewSet
+
+Bases: {py:obj}`fairdm.api.viewsets.BaseViewSet`
+
+```{autodoc2-docstring} fairdm.api.viewsets.DatasetViewSet
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.viewsets.DatasetViewSet.__init__
+```
+
+````{py:attribute} serializer_class
+:canonical: fairdm.api.viewsets.DatasetViewSet.serializer_class
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.api.viewsets.DatasetViewSet.serializer_class
+```
+
+````
+
+````{py:attribute} filterset_class
+:canonical: fairdm.api.viewsets.DatasetViewSet.filterset_class
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.api.viewsets.DatasetViewSet.filterset_class
+```
+
+````
+
+````{py:attribute} ordering_fields
+:canonical: fairdm.api.viewsets.DatasetViewSet.ordering_fields
+:value: >
+   ('name', 'added', 'modified', 'uuid')
+
+```{autodoc2-docstring} fairdm.api.viewsets.DatasetViewSet.ordering_fields
+```
+
+````
+
+````{py:method} get_queryset()
+:canonical: fairdm.api.viewsets.DatasetViewSet.get_queryset
+
+```{autodoc2-docstring} fairdm.api.viewsets.DatasetViewSet.get_queryset
+```
+
+````
+
+````{py:method} perform_create(serializer: rest_framework.serializers.BaseSerializer) -> None
+:canonical: fairdm.api.viewsets.DatasetViewSet.perform_create
+
+```{autodoc2-docstring} fairdm.api.viewsets.DatasetViewSet.perform_create
+```
+
+````
+
+`````
+
+`````{py:class} PersonViewSet(**kwargs)
+:canonical: fairdm.api.viewsets.PersonViewSet
+
+Bases: {py:obj}`rest_framework.viewsets.ReadOnlyModelViewSet`
+
+```{autodoc2-docstring} fairdm.api.viewsets.PersonViewSet
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.viewsets.PersonViewSet.__init__
+```
+
+````{py:attribute} lookup_field
+:canonical: fairdm.api.viewsets.PersonViewSet.lookup_field
+:value: >
+   'uuid'
+
+```{autodoc2-docstring} fairdm.api.viewsets.PersonViewSet.lookup_field
+```
+
+````
+
+````{py:attribute} permission_classes
+:canonical: fairdm.api.viewsets.PersonViewSet.permission_classes
+:value: >
+   ()
+
+```{autodoc2-docstring} fairdm.api.viewsets.PersonViewSet.permission_classes
+```
+
+````
+
+````{py:attribute} serializer_class
+:canonical: fairdm.api.viewsets.PersonViewSet.serializer_class
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.api.viewsets.PersonViewSet.serializer_class
+```
+
+````
+
+````{py:attribute} filterset_class
+:canonical: fairdm.api.viewsets.PersonViewSet.filterset_class
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.api.viewsets.PersonViewSet.filterset_class
+```
+
+````
+
+````{py:attribute} ordering_fields
+:canonical: fairdm.api.viewsets.PersonViewSet.ordering_fields
+:value: >
+   ('name', 'last_name', 'added', 'modified', 'uuid')
+
+```{autodoc2-docstring} fairdm.api.viewsets.PersonViewSet.ordering_fields
+```
+
+````
+
+````{py:method} get_serializer_class()
+:canonical: fairdm.api.viewsets.PersonViewSet.get_serializer_class
+
+```{autodoc2-docstring} fairdm.api.viewsets.PersonViewSet.get_serializer_class
+```
+
+````
+
+````{py:method} get_queryset()
+:canonical: fairdm.api.viewsets.PersonViewSet.get_queryset
+
+```{autodoc2-docstring} fairdm.api.viewsets.PersonViewSet.get_queryset
+```
+
+````
+
+`````
+
+`````{py:class} OrganizationViewSet(**kwargs)
+:canonical: fairdm.api.viewsets.OrganizationViewSet
+
+Bases: {py:obj}`rest_framework.viewsets.ReadOnlyModelViewSet`
+
+```{autodoc2-docstring} fairdm.api.viewsets.OrganizationViewSet
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.viewsets.OrganizationViewSet.__init__
+```
+
+````{py:attribute} lookup_field
+:canonical: fairdm.api.viewsets.OrganizationViewSet.lookup_field
+:value: >
+   'uuid'
+
+```{autodoc2-docstring} fairdm.api.viewsets.OrganizationViewSet.lookup_field
+```
+
+````
+
+````{py:attribute} permission_classes
+:canonical: fairdm.api.viewsets.OrganizationViewSet.permission_classes
+:value: >
+   ()
+
+```{autodoc2-docstring} fairdm.api.viewsets.OrganizationViewSet.permission_classes
+```
+
+````
+
+````{py:attribute} serializer_class
+:canonical: fairdm.api.viewsets.OrganizationViewSet.serializer_class
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.api.viewsets.OrganizationViewSet.serializer_class
+```
+
+````
+
+````{py:attribute} filterset_class
+:canonical: fairdm.api.viewsets.OrganizationViewSet.filterset_class
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.api.viewsets.OrganizationViewSet.filterset_class
+```
+
+````
+
+````{py:attribute} ordering_fields
+:canonical: fairdm.api.viewsets.OrganizationViewSet.ordering_fields
+:value: >
+   ('name', 'added', 'modified', 'uuid')
+
+```{autodoc2-docstring} fairdm.api.viewsets.OrganizationViewSet.ordering_fields
+```
+
+````
+
+````{py:method} get_serializer_class()
+:canonical: fairdm.api.viewsets.OrganizationViewSet.get_serializer_class
+
+```{autodoc2-docstring} fairdm.api.viewsets.OrganizationViewSet.get_serializer_class
+```
+
+````
+
+````{py:method} get_queryset()
+:canonical: fairdm.api.viewsets.OrganizationViewSet.get_queryset
+
+```{autodoc2-docstring} fairdm.api.viewsets.OrganizationViewSet.get_queryset
+```
+
+````
+
+`````
+
+````{py:function} sortable_fields(model, serializer_cls) -> list[str]
+:canonical: fairdm.api.viewsets.sortable_fields
+
+```{autodoc2-docstring} fairdm.api.viewsets.sortable_fields
+```
+````
+
+````{py:function} load_relations(queryset, serializer_cls)
+:canonical: fairdm.api.viewsets.load_relations
+
+```{autodoc2-docstring} fairdm.api.viewsets.load_relations
+```
+````
+
+````{py:function} generate_viewset(config: typing.Any, base_class: type = BaseViewSet) -> type
+:canonical: fairdm.api.viewsets.generate_viewset
+
+```{autodoc2-docstring} fairdm.api.viewsets.generate_viewset
+```
+````

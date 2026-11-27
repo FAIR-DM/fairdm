@@ -1,0 +1,124 @@
+# {py:mod}`fairdm.contrib.contributors.plugins.tab_organizations`
+
+```{py:module} fairdm.contrib.contributors.plugins.tab_organizations
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_organizations
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`AddOrganization <fairdm.contrib.contributors.plugins.tab_organizations.AddOrganization>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_organizations.AddOrganization
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} AddOrganization(**kwargs)
+:canonical: fairdm.contrib.contributors.plugins.tab_organizations.AddOrganization
+
+Bases: {py:obj}`fairdm.contrib.contributors.plugins.tab_base.ContributorsBase`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_organizations.AddOrganization
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_organizations.AddOrganization.__init__
+```
+
+````{py:attribute} name
+:canonical: fairdm.contrib.contributors.plugins.tab_organizations.AddOrganization.name
+:value: >
+   'add-organization'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_organizations.AddOrganization.name
+```
+
+````
+
+````{py:attribute} url_path
+:canonical: fairdm.contrib.contributors.plugins.tab_organizations.AddOrganization.url_path
+:value: >
+   'add-organization'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_organizations.AddOrganization.url_path
+```
+
+````
+
+````{py:method} title()
+:canonical: fairdm.contrib.contributors.plugins.tab_organizations.AddOrganization.title
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_organizations.AddOrganization.title
+```
+
+````
+
+````{py:method} step_url(**query)
+:canonical: fairdm.contrib.contributors.plugins.tab_organizations.AddOrganization.step_url
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_organizations.AddOrganization.step_url
+```
+
+````
+
+````{py:method} get(request, *args, **kwargs)
+:canonical: fairdm.contrib.contributors.plugins.tab_organizations.AddOrganization.get
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_organizations.AddOrganization.get
+```
+
+````
+
+````{py:method} search_step()
+:canonical: fairdm.contrib.contributors.plugins.tab_organizations.AddOrganization.search_step
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_organizations.AddOrganization.search_step
+```
+
+````
+
+````{py:method} picked_from_ror(ror, new_name)
+:canonical: fairdm.contrib.contributors.plugins.tab_organizations.AddOrganization.picked_from_ror
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_organizations.AddOrganization.picked_from_ror
+```
+
+````
+
+````{py:method} ror_matches_step(new_name, problem='')
+:canonical: fairdm.contrib.contributors.plugins.tab_organizations.AddOrganization.ror_matches_step
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_organizations.AddOrganization.ror_matches_step
+```
+
+````
+
+````{py:method} roles_step(organization, new_name='', ror='', back='')
+:canonical: fairdm.contrib.contributors.plugins.tab_organizations.AddOrganization.roles_step
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_organizations.AddOrganization.roles_step
+```
+
+````
+
+````{py:method} post(request, *args, **kwargs)
+:canonical: fairdm.contrib.contributors.plugins.tab_organizations.AddOrganization.post
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_organizations.AddOrganization.post
+```
+
+````
+
+`````

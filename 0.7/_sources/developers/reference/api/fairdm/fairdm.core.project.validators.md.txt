@@ -1,0 +1,67 @@
+# {py:mod}`fairdm.core.project.validators`
+
+```{py:module} fairdm.core.project.validators
+```
+
+```{autodoc2-docstring} fairdm.core.project.validators
+:allowtitles:
+```
+
+## Module Contents
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`validate_funding <fairdm.core.project.validators.validate_funding>`
+  - ```{autodoc2-docstring} fairdm.core.project.validators.validate_funding
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`FUNDING_REFERENCE_KEYS <fairdm.core.project.validators.FUNDING_REFERENCE_KEYS>`
+  - ```{autodoc2-docstring} fairdm.core.project.validators.FUNDING_REFERENCE_KEYS
+    :summary:
+    ```
+* - {py:obj}`FUNDER_IDENTIFIER_TYPES <fairdm.core.project.validators.FUNDER_IDENTIFIER_TYPES>`
+  - ```{autodoc2-docstring} fairdm.core.project.validators.FUNDER_IDENTIFIER_TYPES
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} FUNDING_REFERENCE_KEYS
+:canonical: fairdm.core.project.validators.FUNDING_REFERENCE_KEYS
+:value: >
+   'frozenset(...)'
+
+```{autodoc2-docstring} fairdm.core.project.validators.FUNDING_REFERENCE_KEYS
+```
+
+````
+
+````{py:data} FUNDER_IDENTIFIER_TYPES
+:canonical: fairdm.core.project.validators.FUNDER_IDENTIFIER_TYPES
+:value: >
+   ('ISNI', 'GRID', 'Crossref Funder ID', 'ROR', 'Other')
+
+```{autodoc2-docstring} fairdm.core.project.validators.FUNDER_IDENTIFIER_TYPES
+```
+
+````
+
+````{py:function} validate_funding(value)
+:canonical: fairdm.core.project.validators.validate_funding
+
+```{autodoc2-docstring} fairdm.core.project.validators.validate_funding
+```
+````

@@ -1,0 +1,161 @@
+# {py:mod}`fairdm.contrib.plugins.registration`
+
+```{py:module} fairdm.contrib.plugins.registration
+```
+
+```{autodoc2-docstring} fairdm.contrib.plugins.registration
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`PluginRegistry <fairdm.contrib.plugins.registration.PluginRegistry>`
+  - ```{autodoc2-docstring} fairdm.contrib.plugins.registration.PluginRegistry
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`registry <fairdm.contrib.plugins.registration.registry>`
+  - ```{autodoc2-docstring} fairdm.contrib.plugins.registration.registry
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} PluginRegistry()
+:canonical: fairdm.contrib.plugins.registration.PluginRegistry
+
+```{autodoc2-docstring} fairdm.contrib.plugins.registration.PluginRegistry
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.plugins.registration.PluginRegistry.__init__
+```
+
+````{py:attribute} DEFAULT_ROUTE
+:canonical: fairdm.contrib.plugins.registration.PluginRegistry.DEFAULT_ROUTE
+:value: >
+   '<str:uuid>'
+
+```{autodoc2-docstring} fairdm.contrib.plugins.registration.PluginRegistry.DEFAULT_ROUTE
+```
+
+````
+
+````{py:attribute} DEFAULT_LOOKUP
+:canonical: fairdm.contrib.plugins.registration.PluginRegistry.DEFAULT_LOOKUP
+:type: typing.ClassVar[dict[str, str]]
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.plugins.registration.PluginRegistry.DEFAULT_LOOKUP
+```
+
+````
+
+````{py:method} register(*models: type[django.db.models.Model], **kwargs)
+:canonical: fairdm.contrib.plugins.registration.PluginRegistry.register
+
+```{autodoc2-docstring} fairdm.contrib.plugins.registration.PluginRegistry.register
+```
+
+````
+
+````{py:method} declare_addressing(model: type[django.db.models.Model], route: str, lookup: dict[str, str]) -> None
+:canonical: fairdm.contrib.plugins.registration.PluginRegistry.declare_addressing
+
+```{autodoc2-docstring} fairdm.contrib.plugins.registration.PluginRegistry.declare_addressing
+```
+
+````
+
+````{py:method} get_addressing(model: type[django.db.models.Model]) -> tuple[str, dict[str, str]]
+:canonical: fairdm.contrib.plugins.registration.PluginRegistry.get_addressing
+
+```{autodoc2-docstring} fairdm.contrib.plugins.registration.PluginRegistry.get_addressing
+```
+
+````
+
+````{py:method} route_for(model: type[django.db.models.Model]) -> str
+:canonical: fairdm.contrib.plugins.registration.PluginRegistry.route_for
+
+```{autodoc2-docstring} fairdm.contrib.plugins.registration.PluginRegistry.route_for
+```
+
+````
+
+````{py:method} lookup_for(model: type[django.db.models.Model]) -> dict[str, str]
+:canonical: fairdm.contrib.plugins.registration.PluginRegistry.lookup_for
+
+```{autodoc2-docstring} fairdm.contrib.plugins.registration.PluginRegistry.lookup_for
+```
+
+````
+
+````{py:method} get_plugins_for_model(model: type[django.db.models.Model]) -> list[type[fairdm.contrib.plugins.base.Plugin]]
+:canonical: fairdm.contrib.plugins.registration.PluginRegistry.get_plugins_for_model
+
+```{autodoc2-docstring} fairdm.contrib.plugins.registration.PluginRegistry.get_plugins_for_model
+```
+
+````
+
+````{py:method} get_plugin_menu_for_model(model: type[django.db.models.Model]) -> flex_menu.Menu
+:canonical: fairdm.contrib.plugins.registration.PluginRegistry.get_plugin_menu_for_model
+
+```{autodoc2-docstring} fairdm.contrib.plugins.registration.PluginRegistry.get_plugin_menu_for_model
+```
+
+````
+
+````{py:method} get_urls_for_model(model: type[django.db.models.Model]) -> list[django.urls.URLPattern]
+:canonical: fairdm.contrib.plugins.registration.PluginRegistry.get_urls_for_model
+
+```{autodoc2-docstring} fairdm.contrib.plugins.registration.PluginRegistry.get_urls_for_model
+```
+
+````
+
+````{py:method} configure_tab(plugin_class: type[fairdm.contrib.plugins.base.Plugin], model: type[django.db.models.Model], **kwargs) -> flex_menu.MenuItem
+:canonical: fairdm.contrib.plugins.registration.PluginRegistry.configure_tab
+
+```{autodoc2-docstring} fairdm.contrib.plugins.registration.PluginRegistry.configure_tab
+```
+
+````
+
+````{py:method} sort_menu(menu: flex_menu.Menu) -> None
+:canonical: fairdm.contrib.plugins.registration.PluginRegistry.sort_menu
+
+```{autodoc2-docstring} fairdm.contrib.plugins.registration.PluginRegistry.sort_menu
+```
+
+````
+
+`````
+
+````{py:data} registry
+:canonical: fairdm.contrib.plugins.registration.registry
+:value: >
+   'PluginRegistry(...)'
+
+```{autodoc2-docstring} fairdm.contrib.plugins.registration.registry
+```
+
+````

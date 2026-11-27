@@ -1,0 +1,81 @@
+# {py:mod}`fairdm.backups.keys`
+
+```{py:module} fairdm.backups.keys
+```
+
+```{autodoc2-docstring} fairdm.backups.keys
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`BackupKey <fairdm.backups.keys.BackupKey>`
+  - ```{autodoc2-docstring} fairdm.backups.keys.BackupKey
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} BackupKey(armored: str)
+:canonical: fairdm.backups.keys.BackupKey
+
+```{autodoc2-docstring} fairdm.backups.keys.BackupKey
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.backups.keys.BackupKey.__init__
+```
+
+````{py:attribute} PRIVATE_ARMOUR
+:canonical: fairdm.backups.keys.BackupKey.PRIVATE_ARMOUR
+:value: >
+   'PRIVATE KEY BLOCK'
+
+```{autodoc2-docstring} fairdm.backups.keys.BackupKey.PRIVATE_ARMOUR
+```
+
+````
+
+````{py:method} home() -> tempfile.TemporaryDirectory[str]
+:canonical: fairdm.backups.keys.BackupKey.home
+
+```{autodoc2-docstring} fairdm.backups.keys.BackupKey.home
+```
+
+````
+
+````{py:method} import_into(home: str) -> str | None
+:canonical: fairdm.backups.keys.BackupKey.import_into
+
+```{autodoc2-docstring} fairdm.backups.keys.BackupKey.import_into
+```
+
+````
+
+````{py:property} fingerprint
+:canonical: fairdm.backups.keys.BackupKey.fingerprint
+:type: str | None
+
+```{autodoc2-docstring} fairdm.backups.keys.BackupKey.fingerprint
+```
+
+````
+
+````{py:method} keyring() -> collections.abc.Iterator[None]
+:canonical: fairdm.backups.keys.BackupKey.keyring
+
+```{autodoc2-docstring} fairdm.backups.keys.BackupKey.keyring
+```
+
+````
+
+`````

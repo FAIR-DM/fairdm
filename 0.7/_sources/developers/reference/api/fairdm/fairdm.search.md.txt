@@ -1,0 +1,747 @@
+# {py:mod}`fairdm.search`
+
+```{py:module} fairdm.search
+```
+
+```{autodoc2-docstring} fairdm.search
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`RecordKind <fairdm.search.RecordKind>`
+  - ```{autodoc2-docstring} fairdm.search.RecordKind
+    :summary:
+    ```
+* - {py:obj}`ProjectKind <fairdm.search.ProjectKind>`
+  - ```{autodoc2-docstring} fairdm.search.ProjectKind
+    :summary:
+    ```
+* - {py:obj}`DatasetKind <fairdm.search.DatasetKind>`
+  - ```{autodoc2-docstring} fairdm.search.DatasetKind
+    :summary:
+    ```
+* - {py:obj}`SampleKind <fairdm.search.SampleKind>`
+  - ```{autodoc2-docstring} fairdm.search.SampleKind
+    :summary:
+    ```
+* - {py:obj}`MeasurementKind <fairdm.search.MeasurementKind>`
+  - ```{autodoc2-docstring} fairdm.search.MeasurementKind
+    :summary:
+    ```
+* - {py:obj}`PeopleKind <fairdm.search.PeopleKind>`
+  - ```{autodoc2-docstring} fairdm.search.PeopleKind
+    :summary:
+    ```
+* - {py:obj}`OrganizationKind <fairdm.search.OrganizationKind>`
+  - ```{autodoc2-docstring} fairdm.search.OrganizationKind
+    :summary:
+    ```
+* - {py:obj}`LiteratureKind <fairdm.search.LiteratureKind>`
+  - ```{autodoc2-docstring} fairdm.search.LiteratureKind
+    :summary:
+    ```
+````
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`register_kinds <fairdm.search.register_kinds>`
+  - ```{autodoc2-docstring} fairdm.search.register_kinds
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} RecordKind
+:canonical: fairdm.search.RecordKind
+
+Bases: {py:obj}`mvp.search.Kind`
+
+```{autodoc2-docstring} fairdm.search.RecordKind
+```
+
+````{py:attribute} filterset_class
+:canonical: fairdm.search.RecordKind.filterset_class
+:type: type[django_filters.FilterSet] | None
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.search.RecordKind.filterset_class
+```
+
+````
+
+````{py:attribute} ordering
+:canonical: fairdm.search.RecordKind.ordering
+:type: tuple[str, ...]
+:value: >
+   ('pk',)
+
+```{autodoc2-docstring} fairdm.search.RecordKind.ordering
+```
+
+````
+
+````{py:method} records(user)
+:canonical: fairdm.search.RecordKind.records
+:abstractmethod:
+
+```{autodoc2-docstring} fairdm.search.RecordKind.records
+```
+
+````
+
+````{py:method} describe(item)
+:canonical: fairdm.search.RecordKind.describe
+:abstractmethod:
+
+```{autodoc2-docstring} fairdm.search.RecordKind.describe
+```
+
+````
+
+````{py:method} find(query, request)
+:canonical: fairdm.search.RecordKind.find
+
+```{autodoc2-docstring} fairdm.search.RecordKind.find
+```
+
+````
+
+````{py:method} result(item)
+:canonical: fairdm.search.RecordKind.result
+
+```{autodoc2-docstring} fairdm.search.RecordKind.result
+```
+
+````
+
+`````
+
+`````{py:class} ProjectKind
+:canonical: fairdm.search.ProjectKind
+
+Bases: {py:obj}`fairdm.search.RecordKind`
+
+```{autodoc2-docstring} fairdm.search.ProjectKind
+```
+
+````{py:attribute} name
+:canonical: fairdm.search.ProjectKind.name
+:value: >
+   'projects'
+
+```{autodoc2-docstring} fairdm.search.ProjectKind.name
+```
+
+````
+
+````{py:attribute} label
+:canonical: fairdm.search.ProjectKind.label
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.search.ProjectKind.label
+```
+
+````
+
+````{py:attribute} icon
+:canonical: fairdm.search.ProjectKind.icon
+:value: >
+   'project'
+
+```{autodoc2-docstring} fairdm.search.ProjectKind.icon
+```
+
+````
+
+````{py:attribute} description
+:canonical: fairdm.search.ProjectKind.description
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.search.ProjectKind.description
+```
+
+````
+
+````{py:attribute} filterset_class
+:canonical: fairdm.search.ProjectKind.filterset_class
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.search.ProjectKind.filterset_class
+```
+
+````
+
+````{py:attribute} ordering
+:canonical: fairdm.search.ProjectKind.ordering
+:value: >
+   ('name', 'pk')
+
+```{autodoc2-docstring} fairdm.search.ProjectKind.ordering
+```
+
+````
+
+````{py:method} records(user)
+:canonical: fairdm.search.ProjectKind.records
+
+```{autodoc2-docstring} fairdm.search.ProjectKind.records
+```
+
+````
+
+````{py:method} describe(item)
+:canonical: fairdm.search.ProjectKind.describe
+
+```{autodoc2-docstring} fairdm.search.ProjectKind.describe
+```
+
+````
+
+`````
+
+`````{py:class} DatasetKind
+:canonical: fairdm.search.DatasetKind
+
+Bases: {py:obj}`fairdm.search.RecordKind`
+
+```{autodoc2-docstring} fairdm.search.DatasetKind
+```
+
+````{py:attribute} name
+:canonical: fairdm.search.DatasetKind.name
+:value: >
+   'datasets'
+
+```{autodoc2-docstring} fairdm.search.DatasetKind.name
+```
+
+````
+
+````{py:attribute} label
+:canonical: fairdm.search.DatasetKind.label
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.search.DatasetKind.label
+```
+
+````
+
+````{py:attribute} icon
+:canonical: fairdm.search.DatasetKind.icon
+:value: >
+   'dataset'
+
+```{autodoc2-docstring} fairdm.search.DatasetKind.icon
+```
+
+````
+
+````{py:attribute} description
+:canonical: fairdm.search.DatasetKind.description
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.search.DatasetKind.description
+```
+
+````
+
+````{py:attribute} filterset_class
+:canonical: fairdm.search.DatasetKind.filterset_class
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.search.DatasetKind.filterset_class
+```
+
+````
+
+````{py:attribute} ordering
+:canonical: fairdm.search.DatasetKind.ordering
+:value: >
+   ('name', 'pk')
+
+```{autodoc2-docstring} fairdm.search.DatasetKind.ordering
+```
+
+````
+
+````{py:method} records(user)
+:canonical: fairdm.search.DatasetKind.records
+
+```{autodoc2-docstring} fairdm.search.DatasetKind.records
+```
+
+````
+
+````{py:method} describe(item)
+:canonical: fairdm.search.DatasetKind.describe
+
+```{autodoc2-docstring} fairdm.search.DatasetKind.describe
+```
+
+````
+
+`````
+
+`````{py:class} SampleKind
+:canonical: fairdm.search.SampleKind
+
+Bases: {py:obj}`fairdm.search.RecordKind`
+
+```{autodoc2-docstring} fairdm.search.SampleKind
+```
+
+````{py:attribute} name
+:canonical: fairdm.search.SampleKind.name
+:value: >
+   'samples'
+
+```{autodoc2-docstring} fairdm.search.SampleKind.name
+```
+
+````
+
+````{py:attribute} label
+:canonical: fairdm.search.SampleKind.label
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.search.SampleKind.label
+```
+
+````
+
+````{py:attribute} icon
+:canonical: fairdm.search.SampleKind.icon
+:value: >
+   'sample'
+
+```{autodoc2-docstring} fairdm.search.SampleKind.icon
+```
+
+````
+
+````{py:attribute} description
+:canonical: fairdm.search.SampleKind.description
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.search.SampleKind.description
+```
+
+````
+
+````{py:attribute} filterset_class
+:canonical: fairdm.search.SampleKind.filterset_class
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.search.SampleKind.filterset_class
+```
+
+````
+
+````{py:attribute} ordering
+:canonical: fairdm.search.SampleKind.ordering
+:value: >
+   ('name', 'pk')
+
+```{autodoc2-docstring} fairdm.search.SampleKind.ordering
+```
+
+````
+
+````{py:method} records(user)
+:canonical: fairdm.search.SampleKind.records
+
+```{autodoc2-docstring} fairdm.search.SampleKind.records
+```
+
+````
+
+````{py:method} describe(item)
+:canonical: fairdm.search.SampleKind.describe
+
+```{autodoc2-docstring} fairdm.search.SampleKind.describe
+```
+
+````
+
+`````
+
+`````{py:class} MeasurementKind
+:canonical: fairdm.search.MeasurementKind
+
+Bases: {py:obj}`fairdm.search.RecordKind`
+
+```{autodoc2-docstring} fairdm.search.MeasurementKind
+```
+
+````{py:attribute} name
+:canonical: fairdm.search.MeasurementKind.name
+:value: >
+   'measurements'
+
+```{autodoc2-docstring} fairdm.search.MeasurementKind.name
+```
+
+````
+
+````{py:attribute} label
+:canonical: fairdm.search.MeasurementKind.label
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.search.MeasurementKind.label
+```
+
+````
+
+````{py:attribute} icon
+:canonical: fairdm.search.MeasurementKind.icon
+:value: >
+   'measurement'
+
+```{autodoc2-docstring} fairdm.search.MeasurementKind.icon
+```
+
+````
+
+````{py:attribute} description
+:canonical: fairdm.search.MeasurementKind.description
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.search.MeasurementKind.description
+```
+
+````
+
+````{py:attribute} filterset_class
+:canonical: fairdm.search.MeasurementKind.filterset_class
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.search.MeasurementKind.filterset_class
+```
+
+````
+
+````{py:attribute} ordering
+:canonical: fairdm.search.MeasurementKind.ordering
+:value: >
+   ('name', 'pk')
+
+```{autodoc2-docstring} fairdm.search.MeasurementKind.ordering
+```
+
+````
+
+````{py:method} records(user)
+:canonical: fairdm.search.MeasurementKind.records
+
+```{autodoc2-docstring} fairdm.search.MeasurementKind.records
+```
+
+````
+
+````{py:method} describe(item)
+:canonical: fairdm.search.MeasurementKind.describe
+
+```{autodoc2-docstring} fairdm.search.MeasurementKind.describe
+```
+
+````
+
+`````
+
+`````{py:class} PeopleKind
+:canonical: fairdm.search.PeopleKind
+
+Bases: {py:obj}`fairdm.search.RecordKind`
+
+```{autodoc2-docstring} fairdm.search.PeopleKind
+```
+
+````{py:attribute} name
+:canonical: fairdm.search.PeopleKind.name
+:value: >
+   'people'
+
+```{autodoc2-docstring} fairdm.search.PeopleKind.name
+```
+
+````
+
+````{py:attribute} label
+:canonical: fairdm.search.PeopleKind.label
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.search.PeopleKind.label
+```
+
+````
+
+````{py:attribute} icon
+:canonical: fairdm.search.PeopleKind.icon
+:value: >
+   'people'
+
+```{autodoc2-docstring} fairdm.search.PeopleKind.icon
+```
+
+````
+
+````{py:attribute} description
+:canonical: fairdm.search.PeopleKind.description
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.search.PeopleKind.description
+```
+
+````
+
+````{py:attribute} filterset_class
+:canonical: fairdm.search.PeopleKind.filterset_class
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.search.PeopleKind.filterset_class
+```
+
+````
+
+````{py:attribute} ordering
+:canonical: fairdm.search.PeopleKind.ordering
+:value: >
+   ('name', 'pk')
+
+```{autodoc2-docstring} fairdm.search.PeopleKind.ordering
+```
+
+````
+
+````{py:method} records(user)
+:canonical: fairdm.search.PeopleKind.records
+
+```{autodoc2-docstring} fairdm.search.PeopleKind.records
+```
+
+````
+
+````{py:method} describe(item)
+:canonical: fairdm.search.PeopleKind.describe
+
+```{autodoc2-docstring} fairdm.search.PeopleKind.describe
+```
+
+````
+
+`````
+
+`````{py:class} OrganizationKind
+:canonical: fairdm.search.OrganizationKind
+
+Bases: {py:obj}`fairdm.search.RecordKind`
+
+```{autodoc2-docstring} fairdm.search.OrganizationKind
+```
+
+````{py:attribute} name
+:canonical: fairdm.search.OrganizationKind.name
+:value: >
+   'organizations'
+
+```{autodoc2-docstring} fairdm.search.OrganizationKind.name
+```
+
+````
+
+````{py:attribute} label
+:canonical: fairdm.search.OrganizationKind.label
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.search.OrganizationKind.label
+```
+
+````
+
+````{py:attribute} icon
+:canonical: fairdm.search.OrganizationKind.icon
+:value: >
+   'organization'
+
+```{autodoc2-docstring} fairdm.search.OrganizationKind.icon
+```
+
+````
+
+````{py:attribute} description
+:canonical: fairdm.search.OrganizationKind.description
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.search.OrganizationKind.description
+```
+
+````
+
+````{py:attribute} filterset_class
+:canonical: fairdm.search.OrganizationKind.filterset_class
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.search.OrganizationKind.filterset_class
+```
+
+````
+
+````{py:attribute} ordering
+:canonical: fairdm.search.OrganizationKind.ordering
+:value: >
+   ('name', 'pk')
+
+```{autodoc2-docstring} fairdm.search.OrganizationKind.ordering
+```
+
+````
+
+````{py:method} records(user)
+:canonical: fairdm.search.OrganizationKind.records
+
+```{autodoc2-docstring} fairdm.search.OrganizationKind.records
+```
+
+````
+
+````{py:method} describe(item)
+:canonical: fairdm.search.OrganizationKind.describe
+
+```{autodoc2-docstring} fairdm.search.OrganizationKind.describe
+```
+
+````
+
+`````
+
+`````{py:class} LiteratureKind
+:canonical: fairdm.search.LiteratureKind
+
+Bases: {py:obj}`fairdm.search.RecordKind`
+
+```{autodoc2-docstring} fairdm.search.LiteratureKind
+```
+
+````{py:attribute} name
+:canonical: fairdm.search.LiteratureKind.name
+:value: >
+   'literature'
+
+```{autodoc2-docstring} fairdm.search.LiteratureKind.name
+```
+
+````
+
+````{py:attribute} label
+:canonical: fairdm.search.LiteratureKind.label
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.search.LiteratureKind.label
+```
+
+````
+
+````{py:attribute} icon
+:canonical: fairdm.search.LiteratureKind.icon
+:value: >
+   'literature'
+
+```{autodoc2-docstring} fairdm.search.LiteratureKind.icon
+```
+
+````
+
+````{py:attribute} description
+:canonical: fairdm.search.LiteratureKind.description
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.search.LiteratureKind.description
+```
+
+````
+
+````{py:attribute} filterset_class
+:canonical: fairdm.search.LiteratureKind.filterset_class
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.search.LiteratureKind.filterset_class
+```
+
+````
+
+````{py:attribute} ordering
+:canonical: fairdm.search.LiteratureKind.ordering
+:value: >
+   ('title', 'pk')
+
+```{autodoc2-docstring} fairdm.search.LiteratureKind.ordering
+```
+
+````
+
+````{py:method} records(user)
+:canonical: fairdm.search.LiteratureKind.records
+
+```{autodoc2-docstring} fairdm.search.LiteratureKind.records
+```
+
+````
+
+````{py:method} find(query, request)
+:canonical: fairdm.search.LiteratureKind.find
+
+```{autodoc2-docstring} fairdm.search.LiteratureKind.find
+```
+
+````
+
+````{py:method} describe(item)
+:canonical: fairdm.search.LiteratureKind.describe
+
+```{autodoc2-docstring} fairdm.search.LiteratureKind.describe
+```
+
+````
+
+`````
+
+````{py:function} register_kinds()
+:canonical: fairdm.search.register_kinds
+
+```{autodoc2-docstring} fairdm.search.register_kinds
+```
+````

@@ -1,0 +1,48 @@
+# {py:mod}`fairdm.backups.media`
+
+```{py:module} fairdm.backups.media
+```
+
+```{autodoc2-docstring} fairdm.backups.media
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`SkippingMediaBackup <fairdm.backups.media.SkippingMediaBackup>`
+  - ```{autodoc2-docstring} fairdm.backups.media.SkippingMediaBackup
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} SkippingMediaBackup(*args, **kwargs)
+:canonical: fairdm.backups.media.SkippingMediaBackup
+
+Bases: {py:obj}`dbbackup.management.commands.mediabackup.Command`
+
+```{autodoc2-docstring} fairdm.backups.media.SkippingMediaBackup
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.backups.media.SkippingMediaBackup.__init__
+```
+
+````{py:method} skipped_prefix() -> str
+:canonical: fairdm.backups.media.SkippingMediaBackup.skipped_prefix
+
+```{autodoc2-docstring} fairdm.backups.media.SkippingMediaBackup.skipped_prefix
+```
+
+````
+
+`````

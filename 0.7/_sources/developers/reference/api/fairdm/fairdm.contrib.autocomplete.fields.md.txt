@@ -1,0 +1,549 @@
+# {py:mod}`fairdm.contrib.autocomplete.fields`
+
+```{py:module} fairdm.contrib.autocomplete.fields
+```
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`RecordSelectMixin <fairdm.contrib.autocomplete.fields.RecordSelectMixin>`
+  - ```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.RecordSelectMixin
+    :summary:
+    ```
+* - {py:obj}`RecordSelectWidget <fairdm.contrib.autocomplete.fields.RecordSelectWidget>`
+  - ```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.RecordSelectWidget
+    :summary:
+    ```
+* - {py:obj}`RecordSelectMultipleWidget <fairdm.contrib.autocomplete.fields.RecordSelectMultipleWidget>`
+  - ```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.RecordSelectMultipleWidget
+    :summary:
+    ```
+* - {py:obj}`RecordFieldMixin <fairdm.contrib.autocomplete.fields.RecordFieldMixin>`
+  - ```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.RecordFieldMixin
+    :summary:
+    ```
+* - {py:obj}`RecordChoiceFieldMixin <fairdm.contrib.autocomplete.fields.RecordChoiceFieldMixin>`
+  - ```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.RecordChoiceFieldMixin
+    :summary:
+    ```
+* - {py:obj}`RecordMultipleChoiceFieldMixin <fairdm.contrib.autocomplete.fields.RecordMultipleChoiceFieldMixin>`
+  - ```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.RecordMultipleChoiceFieldMixin
+    :summary:
+    ```
+* - {py:obj}`PublicationChoiceField <fairdm.contrib.autocomplete.fields.PublicationChoiceField>`
+  - ```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.PublicationChoiceField
+    :summary:
+    ```
+* - {py:obj}`TagsWidget <fairdm.contrib.autocomplete.fields.TagsWidget>`
+  - ```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.TagsWidget
+    :summary:
+    ```
+* - {py:obj}`TagsField <fairdm.contrib.autocomplete.fields.TagsField>`
+  - ```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.TagsField
+    :summary:
+    ```
+* - {py:obj}`RorChoiceField <fairdm.contrib.autocomplete.fields.RorChoiceField>`
+  - ```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.RorChoiceField
+    :summary:
+    ```
+````
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`record_fields <fairdm.contrib.autocomplete.fields.record_fields>`
+  - ```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.record_fields
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} RecordSelectMixin
+:canonical: fairdm.contrib.autocomplete.fields.RecordSelectMixin
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.RecordSelectMixin
+```
+
+````{py:attribute} field
+:canonical: fairdm.contrib.autocomplete.fields.RecordSelectMixin.field
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.RecordSelectMixin.field
+```
+
+````
+
+````{py:method} get_autocomplete_params()
+:canonical: fairdm.contrib.autocomplete.fields.RecordSelectMixin.get_autocomplete_params
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.RecordSelectMixin.get_autocomplete_params
+```
+
+````
+
+````{py:method} get_context(name, value, attrs=None)
+:canonical: fairdm.contrib.autocomplete.fields.RecordSelectMixin.get_context
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.RecordSelectMixin.get_context
+```
+
+````
+
+`````
+
+````{py:class} RecordSelectWidget(config: django_tomselect.app_settings.TomSelectConfig | dict[str, typing.Any] | None = None, **kwargs: typing.Any)
+:canonical: fairdm.contrib.autocomplete.fields.RecordSelectWidget
+
+Bases: {py:obj}`fairdm.contrib.autocomplete.fields.RecordSelectMixin`, {py:obj}`django_tomselect.widgets.TomSelectModelWidget`
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.RecordSelectWidget
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.RecordSelectWidget.__init__
+```
+
+````
+
+````{py:class} RecordSelectMultipleWidget(config: django_tomselect.app_settings.TomSelectConfig | dict[str, typing.Any] | None = None, **kwargs: typing.Any)
+:canonical: fairdm.contrib.autocomplete.fields.RecordSelectMultipleWidget
+
+Bases: {py:obj}`fairdm.contrib.autocomplete.fields.RecordSelectMixin`, {py:obj}`django_tomselect.widgets.TomSelectModelMultipleWidget`
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.RecordSelectMultipleWidget
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.RecordSelectMultipleWidget.__init__
+```
+
+````
+
+`````{py:class} RecordFieldMixin(*args, scope=None, owner=None, type=None, depends_on=None, prefer=None, **kwargs)
+:canonical: fairdm.contrib.autocomplete.fields.RecordFieldMixin
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.RecordFieldMixin
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.RecordFieldMixin.__init__
+```
+
+````{py:attribute} view_class
+:canonical: fairdm.contrib.autocomplete.fields.RecordFieldMixin.view_class
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.RecordFieldMixin.view_class
+```
+
+````
+
+````{py:attribute} given_request
+:canonical: fairdm.contrib.autocomplete.fields.RecordFieldMixin.given_request
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.RecordFieldMixin.given_request
+```
+
+````
+
+````{py:attribute} kind
+:canonical: fairdm.contrib.autocomplete.fields.RecordFieldMixin.kind
+:value: <Multiline-String>
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.RecordFieldMixin.kind
+```
+
+````
+
+````{py:attribute} scopes
+:canonical: fairdm.contrib.autocomplete.fields.RecordFieldMixin.scopes
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.RecordFieldMixin.scopes
+```
+
+````
+
+````{py:attribute} default_scope
+:canonical: fairdm.contrib.autocomplete.fields.RecordFieldMixin.default_scope
+:value: >
+   'view'
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.RecordFieldMixin.default_scope
+```
+
+````
+
+````{py:attribute} multiple
+:canonical: fairdm.contrib.autocomplete.fields.RecordFieldMixin.multiple
+:value: >
+   False
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.RecordFieldMixin.multiple
+```
+
+````
+
+````{py:attribute} label
+:canonical: fairdm.contrib.autocomplete.fields.RecordFieldMixin.label
+:value: <Multiline-String>
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.RecordFieldMixin.label
+```
+
+````
+
+````{py:attribute} placeholder
+:canonical: fairdm.contrib.autocomplete.fields.RecordFieldMixin.placeholder
+:value: <Multiline-String>
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.RecordFieldMixin.placeholder
+```
+
+````
+
+````{py:attribute} count_text
+:canonical: fairdm.contrib.autocomplete.fields.RecordFieldMixin.count_text
+:value: <Multiline-String>
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.RecordFieldMixin.count_text
+```
+
+````
+
+````{py:method} build_config()
+:canonical: fairdm.contrib.autocomplete.fields.RecordFieldMixin.build_config
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.RecordFieldMixin.build_config
+```
+
+````
+
+````{py:method} type_filter()
+:canonical: fairdm.contrib.autocomplete.fields.RecordFieldMixin.type_filter
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.RecordFieldMixin.type_filter
+```
+
+````
+
+````{py:method} get_bound_field(form, field_name)
+:canonical: fairdm.contrib.autocomplete.fields.RecordFieldMixin.get_bound_field
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.RecordFieldMixin.get_bound_field
+```
+
+````
+
+````{py:property} request
+:canonical: fairdm.contrib.autocomplete.fields.RecordFieldMixin.request
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.RecordFieldMixin.request
+```
+
+````
+
+````{py:property} user
+:canonical: fairdm.contrib.autocomplete.fields.RecordFieldMixin.user
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.RecordFieldMixin.user
+```
+
+````
+
+````{py:method} view()
+:canonical: fairdm.contrib.autocomplete.fields.RecordFieldMixin.view
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.RecordFieldMixin.view
+```
+
+````
+
+````{py:method} narrowing()
+:canonical: fairdm.contrib.autocomplete.fields.RecordFieldMixin.narrowing
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.RecordFieldMixin.narrowing
+```
+
+````
+
+````{py:method} offered(narrowed=False)
+:canonical: fairdm.contrib.autocomplete.fields.RecordFieldMixin.offered
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.RecordFieldMixin.offered
+```
+
+````
+
+````{py:method} stored_pks()
+:canonical: fairdm.contrib.autocomplete.fields.RecordFieldMixin.stored_pks
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.RecordFieldMixin.stored_pks
+```
+
+````
+
+````{py:method} allowed()
+:canonical: fairdm.contrib.autocomplete.fields.RecordFieldMixin.allowed
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.RecordFieldMixin.allowed
+```
+
+````
+
+````{py:method} selected_options(value)
+:canonical: fairdm.contrib.autocomplete.fields.RecordFieldMixin.selected_options
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.RecordFieldMixin.selected_options
+```
+
+````
+
+`````
+
+`````{py:class} RecordChoiceFieldMixin(*args, scope=None, owner=None, type=None, depends_on=None, prefer=None, **kwargs)
+:canonical: fairdm.contrib.autocomplete.fields.RecordChoiceFieldMixin
+
+Bases: {py:obj}`fairdm.contrib.autocomplete.fields.RecordFieldMixin`
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.RecordChoiceFieldMixin
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.RecordChoiceFieldMixin.__init__
+```
+
+````{py:method} clean(value)
+:canonical: fairdm.contrib.autocomplete.fields.RecordChoiceFieldMixin.clean
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.RecordChoiceFieldMixin.clean
+```
+
+````
+
+`````
+
+`````{py:class} RecordMultipleChoiceFieldMixin(*args, scope=None, owner=None, type=None, depends_on=None, prefer=None, **kwargs)
+:canonical: fairdm.contrib.autocomplete.fields.RecordMultipleChoiceFieldMixin
+
+Bases: {py:obj}`fairdm.contrib.autocomplete.fields.RecordFieldMixin`
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.RecordMultipleChoiceFieldMixin
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.RecordMultipleChoiceFieldMixin.__init__
+```
+
+````{py:attribute} multiple
+:canonical: fairdm.contrib.autocomplete.fields.RecordMultipleChoiceFieldMixin.multiple
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.RecordMultipleChoiceFieldMixin.multiple
+```
+
+````
+
+````{py:method} clean(value)
+:canonical: fairdm.contrib.autocomplete.fields.RecordMultipleChoiceFieldMixin.clean
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.RecordMultipleChoiceFieldMixin.clean
+```
+
+````
+
+`````
+
+````{py:function} record_fields(view_class, kind, *, label, one_label, any_label, count_text, scopes=SCOPES)
+:canonical: fairdm.contrib.autocomplete.fields.record_fields
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.record_fields
+```
+````
+
+`````{py:class} PublicationChoiceField(**kwargs)
+:canonical: fairdm.contrib.autocomplete.fields.PublicationChoiceField
+
+Bases: {py:obj}`django_tomselect.forms.TomSelectModelChoiceField`
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.PublicationChoiceField
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.PublicationChoiceField.__init__
+```
+
+````{py:method} clean(value)
+:canonical: fairdm.contrib.autocomplete.fields.PublicationChoiceField.clean
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.PublicationChoiceField.clean
+```
+
+````
+
+`````
+
+`````{py:class} TagsWidget(config: django_tomselect.app_settings.TomSelectConfig | dict[str, typing.Any] | None = None, **kwargs: typing.Any)
+:canonical: fairdm.contrib.autocomplete.fields.TagsWidget
+
+Bases: {py:obj}`django_tomselect.widgets.TomSelectModelMultipleWidget`
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.TagsWidget
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.TagsWidget.__init__
+```
+
+````{py:method} selected_tags(value)
+:canonical: fairdm.contrib.autocomplete.fields.TagsWidget.selected_tags
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.TagsWidget.selected_tags
+```
+
+````
+
+````{py:method} get_context(name, value, attrs=None)
+:canonical: fairdm.contrib.autocomplete.fields.TagsWidget.get_context
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.TagsWidget.get_context
+```
+
+````
+
+`````
+
+`````{py:class} TagsField(*, scope='view', allow_new=False, **kwargs)
+:canonical: fairdm.contrib.autocomplete.fields.TagsField
+
+Bases: {py:obj}`django.forms.Field`
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.TagsField
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.TagsField.__init__
+```
+
+````{py:attribute} default_error_messages
+:canonical: fairdm.contrib.autocomplete.fields.TagsField.default_error_messages
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.TagsField.default_error_messages
+```
+
+````
+
+````{py:attribute} given_request
+:canonical: fairdm.contrib.autocomplete.fields.TagsField.given_request
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.TagsField.given_request
+```
+
+````
+
+````{py:property} user
+:canonical: fairdm.contrib.autocomplete.fields.TagsField.user
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.TagsField.user
+```
+
+````
+
+````{py:method} to_python(value)
+:canonical: fairdm.contrib.autocomplete.fields.TagsField.to_python
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.TagsField.to_python
+```
+
+````
+
+````{py:method} validate(value)
+:canonical: fairdm.contrib.autocomplete.fields.TagsField.validate
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.TagsField.validate
+```
+
+````
+
+````{py:method} has_changed(initial, data)
+:canonical: fairdm.contrib.autocomplete.fields.TagsField.has_changed
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.TagsField.has_changed
+```
+
+````
+
+`````
+
+`````{py:class} RorChoiceField(**kwargs)
+:canonical: fairdm.contrib.autocomplete.fields.RorChoiceField
+
+Bases: {py:obj}`django_tomselect.forms.TomSelectChoiceField`
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.RorChoiceField
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.RorChoiceField.__init__
+```
+
+````{py:attribute} default_error_messages
+:canonical: fairdm.contrib.autocomplete.fields.RorChoiceField.default_error_messages
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.RorChoiceField.default_error_messages
+```
+
+````
+
+````{py:method} clean(value)
+:canonical: fairdm.contrib.autocomplete.fields.RorChoiceField.clean
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.fields.RorChoiceField.clean
+```
+
+````
+
+`````

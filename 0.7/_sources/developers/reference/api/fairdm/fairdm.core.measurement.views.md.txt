@@ -1,0 +1,58 @@
+# {py:mod}`fairdm.core.measurement.views`
+
+```{py:module} fairdm.core.measurement.views
+```
+
+```{autodoc2-docstring} fairdm.core.measurement.views
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`FormerAddressRedirect <fairdm.core.measurement.views.FormerAddressRedirect>`
+  - ```{autodoc2-docstring} fairdm.core.measurement.views.FormerAddressRedirect
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} FormerAddressRedirect(**kwargs)
+:canonical: fairdm.core.measurement.views.FormerAddressRedirect
+
+Bases: {py:obj}`django.views.generic.RedirectView`
+
+```{autodoc2-docstring} fairdm.core.measurement.views.FormerAddressRedirect
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.measurement.views.FormerAddressRedirect.__init__
+```
+
+````{py:attribute} permanent
+:canonical: fairdm.core.measurement.views.FormerAddressRedirect.permanent
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.core.measurement.views.FormerAddressRedirect.permanent
+```
+
+````
+
+````{py:method} get_redirect_url(*args, **kwargs)
+:canonical: fairdm.core.measurement.views.FormerAddressRedirect.get_redirect_url
+
+```{autodoc2-docstring} fairdm.core.measurement.views.FormerAddressRedirect.get_redirect_url
+```
+
+````
+
+`````

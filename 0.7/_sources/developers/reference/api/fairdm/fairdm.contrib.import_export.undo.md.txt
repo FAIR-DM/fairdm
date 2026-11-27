@@ -1,0 +1,164 @@
+# {py:mod}`fairdm.contrib.import_export.undo`
+
+```{py:module} fairdm.contrib.import_export.undo
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.undo
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`ImportUndo <fairdm.contrib.import_export.undo.ImportUndo>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.undo.ImportUndo
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} ImportUndo(job)
+:canonical: fairdm.contrib.import_export.undo.ImportUndo
+
+```{autodoc2-docstring} fairdm.contrib.import_export.undo.ImportUndo
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.undo.ImportUndo.__init__
+```
+
+````{py:attribute} CHUNK
+:canonical: fairdm.contrib.import_export.undo.ImportUndo.CHUNK
+:value: >
+   500
+
+```{autodoc2-docstring} fairdm.contrib.import_export.undo.ImportUndo.CHUNK
+```
+
+````
+
+````{py:attribute} LIMIT
+:canonical: fairdm.contrib.import_export.undo.ImportUndo.LIMIT
+:value: >
+   20
+
+```{autodoc2-docstring} fairdm.contrib.import_export.undo.ImportUndo.LIMIT
+```
+
+````
+
+````{py:attribute} REASONS
+:canonical: fairdm.contrib.import_export.undo.ImportUndo.REASONS
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.undo.ImportUndo.REASONS
+```
+
+````
+
+````{py:method} digest(record)
+:canonical: fairdm.contrib.import_export.undo.ImportUndo.digest
+
+```{autodoc2-docstring} fairdm.contrib.import_export.undo.ImportUndo.digest
+```
+
+````
+
+````{py:method} chunks(outcome)
+:canonical: fairdm.contrib.import_export.undo.ImportUndo.chunks
+
+```{autodoc2-docstring} fairdm.contrib.import_export.undo.ImportUndo.chunks
+```
+
+````
+
+````{py:method} conflicts(limit=LIMIT, lock=True)
+:canonical: fairdm.contrib.import_export.undo.ImportUndo.conflicts
+
+```{autodoc2-docstring} fairdm.contrib.import_export.undo.ImportUndo.conflicts
+```
+
+````
+
+````{py:method} measured(outcome, present)
+:canonical: fairdm.contrib.import_export.undo.ImportUndo.measured
+
+```{autodoc2-docstring} fairdm.contrib.import_export.undo.ImportUndo.measured
+```
+
+````
+
+````{py:method} relations()
+:canonical: fairdm.contrib.import_export.undo.ImportUndo.relations
+
+```{autodoc2-docstring} fairdm.contrib.import_export.undo.ImportUndo.relations
+```
+
+````
+
+````{py:method} related(outcome, present)
+:canonical: fairdm.contrib.import_export.undo.ImportUndo.related
+
+```{autodoc2-docstring} fairdm.contrib.import_export.undo.ImportUndo.related
+```
+
+````
+
+````{py:method} undo(user)
+:canonical: fairdm.contrib.import_export.undo.ImportUndo.undo
+
+```{autodoc2-docstring} fairdm.contrib.import_export.undo.ImportUndo.undo
+```
+
+````
+
+````{py:method} describe(found)
+:canonical: fairdm.contrib.import_export.undo.ImportUndo.describe
+
+```{autodoc2-docstring} fairdm.contrib.import_export.undo.ImportUndo.describe
+```
+
+````
+
+````{py:method} release(message)
+:canonical: fairdm.contrib.import_export.undo.ImportUndo.release
+
+```{autodoc2-docstring} fairdm.contrib.import_export.undo.ImportUndo.release
+```
+
+````
+
+````{py:method} advance(rows)
+:canonical: fairdm.contrib.import_export.undo.ImportUndo.advance
+
+```{autodoc2-docstring} fairdm.contrib.import_export.undo.ImportUndo.advance
+```
+
+````
+
+````{py:method} delete_created()
+:canonical: fairdm.contrib.import_export.undo.ImportUndo.delete_created
+
+```{autodoc2-docstring} fairdm.contrib.import_export.undo.ImportUndo.delete_created
+```
+
+````
+
+````{py:method} restore_updated()
+:canonical: fairdm.contrib.import_export.undo.ImportUndo.restore_updated
+
+```{autodoc2-docstring} fairdm.contrib.import_export.undo.ImportUndo.restore_updated
+```
+
+````
+
+`````

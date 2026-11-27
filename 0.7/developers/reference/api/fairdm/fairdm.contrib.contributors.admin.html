@@ -1,0 +1,1570 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta property="og:title" content="fairdm.contrib.contributors.admin" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="developers/reference/api/fairdm/fairdm.contrib.contributors.admin.html" />
+<meta property="og:site_name" content="fairdm" />
+<meta property="og:description" content="Admin for contributors, affiliations, claiming and the claiming audit log. Module Contents: Classes:,, AffiliationForm, Gate writing an Admin or Owner affiliation on manage_organization.,, ClaimedS..." />
+<meta name="description" content="Admin for contributors, affiliations, claiming and the claiming audit log. Module Contents: Classes:,, AffiliationForm, Gate writing an Admin or Owner affiliation on manage_organization.,, ClaimedS..." />
+
+    <title>fairdm.contrib.contributors.admin &#8212; fairdm 0.7.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/styles/sphinx-daisyui.css?v=aedd34d4" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <script src="../../../../_static/documentation_options.js?v=d87af0f4"></script>
+    <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../../_static/copybutton.js?v=f281be69"></script>
+    <script kind="utterances">
+
+    var commentsRunWhenDOMLoaded = cb => {
+    if (document.readyState != 'loading') {
+        cb()
+    } else if (document.addEventListener) {
+        document.addEventListener('DOMContentLoaded', cb)
+    } else {
+        document.attachEvent('onreadystatechange', function() {
+        if (document.readyState == 'complete') cb()
+        })
+    }
+}
+
+var addUtterances = () => {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src = "https://utteranc.es/client.js";
+    script.async = "async";
+
+    script.setAttribute("repo", "FAIR-DM/fairdm");
+    script.setAttribute("issue-term", "pathname");
+    script.setAttribute("theme", "preferred-color-scheme");
+    script.setAttribute("label", "documentation");
+    script.setAttribute("crossorigin", "anonymous");
+
+    sections = document.querySelectorAll("div.section");
+    if (sections !== null) {
+        section = sections[sections.length-1];
+        section.appendChild(script);
+    }
+}
+commentsRunWhenDOMLoaded(addUtterances);
+</script>
+    <script src="../../../../_static/design-tabs.js?v=f930bc37"></script>
+    <link rel="icon" href="../../../../_static/icon.svg"/>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+    <link rel="next" title="fairdm.contrib.contributors.signals" href="fairdm.contrib.contributors.signals.html" />
+    <link rel="prev" title="fairdm.contrib.contributors.profiles" href="fairdm.contrib.contributors.profiles.html" /> 
+  <meta name="color-scheme" content="light dark">
+  <script src="../../../../_static/scripts/mode.js" data-light-theme="light" data-dark-theme="dark" data-default-mode="auto" data-themes=""></script>
+  <script defer src="../../../../_static/scripts/keys.js"></script>
+  <script defer src="../../../../_static/scripts/page-address.js"></script>
+  <script defer src="../../../../_static/scripts/versions.js"></script>
+  <script defer src="../../../../_static/scripts/search.js"></script>
+  <script defer src="../../../../_static/scripts/frame.js"></script>
+  <script defer src="../../../../_static/scripts/back-to-top.js"></script>
+  <script defer src="../../../../_static/scripts/announcement.js"></script>
+  <script defer src="../../../../_static/scripts/navigation.js"></script>
+  <script defer src="../../../../_static/scripts/theme-menu.js"></script>
+  <script defer src="../../../../_static/scripts/page-toc.js"></script>
+  </head><body class="bg-base-100 text-base-content antialiased" data-daisy-root="../../../../" data-daisy-suffix=".html" data-daisy-link-suffix=".html" data-daisy-builder="html" data-daisy-page="developers/reference/api/fairdm/fairdm.contrib.contributors.admin">
+  <a href="#main-content" class="btn btn-primary btn-sm absolute -top-20 left-4 z-50 focus:top-2">Skip to content</a>
+  <div class="daisy-layout" style='--daisy-areas-lg: "header header header" "primary main main" "primary footer footer"; --daisy-areas-xl: "header header header" "primary main secondary" "primary footer footer"; --daisy-primary-top: var(--daisy-header-height); --daisy-secondary-top: var(--daisy-header-height);' data-layout="hHh LpR lff" data-header-fixed data-primary-fixed data-secondary-fixed>
+    <input id="daisy-drawer" type="checkbox" class="hidden" aria-hidden="true" tabindex="-1">
+
+    <header class="daisy-area-header daisy-navbar bg-base-100/90 backdrop-blur supports-[backdrop-filter]:bg-base-100/75">
+      <div class="navbar mx-auto min-h-16 max-w-[96rem] gap-2 px-3 sm:px-4">
+        <label for="daisy-drawer" role="button" tabindex="0" data-daisy-drawer-open class="btn btn-ghost btn-square btn-sm lg:hidden" aria-label="Open the navigation"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M4 5h16" /> <path d="M4 12h16" /> <path d="M4 19h16" /> </svg></label>
+        <div class="flex min-w-0 items-center gap-2">
+<a href="../../../../index.html" class="daisy-brand flex min-w-0 items-center gap-2.5 rounded-field px-1 py-1 font-semibold hover:opacity-85">
+    <img src="../../../../_static/fairdm_light.svg" alt="fairdm" class="daisy-logo-light h-8 w-auto">
+    <img src="../../../../_static/fairdm_dark.svg" alt="fairdm" class="daisy-logo-dark h-8 w-auto">
+</a>
+        </div>
+        <div class="hidden min-w-0 flex-1 items-center lg:flex" data-navbar-align="left">
+<nav aria-label="Sections" class="min-w-0">
+  <ul class="flex items-center gap-1"><li class="daisy-dropdown dropdown dropdown-end">
+    <div tabindex="0" role="button" aria-haspopup="menu" class="btn btn-ghost btn-sm font-medium btn-active text-primary" aria-current="true">More<svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m6 9 6 6 6-6" /> </svg></div>
+    <ul tabindex="-1" class="dropdown-content z-40 mt-2 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg menu w-56">
+            <li><a href="../../../index.html" class="menu-active" aria-current="true">Developers</a></li>
+            <li><a href="../../../../administrators/index.html">Administrators</a></li>
+            <li><a href="../../../../users/index.html">Users</a></li>
+            <li><a href="../../../../explanation/what-fairdm-is-for.html">What FairDM is for</a></li>
+            <li><a href="../../../../explanation/fair-data-and-research-data-infrastructure.html">FAIR data and research data infrastructure</a></li>
+            <li><a href="../../../../explanation/the-technology-stack.html">The technology stack</a></li>
+            <li><a href="../../../../explanation/the-core-data-model.html">The core data model</a></li>
+            <li><a href="../../../../explanation/how-sample-and-measurement-types-are-stored.html">How sample and measurement types are stored</a></li>
+            <li><a href="../../../../explanation/controlled-vocabularies.html">Controlled vocabularies</a></li>
+            <li><a href="../../../../explanation/configuration-over-code.html">Configuration over code</a></li>
+            <li><a href="../../../../explanation/why-complete-metadata-matters.html">Why complete metadata matters</a></li>
+            <li><a href="../../../../explanation/how-access-to-a-record-is-decided.html">How access to a record is decided</a></li>
+            <li><a href="../../../../explanation/why-fairdm-records-contributors.html">Why FairDM records contributors</a></li>
+            <li><a href="../../../../explanation/how-contributor-accounts-and-credits-work.html">How contributor accounts and credits work</a></li>
+            <li><a href="../../../../explanation/how-a-profile-is-claimed.html">How a profile is claimed</a></li>
+            <li><a href="../../../../explanation/how-fairdm-configures-a-portal.html">How FairDM configures a portal</a></li>
+            <li><a href="../../../../explanation/who-is-asked-to-agree-to-a-legal-document.html">Who is asked to agree to a legal document</a></li>
+            <li><a href="../../../../explanation/how-locations-are-stored-and-protected.html">How locations are stored and protected</a></li>
+            <li><a href="../../../../explanation/dataset-publication-dois-and-datacite-metadata.html">Dataset publication, DOIs and DataCite metadata</a></li>
+            <li><a href="../../../../reference/glossary.html">Glossary</a></li>
+            <li><a href="../../../../reference/contributor-roles.html">Contributor roles</a></li>
+            <li><a href="../../../../contributing/index.html">Framework Contributors</a></li>
+            <li><a href="../../../../adr/index.html">Architecture Decision Records</a></li>
+            <li><a href="../../../../ROADMAP.html">Roadmap — FairDM</a></li>
+            <li><a href="../../../../changelog.html">Changelog</a></li>
+            <li><a href="https://github.com/FAIR-DM/fairdm/blob/main/CHANGELOG.md">Changelog<svg class="size-3.5 opacity-60" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M15 3h6v6" /> <path d="M10 14 21 3" /> <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /> </svg><span class="sr-only">(leads outside the site)</span></a></li></ul>
+  </li>
+  </ul>
+</nav></div>
+        <div class="ms-auto flex items-center gap-1">
+          
+<button type="button" class="daisy-search-open daisy-muted btn btn-sm h-9 gap-2 border-base-300 bg-base-200/70 font-normal shadow-none hover:bg-base-200 md:w-56 md:justify-start" aria-label="Search" aria-haspopup="dialog">
+  <svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m21 21-4.34-4.34" /> <circle cx="11" cy="11" r="8" /> </svg>
+  <span class="hidden md:inline">Search the docs</span>
+  <span class="ms-auto hidden items-center gap-0.5 md:flex"><kbd class="kbd kbd-xs" data-daisy-mod>Ctrl</kbd><kbd class="kbd kbd-xs">K</kbd></span>
+</button>
+          <div class="hidden items-center gap-1 sm:flex" data-daisy-navbar-end><div class="daisy-dropdown dropdown dropdown-end" data-daisy-json-url="https://docs.fairdm.org/switcher.json" data-daisy-version-match="0.7" data-text-preferred="Preferred" data-text-current="Current version">
+    <div tabindex="0" role="button" aria-haspopup="menu" class="btn btn-ghost btn-sm gap-1 font-medium" aria-label="Choose a version">
+      <svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /> <path d="M3 3v5h5" /> <path d="M12 7v5l4 2" /> </svg><span data-daisy-version-label>0.7</span><svg class="size-3.5 opacity-60" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m6 9 6 6 6-6" /> </svg></div>
+    <div tabindex="-1" class="dropdown-content z-40 mt-2 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg w-52">
+      <ul class="menu w-full p-0" data-daisy-version-list></ul></div>
+  </div><div class="daisy-dropdown dropdown dropdown-end" data-daisy-mode-names="Match the system|Light|Dark">
+    <div tabindex="0" role="button" aria-haspopup="menu" class="btn btn-ghost btn-sm btn-square" aria-label="Choose the colour theme">
+    <span data-daisy-mode-icon="auto"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M12 2v2" /> <path d="M14.837 16.385a6 6 0 1 1-7.223-7.222c.624-.147.97.66.715 1.248a4 4 0 0 0 5.26 5.259c.589-.255 1.396.09 1.248.715" /> <path d="M16 12a4 4 0 0 0-4-4" /> <path d="m19 5-1.256 1.256" /> <path d="M20 12h2" /> </svg></span>
+    <span data-daisy-mode-icon="light"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <circle cx="12" cy="12" r="4" /> <path d="M12 2v2" /> <path d="M12 20v2" /> <path d="m4.93 4.93 1.41 1.41" /> <path d="m17.66 17.66 1.41 1.41" /> <path d="M2 12h2" /> <path d="M20 12h2" /> <path d="m6.34 17.66-1.41 1.41" /> <path d="m19.07 4.93-1.41 1.41" /> </svg></span>
+    <span data-daisy-mode-icon="dark"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401" /> </svg></span>
+    <span data-daisy-mode-icon="theme"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z" /> <circle cx="13.5" cy="6.5" r=".5" fill="currentColor" /> <circle cx="17.5" cy="10.5" r=".5" fill="currentColor" /> <circle cx="6.5" cy="12.5" r=".5" fill="currentColor" /> <circle cx="8.5" cy="7.5" r=".5" fill="currentColor" /> </svg></span>
+    <span class="sr-only" data-daisy-mode-current></span></div>
+    <div tabindex="-1" class="dropdown-content z-40 mt-2 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg w-60">
+    <ul class="menu menu-sm w-full p-0">
+      <li><button type="button" data-daisy-set-mode="auto" aria-pressed="false"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M12 2v2" /> <path d="M14.837 16.385a6 6 0 1 1-7.223-7.222c.624-.147.97.66.715 1.248a4 4 0 0 0 5.26 5.259c.589-.255 1.396.09 1.248.715" /> <path d="M16 12a4 4 0 0 0-4-4" /> <path d="m19 5-1.256 1.256" /> <path d="M20 12h2" /> </svg>Match the system</button></li>
+      <li><button type="button" data-daisy-set-mode="light" aria-pressed="false"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <circle cx="12" cy="12" r="4" /> <path d="M12 2v2" /> <path d="M12 20v2" /> <path d="m4.93 4.93 1.41 1.41" /> <path d="m17.66 17.66 1.41 1.41" /> <path d="M2 12h2" /> <path d="M20 12h2" /> <path d="m6.34 17.66-1.41 1.41" /> <path d="m19.07 4.93-1.41 1.41" /> </svg>Light</button></li>
+      <li><button type="button" data-daisy-set-mode="dark" aria-pressed="false"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401" /> </svg>Dark</button></li>
+    </ul></div>
+  </div>
+<ul class="flex items-center" aria-label="Icon links">
+    <li><a href="https://github.com/FAIR-DM/fairdm/" class="btn btn-ghost btn-sm btn-square tooltip tooltip-bottom" data-tip="GitHub" aria-label="GitHub"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></a></li>
+</ul></div>
+        </div>
+      </div>
+    </header>
+
+    <aside class="daisy-area-primary" aria-label="Site navigation">
+      <div class="daisy-primary-inner">
+        <div class="flex items-center gap-2 border-b border-base-300 p-3 lg:hidden">
+          
+<a href="../../../../index.html" class="daisy-brand flex min-w-0 items-center gap-2.5 rounded-field px-1 py-1 font-semibold hover:opacity-85">
+    <img src="../../../../_static/fairdm_light.svg" alt="fairdm" class="daisy-logo-light h-8 w-auto">
+    <img src="../../../../_static/fairdm_dark.svg" alt="fairdm" class="daisy-logo-dark h-8 w-auto">
+</a>
+          <label for="daisy-drawer" role="button" tabindex="0" data-daisy-drawer-close class="btn btn-ghost btn-sm btn-square ms-auto" aria-label="Close the navigation"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M18 6 6 18" /> <path d="m6 6 12 12" /> </svg></label>
+        </div>
+        <div class="flex flex-wrap items-center gap-1 border-b border-base-300 p-3 sm:hidden empty:hidden" data-daisy-navbar-end-slot></div>
+          <nav class="border-b border-base-300 p-3 lg:hidden" aria-label="Sections">
+            <ul class="menu menu-sm w-full p-0">
+                <li><a href="../../../index.html" class="menu-active" aria-current="true">Developers</a></li>
+                <li><a href="../../../../administrators/index.html">Administrators</a></li>
+                <li><a href="../../../../users/index.html">Users</a></li>
+                <li><a href="../../../../explanation/what-fairdm-is-for.html">What FairDM is for</a></li>
+                <li><a href="../../../../explanation/fair-data-and-research-data-infrastructure.html">FAIR data and research data infrastructure</a></li>
+                <li><a href="../../../../explanation/the-technology-stack.html">The technology stack</a></li>
+                <li><a href="../../../../explanation/the-core-data-model.html">The core data model</a></li>
+                <li><a href="../../../../explanation/how-sample-and-measurement-types-are-stored.html">How sample and measurement types are stored</a></li>
+                <li><a href="../../../../explanation/controlled-vocabularies.html">Controlled vocabularies</a></li>
+                <li><a href="../../../../explanation/configuration-over-code.html">Configuration over code</a></li>
+                <li><a href="../../../../explanation/why-complete-metadata-matters.html">Why complete metadata matters</a></li>
+                <li><a href="../../../../explanation/how-access-to-a-record-is-decided.html">How access to a record is decided</a></li>
+                <li><a href="../../../../explanation/why-fairdm-records-contributors.html">Why FairDM records contributors</a></li>
+                <li><a href="../../../../explanation/how-contributor-accounts-and-credits-work.html">How contributor accounts and credits work</a></li>
+                <li><a href="../../../../explanation/how-a-profile-is-claimed.html">How a profile is claimed</a></li>
+                <li><a href="../../../../explanation/how-fairdm-configures-a-portal.html">How FairDM configures a portal</a></li>
+                <li><a href="../../../../explanation/who-is-asked-to-agree-to-a-legal-document.html">Who is asked to agree to a legal document</a></li>
+                <li><a href="../../../../explanation/how-locations-are-stored-and-protected.html">How locations are stored and protected</a></li>
+                <li><a href="../../../../explanation/dataset-publication-dois-and-datacite-metadata.html">Dataset publication, DOIs and DataCite metadata</a></li>
+                <li><a href="../../../../reference/glossary.html">Glossary</a></li>
+                <li><a href="../../../../reference/contributor-roles.html">Contributor roles</a></li>
+                <li><a href="../../../../contributing/index.html">Framework Contributors</a></li>
+                <li><a href="../../../../adr/index.html">Architecture Decision Records</a></li>
+                <li><a href="../../../../ROADMAP.html">Roadmap — FairDM</a></li>
+                <li><a href="../../../../changelog.html">Changelog</a></li>
+                <li><a href="https://github.com/FAIR-DM/fairdm/blob/main/CHANGELOG.md">Changelog<svg class="size-3.5 opacity-60" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M15 3h6v6" /> <path d="M10 14 21 3" /> <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /> </svg><span class="sr-only">(leads outside the site)</span></a></li>
+            </ul>
+          </nav>
+        <div class="daisy-sidebar-scroll px-3 py-4 lg:py-8 lg:ps-4 lg:pe-2">
+          
+<nav class="daisy-nav" aria-label="Documentation"><ul class="daisy-nav-list">
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../tutorial.html">Build your first sample and measurement types</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/add-a-factory-for-a-portal-model.html">How to add a factory for a portal model</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/add-a-filter-to-a-sample-type.html">How to add a filter to a sample type</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/add-a-measurement-type.html">How to add a measurement type</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/add-a-record-field-to-a-form.html">How to add a record field to a form</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/add-a-sample-type.html">How to add a sample type</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/add-a-section-to-the-home-page.html">How to add a section to the home page</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/add-a-start-step-to-a-container.html">How to add a start step to a container</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/add-a-transform-for-another-format.html">How to add a transform for another format</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/add-a-viewset-to-the-api-router.html">How to add a viewset to the API router</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/add-an-action-to-an-overview-page.html">How to add an action to an overview page</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/add-an-environment-override-module.html">How to add an environment override module</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/add-pages-to-a-plugin.html">How to add pages to a plugin</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/add-queryset-methods-to-a-measurement-type.html">How to add queryset methods to a measurement type</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/add-search-and-sort-to-a-list-view.html">How to add search and sort to a list view</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/allow-only-some-sites-to-call-the-api.html">How to allow only some sites to call the API</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/back-up-a-portal.html">How to back up a portal</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/change-a-types-api-address.html">How to change a type’s API address</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/change-how-the-team-page-looks.html">How to change how the team page looks</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/change-the-api-rate-limits.html">How to change the API rate limits</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/change-the-entrance-layout.html">How to change the entrance layout</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/change-the-entrance-pane.html">How to change the entrance pane</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/change-the-portal-theme.html">How to change the portal theme</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/change-what-a-home-page-section-shows.html">How to change what a home page section shows</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/change-what-the-edit-details-page-offers.html">How to change what the edit details page offers</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/change-who-can-open-the-control-room.html">How to change who can open the control room</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/choose-the-fields-the-api-returns.html">How to choose the fields the API returns</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/configure-the-agreement-check.html">How to configure the agreement check</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/count-api-callers-behind-a-proxy.html">How to count API callers behind a proxy</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/create-a-ghost-person.html">How to create a ghost person</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/create-a-plugin.html">How to create a plugin</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/create-an-addon.html">How to create an addon</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/credit-a-person-on-a-record.html">How to credit a person on a record</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/customise-a-generated-component.html">How to customise a generated component</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/customise-a-sample-form.html">How to customise a sample form</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/customise-the-admin-for-a-measurement-type.html">How to customise the admin for a measurement type</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/customise-the-api-documentation.html">How to customise the API documentation</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/customise-the-profile-form.html">How to customise the profile form</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/define-a-portal-role-of-your-own.html">How to define a portal role of your own</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/deploy-a-portal-in-a-container.html">How to deploy a portal in a container</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/develop-a-portal-on-the-development-image.html">How to develop a portal on the development image</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/extend-an-overview-page.html">How to extend an overview page</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/extend-the-profile-claiming-flow.html">How to extend the profile-claiming flow</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/filter-a-list-by-a-record.html">How to filter a list by a record</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/filter-projects-by-vocabulary-keywords.html">How to filter projects by vocabulary keywords</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/find-records-by-where-they-are.html">How to find records by where they are</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/give-a-registered-type-a-location.html">How to give a sample or measurement a location</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/give-a-sample-or-measurement-type-its-own-overview-page.html">How to give a sample or measurement type its own overview page</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/grant-object-permissions-on-polymorphic-models.html">How to grant object permissions on a polymorphic model</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/import-and-export-locations.html">How to import and export locations</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/import-people-from-orcid.html">How to import people from a list of ORCID iDs</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/link-to-a-legal-document.html">How to link to a legal document</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/load-development-data-for-the-overview-pages.html">How to load development data for the overview pages</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/loop-over-the-registered-types.html">How to loop over the registered types</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/narrow-a-record-field-by-another-field.html">How to narrow a record field by another field</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/override-a-fairdm-setting.html">How to override a FairDM setting</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/place-an-organization-on-a-map.html">How to place an organization on a map</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/record-sample-relationships.html">How to record sample relationships</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/register-a-sample-or-measurement-type.html">How to register a sample or measurement type</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/register-an-import-definition.html">How to register an import definition</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/render-markdown-in-a-template.html">How to render markdown in a template</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/restore-a-portal-from-a-backup.html">How to restore a portal from a backup</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/restrict-a-plugin-to-some-users.html">How to restrict a plugin to some users</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/restrict-a-record-field-to-one-sample-type.html">How to restrict a record field to one sample type</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/restrict-api-tokens-to-some-people.html">How to restrict API tokens to some people</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/run-a-background-worker-in-a-container.html">How to run a background worker in a container</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/search-a-registered-type-by-more-than-its-name.html">How to search a registered type by more than its name</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/show-part-of-a-page-to-a-records-team.html">How to show part of a page to a record’s team</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/sign-in-as-each-portal-role-while-developing.html">How to sign in as each portal role while developing</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/sync-a-profile-from-orcid-or-ror-without-celery.html">How to sync a profile from ORCID or ROR without Celery</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/test-a-portal-with-fairdm-factories.html">How to test a portal with FairDM factories</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/upgrade-a-portal-to-django-literature-0-3.html">How to upgrade a portal to django-literature 0.3</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/upgrade-a-portal-to-django-partial-dates.html">How to upgrade a portal to django-partial-dates</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/upgrade-a-portal-to-vocabulary-addresses.html">How to upgrade a portal to vocabulary addresses</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/use-a-controlled-vocabulary-in-a-model.html">How to use a controlled vocabulary in a model</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/use-a-sample-form-in-a-view.html">How to use a sample form in a view</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/write-a-custom-form-or-filter-for-a-measurement-type.html">How to write a custom form or filter for a measurement type</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../base-views.html">Base views</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../components.html">Components</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../configuration.html">Configuration</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../container-images.html">Container images</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../contribution-levels-and-record-access.html">Contribution levels and record access</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../contributor-models.html">Contributor models</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../core-models.html">Core models</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../crediting.html">Crediting</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../development-accounts.html">Development accounts</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../entrance-pages.html">Entrance pages</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../form-and-filter-mixins.html">Form and filter mixins</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../home-page.html">Home page</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../legal-documents.html">Legal documents</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../location-fields.html">Location fields</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../management-commands.html">Management commands</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../measurement-model.html">Measurement model</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../model-configuration.html">Model configuration</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../model-fields.html">Model fields</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../overview-page-blocks.html">Overview page blocks</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../overview-plugins.html">Overview plugins</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../permalinks.html">Permalinks</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../plugins.html">Plugins</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../portal-roles.html">Portal roles in code</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../profile-claiming.html">Profile claiming</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../recent-activity.html">Recent activity</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../record-editing-pages.html">Record editing pages</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../record-fields.html">Record fields</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../records-export.html">Records export</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../records-import.html">Records import</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../rest-api.html">REST API</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../sample-model.html">Sample model</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../settings.html">Settings</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../site-search.html">Site search</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../table-schema.html">Table schema</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../template-tags.html">Template tags</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../factories.html">Test factories</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../registry.html">The registry</a></li>
+<li class="daisy-nav-item daisy-nav-branch"><a class="daisy-nav-link daisy-on-path reference internal" href="../../python-api.html">Python API</a><button type="button" class="daisy-nav-toggle btn btn-ghost btn-xs btn-square" aria-expanded="true" aria-label="Show the pages in Python API"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m9 18 6-6-6-6" /> </svg></button><ul class="daisy-nav-list">
+<li class="daisy-nav-item daisy-nav-branch"><a class="daisy-nav-link daisy-on-path reference internal" href="fairdm.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm</span></code></a><button type="button" class="daisy-nav-toggle btn btn-ghost btn-xs btn-square" aria-expanded="true" aria-label="Show the pages in fairdm"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m9 18 6-6-6-6" /> </svg></button><ul class="daisy-nav-list">
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.registry.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.registry</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.backups.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.backups</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.views.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.views</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.conf.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.conf</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.forms.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.forms</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.db.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.db</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.api.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.factories.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.factories</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.templatetags.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.templatetags</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.management.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.management</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link daisy-on-path reference internal" href="fairdm.contrib.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.models.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.models</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.search.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.search</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.plugins.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.plugins</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.config.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.config</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.permissions.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.permissions</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.portal_roles.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.portal_roles</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.apps.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.apps</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.menus.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.menus</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../explanation/how-a-measurement-reports-its-value.html">How a measurement reports its value</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../explanation/how-api-callers-are-limited.html">How API callers are limited</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../explanation/how-fairdm-views-are-layered.html">How FairDM views are layered</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../explanation/how-markdown-is-sanitised.html">How markdown is sanitised</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../explanation/how-record-fields-decide-what-to-offer.html">How record fields decide what to offer</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../explanation/how-the-container-images-are-versioned.html">How the container images are versioned</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../explanation/what-registering-a-type-produces.html">What registering a type produces</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../explanation/why-factories-create-metadata-only-when-asked.html">Why factories create metadata only when asked</a></li>
+</ul>
+</nav>
+          
+        </div>
+      </div>
+    </aside>
+    <label for="daisy-drawer" class="daisy-drawer-overlay" aria-label="Close the navigation"></label>
+    <main id="main-content" role="main" class="daisy-area-main min-w-0 px-4 sm:px-6 lg:px-10" tabindex="-1">
+      <div class="mx-auto max-w-[46rem] pt-6 pb-10">
+          <div class="daisy-article-header flex min-h-8 items-center gap-3">
+            <div class="min-w-0 flex-1">
+<nav class="breadcrumbs daisy-breadcrumbs py-0 text-sm" aria-label="Breadcrumb">
+  <ul>
+    <li><a href="../../../../index.html" aria-label="Home"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M12 5v16" /> <path d="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z" /> </svg></a></li>
+    <li><a href="../../../index.html">Developers</a></li>
+    <li><a href="../../python-api.html">Python API</a></li>
+    <li><a href="fairdm.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm</span></code></a></li>
+    <li><a href="fairdm.contrib.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib</span></code></a></li>
+    <li><a href="fairdm.contrib.contributors.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.contributors</span></code></a></li>
+    <li aria-current="page"><span class="truncate">fairdm.contrib.contributors.admin</span></li>
+  </ul>
+</nav></div>
+            <div class="flex shrink-0 items-center gap-1">
+              <a href="https://github.com/FAIR-DM/fairdm/edit/main/docs/developers/reference/api/fairdm/fairdm.contrib.contributors.admin.md" class="btn btn-ghost btn-sm btn-square tooltip tooltip-left" data-tip="Edit this page" aria-label="Edit this page"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" /> <path d="m15 5 4 4" /> </svg></a>
+            </div>
+          </div>
+          <details class="daisy-toc-mobile collapse collapse-arrow mt-4 rounded-box border border-base-300 bg-base-200/60 xl:hidden">
+            <summary class="collapse-title min-h-0 py-3 text-sm font-semibold">On this page</summary>
+            <nav class="collapse-content text-sm" aria-label="On this page"><ul class="daisy-toc-list">
+<li><a class="daisy-toc-link reference internal" href="#module-contents">Module Contents</a><ul class="daisy-toc-list">
+<li><a class="daisy-toc-link reference internal" href="#classes">Classes</a></li>
+<li><a class="daisy-toc-link reference internal" href="#functions">Functions</a></li>
+<li><a class="daisy-toc-link reference internal" href="#api">API</a><ul class="daisy-toc-list daisy-toc-deep">
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.AffiliationForm"><code class="docutils literal notranslate"><span class="pre">AffiliationForm</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.AffiliationForm.Meta"><code class="docutils literal notranslate"><span class="pre">AffiliationForm.Meta</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.AffiliationForm.Meta.model"><code class="docutils literal notranslate"><span class="pre">AffiliationForm.Meta.model</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.AffiliationForm.Meta.fields"><code class="docutils literal notranslate"><span class="pre">AffiliationForm.Meta.fields</span></code></a></li>
+</ul>
+</li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.AffiliationForm.clean"><code class="docutils literal notranslate"><span class="pre">AffiliationForm.clean()</span></code></a></li>
+</ul>
+</li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.bind_affiliation_form_user"><code class="docutils literal notranslate"><span class="pre">bind_affiliation_form_user()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.ClaimedStatusFilter"><code class="docutils literal notranslate"><span class="pre">ClaimedStatusFilter</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.ClaimedStatusFilter.title"><code class="docutils literal notranslate"><span class="pre">ClaimedStatusFilter.title</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.ClaimedStatusFilter.parameter_name"><code class="docutils literal notranslate"><span class="pre">ClaimedStatusFilter.parameter_name</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.ClaimedStatusFilter.lookups"><code class="docutils literal notranslate"><span class="pre">ClaimedStatusFilter.lookups()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.ClaimedStatusFilter.queryset"><code class="docutils literal notranslate"><span class="pre">ClaimedStatusFilter.queryset()</span></code></a></li>
+</ul>
+</li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.AccountEmailInline"><code class="docutils literal notranslate"><span class="pre">AccountEmailInline</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.AccountEmailInline.model"><code class="docutils literal notranslate"><span class="pre">AccountEmailInline.model</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.AccountEmailInline.fields"><code class="docutils literal notranslate"><span class="pre">AccountEmailInline.fields</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.AccountEmailInline.extra"><code class="docutils literal notranslate"><span class="pre">AccountEmailInline.extra</span></code></a></li>
+</ul>
+</li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.ContributionInline"><code class="docutils literal notranslate"><span class="pre">ContributionInline</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.ContributionInline.extra"><code class="docutils literal notranslate"><span class="pre">ContributionInline.extra</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.ContributionInline.fields"><code class="docutils literal notranslate"><span class="pre">ContributionInline.fields</span></code></a></li>
+</ul>
+</li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.ContributorInline"><code class="docutils literal notranslate"><span class="pre">ContributorInline</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.ContributorInline.model"><code class="docutils literal notranslate"><span class="pre">ContributorInline.model</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.ContributorInline.fields"><code class="docutils literal notranslate"><span class="pre">ContributorInline.fields</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.ContributorInline.extra"><code class="docutils literal notranslate"><span class="pre">ContributorInline.extra</span></code></a></li>
+</ul>
+</li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.AffiliationInline"><code class="docutils literal notranslate"><span class="pre">AffiliationInline</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.AffiliationInline.model"><code class="docutils literal notranslate"><span class="pre">AffiliationInline.model</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.AffiliationInline.form"><code class="docutils literal notranslate"><span class="pre">AffiliationInline.form</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.AffiliationInline.fields"><code class="docutils literal notranslate"><span class="pre">AffiliationInline.fields</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.AffiliationInline.extra"><code class="docutils literal notranslate"><span class="pre">AffiliationInline.extra</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.AffiliationInline.get_formset"><code class="docutils literal notranslate"><span class="pre">AffiliationInline.get_formset()</span></code></a></li>
+</ul>
+</li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.MemberInline"><code class="docutils literal notranslate"><span class="pre">MemberInline</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.MemberInline.model"><code class="docutils literal notranslate"><span class="pre">MemberInline.model</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.MemberInline.form"><code class="docutils literal notranslate"><span class="pre">MemberInline.form</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.MemberInline.fk_name"><code class="docutils literal notranslate"><span class="pre">MemberInline.fk_name</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.MemberInline.fields"><code class="docutils literal notranslate"><span class="pre">MemberInline.fields</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.MemberInline.extra"><code class="docutils literal notranslate"><span class="pre">MemberInline.extra</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.MemberInline.verbose_name"><code class="docutils literal notranslate"><span class="pre">MemberInline.verbose_name</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.MemberInline.verbose_name_plural"><code class="docutils literal notranslate"><span class="pre">MemberInline.verbose_name_plural</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.MemberInline.get_formset"><code class="docutils literal notranslate"><span class="pre">MemberInline.get_formset()</span></code></a></li>
+</ul>
+</li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.IdentifierInline"><code class="docutils literal notranslate"><span class="pre">IdentifierInline</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.IdentifierInline.model"><code class="docutils literal notranslate"><span class="pre">IdentifierInline.model</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.IdentifierInline.fields"><code class="docutils literal notranslate"><span class="pre">IdentifierInline.fields</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.IdentifierInline.extra"><code class="docutils literal notranslate"><span class="pre">IdentifierInline.extra</span></code></a></li>
+</ul>
+</li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.SubOrganizationInline"><code class="docutils literal notranslate"><span class="pre">SubOrganizationInline</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.SubOrganizationInline.model"><code class="docutils literal notranslate"><span class="pre">SubOrganizationInline.model</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.SubOrganizationInline.fk_name"><code class="docutils literal notranslate"><span class="pre">SubOrganizationInline.fk_name</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.SubOrganizationInline.fields"><code class="docutils literal notranslate"><span class="pre">SubOrganizationInline.fields</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.SubOrganizationInline.extra"><code class="docutils literal notranslate"><span class="pre">SubOrganizationInline.extra</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.SubOrganizationInline.verbose_name"><code class="docutils literal notranslate"><span class="pre">SubOrganizationInline.verbose_name</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.SubOrganizationInline.verbose_name_plural"><code class="docutils literal notranslate"><span class="pre">SubOrganizationInline.verbose_name_plural</span></code></a></li>
+</ul>
+</li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin"><code class="docutils literal notranslate"><span class="pre">UserAdmin</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.base_model"><code class="docutils literal notranslate"><span class="pre">UserAdmin.base_model</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.show_in_index"><code class="docutils literal notranslate"><span class="pre">UserAdmin.show_in_index</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.change_form_template"><code class="docutils literal notranslate"><span class="pre">UserAdmin.change_form_template</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.resource_classes"><code class="docutils literal notranslate"><span class="pre">UserAdmin.resource_classes</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.skip_import_confirm"><code class="docutils literal notranslate"><span class="pre">UserAdmin.skip_import_confirm</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.inlines"><code class="docutils literal notranslate"><span class="pre">UserAdmin.inlines</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.list_display"><code class="docutils literal notranslate"><span class="pre">UserAdmin.list_display</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.list_filter"><code class="docutils literal notranslate"><span class="pre">UserAdmin.list_filter</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.exclude"><code class="docutils literal notranslate"><span class="pre">UserAdmin.exclude</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.autocomplete_fields"><code class="docutils literal notranslate"><span class="pre">UserAdmin.autocomplete_fields</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.readonly_fields"><code class="docutils literal notranslate"><span class="pre">UserAdmin.readonly_fields</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.fieldsets"><code class="docutils literal notranslate"><span class="pre">UserAdmin.fieldsets</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.add_fieldsets"><code class="docutils literal notranslate"><span class="pre">UserAdmin.add_fieldsets</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.search_fields"><code class="docutils literal notranslate"><span class="pre">UserAdmin.search_fields</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.ordering"><code class="docutils literal notranslate"><span class="pre">UserAdmin.ordering</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.actions"><code class="docutils literal notranslate"><span class="pre">UserAdmin.actions</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.get_fieldsets"><code class="docutils literal notranslate"><span class="pre">UserAdmin.get_fieldsets()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.get_form"><code class="docutils literal notranslate"><span class="pre">UserAdmin.get_form()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.has_import_permission"><code class="docutils literal notranslate"><span class="pre">UserAdmin.has_import_permission()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.has_export_permission"><code class="docutils literal notranslate"><span class="pre">UserAdmin.has_export_permission()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.get_actions"><code class="docutils literal notranslate"><span class="pre">UserAdmin.get_actions()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.account_state"><code class="docutils literal notranslate"><span class="pre">UserAdmin.account_state()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.merge_person_action"><code class="docutils literal notranslate"><span class="pre">UserAdmin.merge_person_action()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.generate_claim_link_action"><code class="docutils literal notranslate"><span class="pre">UserAdmin.generate_claim_link_action()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.change_view"><code class="docutils literal notranslate"><span class="pre">UserAdmin.change_view()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.dismiss_candidate_view"><code class="docutils literal notranslate"><span class="pre">UserAdmin.dismiss_candidate_view()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.get_urls"><code class="docutils literal notranslate"><span class="pre">UserAdmin.get_urls()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.claim_link_view"><code class="docutils literal notranslate"><span class="pre">UserAdmin.claim_link_view()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.merge_view"><code class="docutils literal notranslate"><span class="pre">UserAdmin.merge_view()</span></code></a></li>
+</ul>
+</li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.OrganizationActionForm"><code class="docutils literal notranslate"><span class="pre">OrganizationActionForm</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.OrganizationActionForm.new_owner"><code class="docutils literal notranslate"><span class="pre">OrganizationActionForm.new_owner</span></code></a></li>
+</ul>
+</li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.OrganizationAdmin"><code class="docutils literal notranslate"><span class="pre">OrganizationAdmin</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.OrganizationAdmin.base_model"><code class="docutils literal notranslate"><span class="pre">OrganizationAdmin.base_model</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.OrganizationAdmin.show_in_index"><code class="docutils literal notranslate"><span class="pre">OrganizationAdmin.show_in_index</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.OrganizationAdmin.inlines"><code class="docutils literal notranslate"><span class="pre">OrganizationAdmin.inlines</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.OrganizationAdmin.action_form"><code class="docutils literal notranslate"><span class="pre">OrganizationAdmin.action_form</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.OrganizationAdmin.list_display"><code class="docutils literal notranslate"><span class="pre">OrganizationAdmin.list_display</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.OrganizationAdmin.list_filter"><code class="docutils literal notranslate"><span class="pre">OrganizationAdmin.list_filter</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.OrganizationAdmin.search_fields"><code class="docutils literal notranslate"><span class="pre">OrganizationAdmin.search_fields</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.OrganizationAdmin.readonly_fields"><code class="docutils literal notranslate"><span class="pre">OrganizationAdmin.readonly_fields</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.OrganizationAdmin.fieldsets"><code class="docutils literal notranslate"><span class="pre">OrganizationAdmin.fieldsets</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.OrganizationAdmin.actions"><code class="docutils literal notranslate"><span class="pre">OrganizationAdmin.actions</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.OrganizationAdmin.get_readonly_fields"><code class="docutils literal notranslate"><span class="pre">OrganizationAdmin.get_readonly_fields()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.OrganizationAdmin.sync_from_ror"><code class="docutils literal notranslate"><span class="pre">OrganizationAdmin.sync_from_ror()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.OrganizationAdmin.transfer_ownership_action"><code class="docutils literal notranslate"><span class="pre">OrganizationAdmin.transfer_ownership_action()</span></code></a></li>
+</ul>
+</li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.AffiliationAdmin"><code class="docutils literal notranslate"><span class="pre">AffiliationAdmin</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.AffiliationAdmin.form"><code class="docutils literal notranslate"><span class="pre">AffiliationAdmin.form</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.AffiliationAdmin.list_display"><code class="docutils literal notranslate"><span class="pre">AffiliationAdmin.list_display</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.AffiliationAdmin.list_filter"><code class="docutils literal notranslate"><span class="pre">AffiliationAdmin.list_filter</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.AffiliationAdmin.autocomplete_fields"><code class="docutils literal notranslate"><span class="pre">AffiliationAdmin.autocomplete_fields</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.AffiliationAdmin.get_form"><code class="docutils literal notranslate"><span class="pre">AffiliationAdmin.get_form()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.AffiliationAdmin.get_queryset"><code class="docutils literal notranslate"><span class="pre">AffiliationAdmin.get_queryset()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.AffiliationAdmin.has_change_permission"><code class="docutils literal notranslate"><span class="pre">AffiliationAdmin.has_change_permission()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.AffiliationAdmin.has_delete_permission"><code class="docutils literal notranslate"><span class="pre">AffiliationAdmin.has_delete_permission()</span></code></a></li>
+</ul>
+</li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin"><code class="docutils literal notranslate"><span class="pre">ClaimingAuditLogAdmin</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.list_display"><code class="docutils literal notranslate"><span class="pre">ClaimingAuditLogAdmin.list_display</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.list_filter"><code class="docutils literal notranslate"><span class="pre">ClaimingAuditLogAdmin.list_filter</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.search_fields"><code class="docutils literal notranslate"><span class="pre">ClaimingAuditLogAdmin.search_fields</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.date_hierarchy"><code class="docutils literal notranslate"><span class="pre">ClaimingAuditLogAdmin.date_hierarchy</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.ordering"><code class="docutils literal notranslate"><span class="pre">ClaimingAuditLogAdmin.ordering</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.has_add_permission"><code class="docutils literal notranslate"><span class="pre">ClaimingAuditLogAdmin.has_add_permission()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.has_view_permission"><code class="docutils literal notranslate"><span class="pre">ClaimingAuditLogAdmin.has_view_permission()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.has_change_permission"><code class="docutils literal notranslate"><span class="pre">ClaimingAuditLogAdmin.has_change_permission()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.has_delete_permission"><code class="docutils literal notranslate"><span class="pre">ClaimingAuditLogAdmin.has_delete_permission()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+          </details>
+        <article class="daisy-sphinx-content">
+          
+  <section id="module-fairdm.contrib.contributors.admin">
+<span id="fairdm-contrib-contributors-admin"></span><h1><a class="reference internal" href="#module-fairdm.contrib.contributors.admin" title="fairdm.contrib.contributors.admin"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.contributors.admin</span></code></a><a class="headerlink" aria-label="Link to this heading: fairdm.contrib.contributors.admin" href="#module-fairdm.contrib.contributors.admin" title="Link to this heading">¶</a></h1>
+<p>Admin for contributors, affiliations, claiming and the claiming audit log.</p>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" aria-label="Link to this heading: Module Contents" href="#module-contents" title="Link to this heading">¶</a></h2>
+<section id="classes">
+<h3>Classes<a class="headerlink" aria-label="Link to this heading: Classes" href="#classes" title="Link to this heading">¶</a></h3>
+<div aria-label="Table" class="daisy-sphinx-scroll" role="region" tabindex="0"><table class="autosummary longtable docutils align-left">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.contrib.contributors.admin.AffiliationForm" title="fairdm.contrib.contributors.admin.AffiliationForm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AffiliationForm</span></code></a></p></td>
+<td><p>Gate writing an Admin or Owner affiliation on <code class="docutils literal notranslate"><span class="pre">manage_organization</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.contrib.contributors.admin.ClaimedStatusFilter" title="fairdm.contrib.contributors.admin.ClaimedStatusFilter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ClaimedStatusFilter</span></code></a></p></td>
+<td><p>Filter people by claimed or unclaimed status.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.contrib.contributors.admin.AccountEmailInline" title="fairdm.contrib.contributors.admin.AccountEmailInline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AccountEmailInline</span></code></a></p></td>
+<td><p>Inline for a person’s email addresses.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.contrib.contributors.admin.ContributionInline" title="fairdm.contrib.contributors.admin.ContributionInline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ContributionInline</span></code></a></p></td>
+<td><p>Inline for contributions.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.contrib.contributors.admin.ContributorInline" title="fairdm.contrib.contributors.admin.ContributorInline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ContributorInline</span></code></a></p></td>
+<td><p>Inline for a contributor’s profile.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.contrib.contributors.admin.AffiliationInline" title="fairdm.contrib.contributors.admin.AffiliationInline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AffiliationInline</span></code></a></p></td>
+<td><p>Inline for a person’s affiliations, gated by <code class="docutils literal notranslate"><span class="pre">AffiliationForm</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.contrib.contributors.admin.MemberInline" title="fairdm.contrib.contributors.admin.MemberInline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MemberInline</span></code></a></p></td>
+<td><p>Inline for an organisation’s members, gated by <code class="docutils literal notranslate"><span class="pre">AffiliationForm</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.contrib.contributors.admin.IdentifierInline" title="fairdm.contrib.contributors.admin.IdentifierInline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IdentifierInline</span></code></a></p></td>
+<td><p>Inline for a contributor’s identifiers.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.contrib.contributors.admin.SubOrganizationInline" title="fairdm.contrib.contributors.admin.SubOrganizationInline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SubOrganizationInline</span></code></a></p></td>
+<td><p>Inline for an organisation’s sub-organisations.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin" title="fairdm.contrib.contributors.admin.UserAdmin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">UserAdmin</span></code></a></p></td>
+<td><p>Admin for people, with import, claim links, merging and duplicate suggestions.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.contrib.contributors.admin.OrganizationActionForm" title="fairdm.contrib.contributors.admin.OrganizationActionForm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OrganizationActionForm</span></code></a></p></td>
+<td><p>Add a new-owner selector to the organisation changelist’s action bar.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.contrib.contributors.admin.OrganizationAdmin" title="fairdm.contrib.contributors.admin.OrganizationAdmin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OrganizationAdmin</span></code></a></p></td>
+<td><p>Admin for organisations, with ROR sync and ownership transfer actions.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.contrib.contributors.admin.AffiliationAdmin" title="fairdm.contrib.contributors.admin.AffiliationAdmin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AffiliationAdmin</span></code></a></p></td>
+<td><p>Administer affiliations directly, gated by <code class="docutils literal notranslate"><span class="pre">manage_organization</span></code> on each organisation.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin" title="fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ClaimingAuditLogAdmin</span></code></a></p></td>
+<td><p>Read-only list of claiming audit log entries, which are immutable.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="functions">
+<h3>Functions<a class="headerlink" aria-label="Link to this heading: Functions" href="#functions" title="Link to this heading">¶</a></h3>
+<div aria-label="Table" class="daisy-sphinx-scroll" role="region" tabindex="0"><table class="autosummary longtable docutils align-left">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.contrib.contributors.admin.bind_affiliation_form_user" title="fairdm.contrib.contributors.admin.bind_affiliation_form_user"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bind_affiliation_form_user</span></code></a></p></td>
+<td><p>Return a subclass of <code class="docutils literal notranslate"><span class="pre">form_class</span></code> with <code class="docutils literal notranslate"><span class="pre">user</span></code> bound as its default.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="api">
+<h3>API<a class="headerlink" aria-label="Link to this heading: API" href="#api" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.AffiliationForm">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">AffiliationForm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: AffiliationForm" href="#fairdm.contrib.contributors.admin.AffiliationForm" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">django.forms.ModelForm</span></code></p>
+<p>Gate writing an Admin or Owner affiliation on <code class="docutils literal notranslate"><span class="pre">manage_organization</span></code>.</p>
+<p>Setting a type to ADMIN or OWNER, or changing an affiliation that already has one, is a
+management act, so it needs <code class="docutils literal notranslate"><span class="pre">manage_organization</span></code> on the organisation. Superusers hold
+that permission already. The admin and both inlines bind the acting user through
+<code class="docutils literal notranslate"><span class="pre">bind_affiliation_form_user</span></code>, so every route that writes a type reaches this rule.</p>
+<p>Args:
+*args: Passed to <code class="docutils literal notranslate"><span class="pre">ModelForm</span></code>.
+user: The user submitting the form.
+**kwargs: Passed to <code class="docutils literal notranslate"><span class="pre">ModelForm</span></code>.</p>
+<p class="rubric">Initialization</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.AffiliationForm.Meta">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">Meta</span></span><a class="headerlink" aria-label="Link to this definition: Meta" href="#fairdm.contrib.contributors.admin.AffiliationForm.Meta" title="Link to this definition">¶</a></dt>
+<dd><dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.AffiliationForm.Meta.model">
+<span class="sig-name descname"><span class="pre">model</span></span><a class="headerlink" aria-label="Link to this definition: model" href="#fairdm.contrib.contributors.admin.AffiliationForm.Meta.model" title="Link to this definition">¶</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.AffiliationForm.Meta.fields">
+<span class="sig-name descname"><span class="pre">fields</span></span><a class="headerlink" aria-label="Link to this definition: fields" href="#fairdm.contrib.contributors.admin.AffiliationForm.Meta.fields" title="Link to this definition">¶</a></dt>
+<dd><p>‘<strong>all</strong>’</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.AffiliationForm.clean">
+<span class="sig-name descname"><span class="pre">clean</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: clean" href="#fairdm.contrib.contributors.admin.AffiliationForm.clean" title="Link to this definition">¶</a></dt>
+<dd><p>Refuse setting or changing an Admin or Owner affiliation without <code class="docutils literal notranslate"><span class="pre">manage_organization</span></code>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.bind_affiliation_form_user">
+<span class="sig-name descname"><span class="pre">bind_affiliation_form_user</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">form_class</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: bind_affiliation_form_user" href="#fairdm.contrib.contributors.admin.bind_affiliation_form_user" title="Link to this definition">¶</a></dt>
+<dd><p>Return a subclass of <code class="docutils literal notranslate"><span class="pre">form_class</span></code> with <code class="docutils literal notranslate"><span class="pre">user</span></code> bound as its default.</p>
+<p>Built per request so the permission check runs against whoever submitted the form.</p>
+<p>Args:
+form_class: The affiliation form class.
+user: The requesting user.</p>
+<p>Returns:
+The bound form class.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.ClaimedStatusFilter">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">ClaimedStatusFilter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_admin</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: ClaimedStatusFilter" href="#fairdm.contrib.contributors.admin.ClaimedStatusFilter" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">django.contrib.admin.SimpleListFilter</span></code></p>
+<p>Filter people by claimed or unclaimed status.</p>
+<p>Reads <code class="docutils literal notranslate"><span class="pre">is_claimed</span></code> rather than the email, since an invited person has an email but
+has not claimed. A deactivated account no longer counts as claimed.</p>
+<p class="rubric">Initialization</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.ClaimedStatusFilter.title">
+<span class="sig-name descname"><span class="pre">title</span></span><a class="headerlink" aria-label="Link to this definition: title" href="#fairdm.contrib.contributors.admin.ClaimedStatusFilter.title" title="Link to this definition">¶</a></dt>
+<dd><p>‘_(…)’</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.ClaimedStatusFilter.parameter_name">
+<span class="sig-name descname"><span class="pre">parameter_name</span></span><a class="headerlink" aria-label="Link to this definition: parameter_name" href="#fairdm.contrib.contributors.admin.ClaimedStatusFilter.parameter_name" title="Link to this definition">¶</a></dt>
+<dd><p>‘is_claimed’</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.ClaimedStatusFilter.lookups">
+<span class="sig-name descname"><span class="pre">lookups</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_admin</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: lookups" href="#fairdm.contrib.contributors.admin.ClaimedStatusFilter.lookups" title="Link to this definition">¶</a></dt>
+<dd><p>Offer claimed and unclaimed.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.ClaimedStatusFilter.queryset">
+<span class="sig-name descname"><span class="pre">queryset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">queryset</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: queryset" href="#fairdm.contrib.contributors.admin.ClaimedStatusFilter.queryset" title="Link to this definition">¶</a></dt>
+<dd><p>Narrow to claimed or unclaimed people.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.AccountEmailInline">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">AccountEmailInline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">admin_site</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: AccountEmailInline" href="#fairdm.contrib.contributors.admin.AccountEmailInline" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">django.contrib.admin.TabularInline</span></code></p>
+<p>Inline for a person’s email addresses.</p>
+<p class="rubric">Initialization</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.AccountEmailInline.model">
+<span class="sig-name descname"><span class="pre">model</span></span><a class="headerlink" aria-label="Link to this definition: model" href="#fairdm.contrib.contributors.admin.AccountEmailInline.model" title="Link to this definition">¶</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.AccountEmailInline.fields">
+<span class="sig-name descname"><span class="pre">fields</span></span><a class="headerlink" aria-label="Link to this definition: fields" href="#fairdm.contrib.contributors.admin.AccountEmailInline.fields" title="Link to this definition">¶</a></dt>
+<dd><p>[‘email’, ‘primary’, ‘verified’]</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.AccountEmailInline.extra">
+<span class="sig-name descname"><span class="pre">extra</span></span><a class="headerlink" aria-label="Link to this definition: extra" href="#fairdm.contrib.contributors.admin.AccountEmailInline.extra" title="Link to this definition">¶</a></dt>
+<dd><p>0</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.ContributionInline">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">ContributionInline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">admin_site</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: ContributionInline" href="#fairdm.contrib.contributors.admin.ContributionInline" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">django.contrib.admin.StackedInline</span></code></p>
+<p>Inline for contributions.</p>
+<p class="rubric">Initialization</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.ContributionInline.extra">
+<span class="sig-name descname"><span class="pre">extra</span></span><a class="headerlink" aria-label="Link to this definition: extra" href="#fairdm.contrib.contributors.admin.ContributionInline.extra" title="Link to this definition">¶</a></dt>
+<dd><p>1</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.ContributionInline.fields">
+<span class="sig-name descname"><span class="pre">fields</span></span><a class="headerlink" aria-label="Link to this definition: fields" href="#fairdm.contrib.contributors.admin.ContributionInline.fields" title="Link to this definition">¶</a></dt>
+<dd><p>(‘profile’, ‘roles’)</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.ContributorInline">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">ContributorInline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">admin_site</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: ContributorInline" href="#fairdm.contrib.contributors.admin.ContributorInline" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">django.contrib.admin.StackedInline</span></code></p>
+<p>Inline for a contributor’s profile.</p>
+<p class="rubric">Initialization</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.ContributorInline.model">
+<span class="sig-name descname"><span class="pre">model</span></span><a class="headerlink" aria-label="Link to this definition: model" href="#fairdm.contrib.contributors.admin.ContributorInline.model" title="Link to this definition">¶</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.ContributorInline.fields">
+<span class="sig-name descname"><span class="pre">fields</span></span><a class="headerlink" aria-label="Link to this definition: fields" href="#fairdm.contrib.contributors.admin.ContributorInline.fields" title="Link to this definition">¶</a></dt>
+<dd><p>[‘profile’]</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.ContributorInline.extra">
+<span class="sig-name descname"><span class="pre">extra</span></span><a class="headerlink" aria-label="Link to this definition: extra" href="#fairdm.contrib.contributors.admin.ContributorInline.extra" title="Link to this definition">¶</a></dt>
+<dd><p>0</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.AffiliationInline">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">AffiliationInline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">admin_site</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: AffiliationInline" href="#fairdm.contrib.contributors.admin.AffiliationInline" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">django.contrib.admin.StackedInline</span></code></p>
+<p>Inline for a person’s affiliations, gated by <code class="docutils literal notranslate"><span class="pre">AffiliationForm</span></code>.</p>
+<p class="rubric">Initialization</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.AffiliationInline.model">
+<span class="sig-name descname"><span class="pre">model</span></span><a class="headerlink" aria-label="Link to this definition: model" href="#fairdm.contrib.contributors.admin.AffiliationInline.model" title="Link to this definition">¶</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.AffiliationInline.form">
+<span class="sig-name descname"><span class="pre">form</span></span><a class="headerlink" aria-label="Link to this definition: form" href="#fairdm.contrib.contributors.admin.AffiliationInline.form" title="Link to this definition">¶</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.AffiliationInline.fields">
+<span class="sig-name descname"><span class="pre">fields</span></span><a class="headerlink" aria-label="Link to this definition: fields" href="#fairdm.contrib.contributors.admin.AffiliationInline.fields" title="Link to this definition">¶</a></dt>
+<dd><p>[(‘organization’, ‘type’, ‘is_primary’)]</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.AffiliationInline.extra">
+<span class="sig-name descname"><span class="pre">extra</span></span><a class="headerlink" aria-label="Link to this definition: extra" href="#fairdm.contrib.contributors.admin.AffiliationInline.extra" title="Link to this definition">¶</a></dt>
+<dd><p>0</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.AffiliationInline.get_formset">
+<span class="sig-name descname"><span class="pre">get_formset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: get_formset" href="#fairdm.contrib.contributors.admin.AffiliationInline.get_formset" title="Link to this definition">¶</a></dt>
+<dd><p>Bind the requesting user into <code class="docutils literal notranslate"><span class="pre">AffiliationForm</span></code>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.MemberInline">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">MemberInline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">admin_site</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: MemberInline" href="#fairdm.contrib.contributors.admin.MemberInline" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">django.contrib.admin.StackedInline</span></code></p>
+<p>Inline for an organisation’s members, gated by <code class="docutils literal notranslate"><span class="pre">AffiliationForm</span></code>.</p>
+<p class="rubric">Initialization</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.MemberInline.model">
+<span class="sig-name descname"><span class="pre">model</span></span><a class="headerlink" aria-label="Link to this definition: model" href="#fairdm.contrib.contributors.admin.MemberInline.model" title="Link to this definition">¶</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.MemberInline.form">
+<span class="sig-name descname"><span class="pre">form</span></span><a class="headerlink" aria-label="Link to this definition: form" href="#fairdm.contrib.contributors.admin.MemberInline.form" title="Link to this definition">¶</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.MemberInline.fk_name">
+<span class="sig-name descname"><span class="pre">fk_name</span></span><a class="headerlink" aria-label="Link to this definition: fk_name" href="#fairdm.contrib.contributors.admin.MemberInline.fk_name" title="Link to this definition">¶</a></dt>
+<dd><p>‘organization’</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.MemberInline.fields">
+<span class="sig-name descname"><span class="pre">fields</span></span><a class="headerlink" aria-label="Link to this definition: fields" href="#fairdm.contrib.contributors.admin.MemberInline.fields" title="Link to this definition">¶</a></dt>
+<dd><p>[(‘person’, ‘type’, ‘is_primary’)]</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.MemberInline.extra">
+<span class="sig-name descname"><span class="pre">extra</span></span><a class="headerlink" aria-label="Link to this definition: extra" href="#fairdm.contrib.contributors.admin.MemberInline.extra" title="Link to this definition">¶</a></dt>
+<dd><p>0</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.MemberInline.verbose_name">
+<span class="sig-name descname"><span class="pre">verbose_name</span></span><a class="headerlink" aria-label="Link to this definition: verbose_name" href="#fairdm.contrib.contributors.admin.MemberInline.verbose_name" title="Link to this definition">¶</a></dt>
+<dd><p>‘Member’</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.MemberInline.verbose_name_plural">
+<span class="sig-name descname"><span class="pre">verbose_name_plural</span></span><a class="headerlink" aria-label="Link to this definition: verbose_name_plural" href="#fairdm.contrib.contributors.admin.MemberInline.verbose_name_plural" title="Link to this definition">¶</a></dt>
+<dd><p>‘Members’</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.MemberInline.get_formset">
+<span class="sig-name descname"><span class="pre">get_formset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: get_formset" href="#fairdm.contrib.contributors.admin.MemberInline.get_formset" title="Link to this definition">¶</a></dt>
+<dd><p>Bind the requesting user into <code class="docutils literal notranslate"><span class="pre">AffiliationForm</span></code>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.IdentifierInline">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">IdentifierInline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">admin_site</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: IdentifierInline" href="#fairdm.contrib.contributors.admin.IdentifierInline" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">django.contrib.admin.StackedInline</span></code></p>
+<p>Inline for a contributor’s identifiers.</p>
+<p class="rubric">Initialization</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.IdentifierInline.model">
+<span class="sig-name descname"><span class="pre">model</span></span><a class="headerlink" aria-label="Link to this definition: model" href="#fairdm.contrib.contributors.admin.IdentifierInline.model" title="Link to this definition">¶</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.IdentifierInline.fields">
+<span class="sig-name descname"><span class="pre">fields</span></span><a class="headerlink" aria-label="Link to this definition: fields" href="#fairdm.contrib.contributors.admin.IdentifierInline.fields" title="Link to this definition">¶</a></dt>
+<dd><p>[‘type’, ‘value’]</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.IdentifierInline.extra">
+<span class="sig-name descname"><span class="pre">extra</span></span><a class="headerlink" aria-label="Link to this definition: extra" href="#fairdm.contrib.contributors.admin.IdentifierInline.extra" title="Link to this definition">¶</a></dt>
+<dd><p>0</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.SubOrganizationInline">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">SubOrganizationInline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">admin_site</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: SubOrganizationInline" href="#fairdm.contrib.contributors.admin.SubOrganizationInline" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">django.contrib.admin.TabularInline</span></code></p>
+<p>Inline for an organisation’s sub-organisations.</p>
+<p class="rubric">Initialization</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.SubOrganizationInline.model">
+<span class="sig-name descname"><span class="pre">model</span></span><a class="headerlink" aria-label="Link to this definition: model" href="#fairdm.contrib.contributors.admin.SubOrganizationInline.model" title="Link to this definition">¶</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.SubOrganizationInline.fk_name">
+<span class="sig-name descname"><span class="pre">fk_name</span></span><a class="headerlink" aria-label="Link to this definition: fk_name" href="#fairdm.contrib.contributors.admin.SubOrganizationInline.fk_name" title="Link to this definition">¶</a></dt>
+<dd><p>‘parent’</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.SubOrganizationInline.fields">
+<span class="sig-name descname"><span class="pre">fields</span></span><a class="headerlink" aria-label="Link to this definition: fields" href="#fairdm.contrib.contributors.admin.SubOrganizationInline.fields" title="Link to this definition">¶</a></dt>
+<dd><p>[‘name’]</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.SubOrganizationInline.extra">
+<span class="sig-name descname"><span class="pre">extra</span></span><a class="headerlink" aria-label="Link to this definition: extra" href="#fairdm.contrib.contributors.admin.SubOrganizationInline.extra" title="Link to this definition">¶</a></dt>
+<dd><p>0</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.SubOrganizationInline.verbose_name">
+<span class="sig-name descname"><span class="pre">verbose_name</span></span><a class="headerlink" aria-label="Link to this definition: verbose_name" href="#fairdm.contrib.contributors.admin.SubOrganizationInline.verbose_name" title="Link to this definition">¶</a></dt>
+<dd><p>‘_(…)’</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.SubOrganizationInline.verbose_name_plural">
+<span class="sig-name descname"><span class="pre">verbose_name_plural</span></span><a class="headerlink" aria-label="Link to this definition: verbose_name_plural" href="#fairdm.contrib.contributors.admin.SubOrganizationInline.verbose_name_plural" title="Link to this definition">¶</a></dt>
+<dd><p>‘_(…)’</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.UserAdmin">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">UserAdmin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">admin_site</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: UserAdmin" href="#fairdm.contrib.contributors.admin.UserAdmin" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">django.contrib.auth.admin.UserAdmin</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">hijack.contrib.admin.HijackUserAdminMixin</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">import_export.admin.ImportExportModelAdmin</span></code></p>
+<p>Admin for people, with import, claim links, merging and duplicate suggestions.</p>
+<p class="rubric">Initialization</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.UserAdmin.base_model">
+<span class="sig-name descname"><span class="pre">base_model</span></span><a class="headerlink" aria-label="Link to this definition: base_model" href="#fairdm.contrib.contributors.admin.UserAdmin.base_model" title="Link to this definition">¶</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.UserAdmin.show_in_index">
+<span class="sig-name descname"><span class="pre">show_in_index</span></span><a class="headerlink" aria-label="Link to this definition: show_in_index" href="#fairdm.contrib.contributors.admin.UserAdmin.show_in_index" title="Link to this definition">¶</a></dt>
+<dd><p>True</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.UserAdmin.change_form_template">
+<span class="sig-name descname"><span class="pre">change_form_template</span></span><a class="headerlink" aria-label="Link to this definition: change_form_template" href="#fairdm.contrib.contributors.admin.UserAdmin.change_form_template" title="Link to this definition">¶</a></dt>
+<dd><p>‘contributors/admin/change_form.html’</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.UserAdmin.resource_classes">
+<span class="sig-name descname"><span class="pre">resource_classes</span></span><a class="headerlink" aria-label="Link to this definition: resource_classes" href="#fairdm.contrib.contributors.admin.UserAdmin.resource_classes" title="Link to this definition">¶</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.UserAdmin.skip_import_confirm">
+<span class="sig-name descname"><span class="pre">skip_import_confirm</span></span><a class="headerlink" aria-label="Link to this definition: skip_import_confirm" href="#fairdm.contrib.contributors.admin.UserAdmin.skip_import_confirm" title="Link to this definition">¶</a></dt>
+<dd><p>True</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.UserAdmin.inlines">
+<span class="sig-name descname"><span class="pre">inlines</span></span><a class="headerlink" aria-label="Link to this definition: inlines" href="#fairdm.contrib.contributors.admin.UserAdmin.inlines" title="Link to this definition">¶</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.UserAdmin.list_display">
+<span class="sig-name descname"><span class="pre">list_display</span></span><a class="headerlink" aria-label="Link to this definition: list_display" href="#fairdm.contrib.contributors.admin.UserAdmin.list_display" title="Link to this definition">¶</a></dt>
+<dd><p>[‘first_name’, ‘last_name’, ‘email’, ‘is_staff’, ‘account_state’]</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.UserAdmin.list_filter">
+<span class="sig-name descname"><span class="pre">list_filter</span></span><a class="headerlink" aria-label="Link to this definition: list_filter" href="#fairdm.contrib.contributors.admin.UserAdmin.list_filter" title="Link to this definition">¶</a></dt>
+<dd><p>()</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.UserAdmin.exclude">
+<span class="sig-name descname"><span class="pre">exclude</span></span><a class="headerlink" aria-label="Link to this definition: exclude" href="#fairdm.contrib.contributors.admin.UserAdmin.exclude" title="Link to this definition">¶</a></dt>
+<dd><p>(‘username’,)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.UserAdmin.autocomplete_fields">
+<span class="sig-name descname"><span class="pre">autocomplete_fields</span></span><a class="headerlink" aria-label="Link to this definition: autocomplete_fields" href="#fairdm.contrib.contributors.admin.UserAdmin.autocomplete_fields" title="Link to this definition">¶</a></dt>
+<dd><p>[‘groups’]</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.UserAdmin.readonly_fields">
+<span class="sig-name descname"><span class="pre">readonly_fields</span></span><a class="headerlink" aria-label="Link to this definition: readonly_fields" href="#fairdm.contrib.contributors.admin.UserAdmin.readonly_fields" title="Link to this definition">¶</a></dt>
+<dd><p>[‘synced_data’, ‘last_synced’, ‘sync_status’, ‘sync_error’, ‘uuid’, ‘added’, ‘modified’]</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.UserAdmin.fieldsets">
+<span class="sig-name descname"><span class="pre">fieldsets</span></span><a class="headerlink" aria-label="Link to this definition: fieldsets" href="#fairdm.contrib.contributors.admin.UserAdmin.fieldsets" title="Link to this definition">¶</a></dt>
+<dd><p>((‘Basic info’,), (), (‘Permissions’,))</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.UserAdmin.add_fieldsets">
+<span class="sig-name descname"><span class="pre">add_fieldsets</span></span><a class="headerlink" aria-label="Link to this definition: add_fieldsets" href="#fairdm.contrib.contributors.admin.UserAdmin.add_fieldsets" title="Link to this definition">¶</a></dt>
+<dd><p>((None,),)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.UserAdmin.search_fields">
+<span class="sig-name descname"><span class="pre">search_fields</span></span><a class="headerlink" aria-label="Link to this definition: search_fields" href="#fairdm.contrib.contributors.admin.UserAdmin.search_fields" title="Link to this definition">¶</a></dt>
+<dd><p>(‘email’, ‘name’, ‘uuid’)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.UserAdmin.ordering">
+<span class="sig-name descname"><span class="pre">ordering</span></span><a class="headerlink" aria-label="Link to this definition: ordering" href="#fairdm.contrib.contributors.admin.UserAdmin.ordering" title="Link to this definition">¶</a></dt>
+<dd><p>(‘last_name’,)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.UserAdmin.actions">
+<span class="sig-name descname"><span class="pre">actions</span></span><a class="headerlink" aria-label="Link to this definition: actions" href="#fairdm.contrib.contributors.admin.UserAdmin.actions" title="Link to this definition">¶</a></dt>
+<dd><p>[‘generate_claim_link_action’, ‘merge_person_action’]</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.UserAdmin.get_fieldsets">
+<span class="sig-name descname"><span class="pre">get_fieldsets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: get_fieldsets" href="#fairdm.contrib.contributors.admin.UserAdmin.get_fieldsets" title="Link to this definition">¶</a></dt>
+<dd><p>Drop the account-escalation fields for a non-superuser.</p>
+<p><code class="docutils literal notranslate"><span class="pre">groups</span></code> is dropped too unless the user holds <code class="docutils literal notranslate"><span class="pre">auth.view_group</span></code>, as a group
+membership grants a role’s rights.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.UserAdmin.get_form">
+<span class="sig-name descname"><span class="pre">get_form</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: get_form" href="#fairdm.contrib.contributors.admin.UserAdmin.get_form" title="Link to this definition">¶</a></dt>
+<dd><p>Drop <code class="docutils literal notranslate"><span class="pre">password</span></code> from the built form for a non-superuser.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.UserAdmin.has_import_permission">
+<span class="sig-name descname"><span class="pre">has_import_permission</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: has_import_permission" href="#fairdm.contrib.contributors.admin.UserAdmin.has_import_permission" title="Link to this definition">¶</a></dt>
+<dd><p>Require the permission to add people, because an import creates them.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.UserAdmin.has_export_permission">
+<span class="sig-name descname"><span class="pre">has_export_permission</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: has_export_permission" href="#fairdm.contrib.contributors.admin.UserAdmin.has_export_permission" title="Link to this definition">¶</a></dt>
+<dd><p>Require the permission to view people, because an export lists them.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.UserAdmin.get_actions">
+<span class="sig-name descname"><span class="pre">get_actions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: get_actions" href="#fairdm.contrib.contributors.admin.UserAdmin.get_actions" title="Link to this definition">¶</a></dt>
+<dd><p>Drop the merge and claim-link actions for users the views would refuse.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.UserAdmin.account_state">
+<span class="sig-name descname"><span class="pre">account_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: account_state" href="#fairdm.contrib.contributors.admin.UserAdmin.account_state" title="Link to this definition">¶</a></dt>
+<dd><p>Show the person’s derived account state.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.UserAdmin.merge_person_action">
+<span class="sig-name descname"><span class="pre">merge_person_action</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">queryset</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: merge_person_action" href="#fairdm.contrib.contributors.admin.UserAdmin.merge_person_action" title="Link to this definition">¶</a></dt>
+<dd><p>Redirect to the merge page for the one selected person.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.UserAdmin.generate_claim_link_action">
+<span class="sig-name descname"><span class="pre">generate_claim_link_action</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">queryset</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: generate_claim_link_action" href="#fairdm.contrib.contributors.admin.UserAdmin.generate_claim_link_action" title="Link to this definition">¶</a></dt>
+<dd><p>Redirect to the claim-link page for the one selected person.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.UserAdmin.change_view">
+<span class="sig-name descname"><span class="pre">change_view</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">object_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">form_url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: change_view" href="#fairdm.contrib.contributors.admin.UserAdmin.change_view" title="Link to this definition">¶</a></dt>
+<dd><p>Add possible duplicates, minus those dismissed this session, to the change form.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.UserAdmin.dismiss_candidate_view">
+<span class="sig-name descname"><span class="pre">dismiss_candidate_view</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pk</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">candidate_pk</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: dismiss_candidate_view" href="#fairdm.contrib.contributors.admin.UserAdmin.dismiss_candidate_view" title="Link to this definition">¶</a></dt>
+<dd><p>Dismiss a duplicate candidate for this session and return to the change page.</p>
+<p>Args:
+request: The current request.
+pk: The person being edited.
+candidate_pk: The candidate to dismiss.</p>
+<p>Returns:
+A redirect to the person’s change page.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.UserAdmin.get_urls">
+<span class="sig-name descname"><span class="pre">get_urls</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: get_urls" href="#fairdm.contrib.contributors.admin.UserAdmin.get_urls" title="Link to this definition">¶</a></dt>
+<dd><p>Add the claim-link, merge and dismiss-candidate routes.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.UserAdmin.claim_link_view">
+<span class="sig-name descname"><span class="pre">claim_link_view</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pk</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: claim_link_view" href="#fairdm.contrib.contributors.admin.UserAdmin.claim_link_view" title="Link to this definition">¶</a></dt>
+<dd><p>Render the claim link page for a person.</p>
+<p>A claim token is a credential, so the permission check comes first.</p>
+<p>Args:
+request: The current request.
+pk: The person’s primary key.</p>
+<p>Returns:
+The rendered page.</p>
+<p>Raises:
+PermissionDenied: The user may not manage people.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.UserAdmin.merge_view">
+<span class="sig-name descname"><span class="pre">merge_view</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pk</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: merge_view" href="#fairdm.contrib.contributors.admin.UserAdmin.merge_view" title="Link to this definition">¶</a></dt>
+<dd><p>Render the merge page for a person and merge them into the chosen person on POST.</p>
+<p>Merging deletes the discarded person and moves their affiliations, permissions, emails
+and social account, so the permission check comes first.</p>
+<p>Args:
+request: The current request.
+pk: The primary key of the person to discard.</p>
+<p>Returns:
+The rendered page, or a redirect to the surviving person after a merge.</p>
+<p>Raises:
+PermissionDenied: The user may not manage people.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.OrganizationActionForm">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">OrganizationActionForm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">files</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'id_%s'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error_class</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">ErrorList</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_suffix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">empty_permitted</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field_order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_required_attribute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">renderer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bound_field_class</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: OrganizationActionForm" href="#fairdm.contrib.contributors.admin.OrganizationActionForm" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">django.contrib.admin.helpers.ActionForm</span></code></p>
+<p>Add a new-owner selector to the organisation changelist’s action bar.</p>
+<p>The transfer action reads the value from <code class="docutils literal notranslate"><span class="pre">request.POST</span></code> without validating this form.</p>
+<p>Attributes:
+new_owner: The person to become owner.</p>
+<p class="rubric">Initialization</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.OrganizationActionForm.new_owner">
+<span class="sig-name descname"><span class="pre">new_owner</span></span><a class="headerlink" aria-label="Link to this definition: new_owner" href="#fairdm.contrib.contributors.admin.OrganizationActionForm.new_owner" title="Link to this definition">¶</a></dt>
+<dd><p>‘PersonChoiceField(…)’</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.OrganizationAdmin">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">OrganizationAdmin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">admin_site</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: OrganizationAdmin" href="#fairdm.contrib.contributors.admin.OrganizationAdmin" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">django.contrib.admin.ModelAdmin</span></code></p>
+<p>Admin for organisations, with ROR sync and ownership transfer actions.</p>
+<p class="rubric">Initialization</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.OrganizationAdmin.base_model">
+<span class="sig-name descname"><span class="pre">base_model</span></span><a class="headerlink" aria-label="Link to this definition: base_model" href="#fairdm.contrib.contributors.admin.OrganizationAdmin.base_model" title="Link to this definition">¶</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.OrganizationAdmin.show_in_index">
+<span class="sig-name descname"><span class="pre">show_in_index</span></span><a class="headerlink" aria-label="Link to this definition: show_in_index" href="#fairdm.contrib.contributors.admin.OrganizationAdmin.show_in_index" title="Link to this definition">¶</a></dt>
+<dd><p>True</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.OrganizationAdmin.inlines">
+<span class="sig-name descname"><span class="pre">inlines</span></span><a class="headerlink" aria-label="Link to this definition: inlines" href="#fairdm.contrib.contributors.admin.OrganizationAdmin.inlines" title="Link to this definition">¶</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.OrganizationAdmin.action_form">
+<span class="sig-name descname"><span class="pre">action_form</span></span><a class="headerlink" aria-label="Link to this definition: action_form" href="#fairdm.contrib.contributors.admin.OrganizationAdmin.action_form" title="Link to this definition">¶</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.OrganizationAdmin.list_display">
+<span class="sig-name descname"><span class="pre">list_display</span></span><a class="headerlink" aria-label="Link to this definition: list_display" href="#fairdm.contrib.contributors.admin.OrganizationAdmin.list_display" title="Link to this definition">¶</a></dt>
+<dd><p>[‘name’, ‘city’, ‘country’, ‘lat’, ‘lon’]</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.OrganizationAdmin.list_filter">
+<span class="sig-name descname"><span class="pre">list_filter</span></span><a class="headerlink" aria-label="Link to this definition: list_filter" href="#fairdm.contrib.contributors.admin.OrganizationAdmin.list_filter" title="Link to this definition">¶</a></dt>
+<dd><p>[‘country’]</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.OrganizationAdmin.search_fields">
+<span class="sig-name descname"><span class="pre">search_fields</span></span><a class="headerlink" aria-label="Link to this definition: search_fields" href="#fairdm.contrib.contributors.admin.OrganizationAdmin.search_fields" title="Link to this definition">¶</a></dt>
+<dd><p>[‘name’]</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.OrganizationAdmin.readonly_fields">
+<span class="sig-name descname"><span class="pre">readonly_fields</span></span><a class="headerlink" aria-label="Link to this definition: readonly_fields" href="#fairdm.contrib.contributors.admin.OrganizationAdmin.readonly_fields" title="Link to this definition">¶</a></dt>
+<dd><p>[‘synced_data’, ‘last_synced’, ‘sync_status’, ‘sync_error’, ‘uuid’, ‘added’, ‘modified’]</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.OrganizationAdmin.fieldsets">
+<span class="sig-name descname"><span class="pre">fieldsets</span></span><a class="headerlink" aria-label="Link to this definition: fieldsets" href="#fairdm.contrib.contributors.admin.OrganizationAdmin.fieldsets" title="Link to this definition">¶</a></dt>
+<dd><p>((None,), (), ())</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.OrganizationAdmin.actions">
+<span class="sig-name descname"><span class="pre">actions</span></span><a class="headerlink" aria-label="Link to this definition: actions" href="#fairdm.contrib.contributors.admin.OrganizationAdmin.actions" title="Link to this definition">¶</a></dt>
+<dd><p>[‘sync_from_ror’, ‘transfer_ownership_action’]</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.OrganizationAdmin.get_readonly_fields">
+<span class="sig-name descname"><span class="pre">get_readonly_fields</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="fairdm.contrib.contributors.models.html#fairdm.contrib.contributors.models.Organization" title="fairdm.contrib.contributors.models.Organization"><span class="pre">fairdm.contrib.contributors.models.Organization</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: get_readonly_fields" href="#fairdm.contrib.contributors.admin.OrganizationAdmin.get_readonly_fields" title="Link to this definition">¶</a></dt>
+<dd><p>Make the synced fields read-only once the organisation has synced data.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.OrganizationAdmin.sync_from_ror">
+<span class="sig-name descname"><span class="pre">sync_from_ror</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">queryset</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: sync_from_ror" href="#fairdm.contrib.contributors.admin.OrganizationAdmin.sync_from_ror" title="Link to this definition">¶</a></dt>
+<dd><p>Queue a ROR sync for each selected organisation that has a ROR identifier.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.OrganizationAdmin.transfer_ownership_action">
+<span class="sig-name descname"><span class="pre">transfer_ownership_action</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">queryset</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: transfer_ownership_action" href="#fairdm.contrib.contributors.admin.OrganizationAdmin.transfer_ownership_action" title="Link to this definition">¶</a></dt>
+<dd><p>Transfer the selected organisation to the member chosen in the action bar.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.AffiliationAdmin">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">AffiliationAdmin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">admin_site</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: AffiliationAdmin" href="#fairdm.contrib.contributors.admin.AffiliationAdmin" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">django.contrib.admin.ModelAdmin</span></code></p>
+<p>Administer affiliations directly, gated by <code class="docutils literal notranslate"><span class="pre">manage_organization</span></code> on each organisation.</p>
+<p class="rubric">Initialization</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.AffiliationAdmin.form">
+<span class="sig-name descname"><span class="pre">form</span></span><a class="headerlink" aria-label="Link to this definition: form" href="#fairdm.contrib.contributors.admin.AffiliationAdmin.form" title="Link to this definition">¶</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.AffiliationAdmin.list_display">
+<span class="sig-name descname"><span class="pre">list_display</span></span><a class="headerlink" aria-label="Link to this definition: list_display" href="#fairdm.contrib.contributors.admin.AffiliationAdmin.list_display" title="Link to this definition">¶</a></dt>
+<dd><p>[‘person’, ‘organization’, ‘type’, ‘is_primary’]</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.AffiliationAdmin.list_filter">
+<span class="sig-name descname"><span class="pre">list_filter</span></span><a class="headerlink" aria-label="Link to this definition: list_filter" href="#fairdm.contrib.contributors.admin.AffiliationAdmin.list_filter" title="Link to this definition">¶</a></dt>
+<dd><p>[‘type’, ‘is_primary’]</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.AffiliationAdmin.autocomplete_fields">
+<span class="sig-name descname"><span class="pre">autocomplete_fields</span></span><a class="headerlink" aria-label="Link to this definition: autocomplete_fields" href="#fairdm.contrib.contributors.admin.AffiliationAdmin.autocomplete_fields" title="Link to this definition">¶</a></dt>
+<dd><p>[‘person’, ‘organization’]</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.AffiliationAdmin.get_form">
+<span class="sig-name descname"><span class="pre">get_form</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: get_form" href="#fairdm.contrib.contributors.admin.AffiliationAdmin.get_form" title="Link to this definition">¶</a></dt>
+<dd><p>Bind the requesting user into <code class="docutils literal notranslate"><span class="pre">AffiliationForm</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.AffiliationAdmin.get_queryset">
+<span class="sig-name descname"><span class="pre">get_queryset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: get_queryset" href="#fairdm.contrib.contributors.admin.AffiliationAdmin.get_queryset" title="Link to this definition">¶</a></dt>
+<dd><p>Limit a non-superuser to affiliations of organisations they own.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.AffiliationAdmin.has_change_permission">
+<span class="sig-name descname"><span class="pre">has_change_permission</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: has_change_permission" href="#fairdm.contrib.contributors.admin.AffiliationAdmin.has_change_permission" title="Link to this definition">¶</a></dt>
+<dd><p>Refuse changing an affiliation without <code class="docutils literal notranslate"><span class="pre">manage_organization</span></code> on its organisation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.AffiliationAdmin.has_delete_permission">
+<span class="sig-name descname"><span class="pre">has_delete_permission</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: has_delete_permission" href="#fairdm.contrib.contributors.admin.AffiliationAdmin.has_delete_permission" title="Link to this definition">¶</a></dt>
+<dd><p>Refuse deleting an affiliation without <code class="docutils literal notranslate"><span class="pre">manage_organization</span></code> on its organisation.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">ClaimingAuditLogAdmin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">admin_site</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: ClaimingAuditLogAdmin" href="#fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">django.contrib.admin.ModelAdmin</span></code></p>
+<p>Read-only list of claiming audit log entries, which are immutable.</p>
+<p class="rubric">Initialization</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.list_display">
+<span class="sig-name descname"><span class="pre">list_display</span></span><a class="headerlink" aria-label="Link to this definition: list_display" href="#fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.list_display" title="Link to this definition">¶</a></dt>
+<dd><p>[‘timestamp’, ‘method’, ‘source_person’, ‘target_person’, ‘initiated_by’, ‘success’]</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.list_filter">
+<span class="sig-name descname"><span class="pre">list_filter</span></span><a class="headerlink" aria-label="Link to this definition: list_filter" href="#fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.list_filter" title="Link to this definition">¶</a></dt>
+<dd><p>[‘method’, ‘success’]</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.search_fields">
+<span class="sig-name descname"><span class="pre">search_fields</span></span><a class="headerlink" aria-label="Link to this definition: search_fields" href="#fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.search_fields" title="Link to this definition">¶</a></dt>
+<dd><p>[‘source_person__name’, ‘target_person__name’, ‘initiated_by__name’]</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.date_hierarchy">
+<span class="sig-name descname"><span class="pre">date_hierarchy</span></span><a class="headerlink" aria-label="Link to this definition: date_hierarchy" href="#fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.date_hierarchy" title="Link to this definition">¶</a></dt>
+<dd><p>‘timestamp’</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.ordering">
+<span class="sig-name descname"><span class="pre">ordering</span></span><a class="headerlink" aria-label="Link to this definition: ordering" href="#fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.ordering" title="Link to this definition">¶</a></dt>
+<dd><p>[‘-timestamp’]</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.has_add_permission">
+<span class="sig-name descname"><span class="pre">has_add_permission</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: has_add_permission" href="#fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.has_add_permission" title="Link to this definition">¶</a></dt>
+<dd><p>Never allow adding an entry.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.has_view_permission">
+<span class="sig-name descname"><span class="pre">has_view_permission</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: has_view_permission" href="#fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.has_view_permission" title="Link to this definition">¶</a></dt>
+<dd><p>Allow the list but not an entry’s detail page.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.has_change_permission">
+<span class="sig-name descname"><span class="pre">has_change_permission</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: has_change_permission" href="#fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.has_change_permission" title="Link to this definition">¶</a></dt>
+<dd><p>Never allow changing an entry.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.has_delete_permission">
+<span class="sig-name descname"><span class="pre">has_delete_permission</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: has_delete_permission" href="#fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.has_delete_permission" title="Link to this definition">¶</a></dt>
+<dd><p>Never allow deleting an entry.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+
+        </article>
+        
+          <nav class="daisy-prev-next mt-12 grid gap-3 border-t border-base-300 pt-6 sm:grid-cols-2" aria-label="Previous and next page">
+              <a href="fairdm.contrib.contributors.profiles.html" rel="prev" class="group flex items-center gap-3 rounded-box border border-base-300 p-4 transition hover:border-primary/50 hover:bg-base-200 focus-visible:bg-base-200">
+                <svg class="size-4 shrink-0 opacity-60 transition group-hover:-translate-x-0.5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m12 19-7-7 7-7" /> <path d="M19 12H5" /> </svg>
+                <span class="min-w-0"><span class="daisy-prev-next-label block text-xs">Previous</span><span class="block font-medium"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.contributors.profiles</span></code></span></span>
+              </a>
+              <a href="fairdm.contrib.contributors.signals.html" rel="next" class="group flex items-center justify-end gap-3 rounded-box border border-base-300 p-4 text-end transition hover:border-primary/50 hover:bg-base-200 focus-visible:bg-base-200">
+                <span class="min-w-0"><span class="daisy-prev-next-label block text-xs">Next</span><span class="block font-medium"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.contributors.signals</span></code></span></span>
+                <svg class="size-4 shrink-0 opacity-60 transition group-hover:translate-x-0.5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M5 12h14" /> <path d="m12 5 7 7-7 7" /> </svg>
+              </a>
+          </nav>
+        
+      </div>
+    </main>
+      <aside class="daisy-area-secondary" aria-label="Page tools">
+        <div class="daisy-secondary daisy-secondary-inner">
+<nav class="daisy-page-toc mb-6" aria-labelledby="daisy-page-toc-label" data-toc-level="2">
+  <p id="daisy-page-toc-label" class="daisy-section-label mb-2 flex items-center gap-2 leading-4"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M3 5h.01" /> <path d="M3 12h.01" /> <path d="M3 19h.01" /> <path d="M8 5h13" /> <path d="M8 12h13" /> <path d="M8 19h13" /> </svg>On this page</p>
+  <ul class="daisy-toc-list">
+<li><a class="daisy-toc-link reference internal" href="#module-contents">Module Contents</a><ul class="daisy-toc-list">
+<li><a class="daisy-toc-link reference internal" href="#classes">Classes</a></li>
+<li><a class="daisy-toc-link reference internal" href="#functions">Functions</a></li>
+<li><a class="daisy-toc-link reference internal" href="#api">API</a><ul class="daisy-toc-list daisy-toc-deep">
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.AffiliationForm"><code class="docutils literal notranslate"><span class="pre">AffiliationForm</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.AffiliationForm.Meta"><code class="docutils literal notranslate"><span class="pre">AffiliationForm.Meta</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.AffiliationForm.Meta.model"><code class="docutils literal notranslate"><span class="pre">AffiliationForm.Meta.model</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.AffiliationForm.Meta.fields"><code class="docutils literal notranslate"><span class="pre">AffiliationForm.Meta.fields</span></code></a></li>
+</ul>
+</li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.AffiliationForm.clean"><code class="docutils literal notranslate"><span class="pre">AffiliationForm.clean()</span></code></a></li>
+</ul>
+</li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.bind_affiliation_form_user"><code class="docutils literal notranslate"><span class="pre">bind_affiliation_form_user()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.ClaimedStatusFilter"><code class="docutils literal notranslate"><span class="pre">ClaimedStatusFilter</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.ClaimedStatusFilter.title"><code class="docutils literal notranslate"><span class="pre">ClaimedStatusFilter.title</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.ClaimedStatusFilter.parameter_name"><code class="docutils literal notranslate"><span class="pre">ClaimedStatusFilter.parameter_name</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.ClaimedStatusFilter.lookups"><code class="docutils literal notranslate"><span class="pre">ClaimedStatusFilter.lookups()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.ClaimedStatusFilter.queryset"><code class="docutils literal notranslate"><span class="pre">ClaimedStatusFilter.queryset()</span></code></a></li>
+</ul>
+</li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.AccountEmailInline"><code class="docutils literal notranslate"><span class="pre">AccountEmailInline</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.AccountEmailInline.model"><code class="docutils literal notranslate"><span class="pre">AccountEmailInline.model</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.AccountEmailInline.fields"><code class="docutils literal notranslate"><span class="pre">AccountEmailInline.fields</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.AccountEmailInline.extra"><code class="docutils literal notranslate"><span class="pre">AccountEmailInline.extra</span></code></a></li>
+</ul>
+</li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.ContributionInline"><code class="docutils literal notranslate"><span class="pre">ContributionInline</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.ContributionInline.extra"><code class="docutils literal notranslate"><span class="pre">ContributionInline.extra</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.ContributionInline.fields"><code class="docutils literal notranslate"><span class="pre">ContributionInline.fields</span></code></a></li>
+</ul>
+</li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.ContributorInline"><code class="docutils literal notranslate"><span class="pre">ContributorInline</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.ContributorInline.model"><code class="docutils literal notranslate"><span class="pre">ContributorInline.model</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.ContributorInline.fields"><code class="docutils literal notranslate"><span class="pre">ContributorInline.fields</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.ContributorInline.extra"><code class="docutils literal notranslate"><span class="pre">ContributorInline.extra</span></code></a></li>
+</ul>
+</li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.AffiliationInline"><code class="docutils literal notranslate"><span class="pre">AffiliationInline</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.AffiliationInline.model"><code class="docutils literal notranslate"><span class="pre">AffiliationInline.model</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.AffiliationInline.form"><code class="docutils literal notranslate"><span class="pre">AffiliationInline.form</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.AffiliationInline.fields"><code class="docutils literal notranslate"><span class="pre">AffiliationInline.fields</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.AffiliationInline.extra"><code class="docutils literal notranslate"><span class="pre">AffiliationInline.extra</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.AffiliationInline.get_formset"><code class="docutils literal notranslate"><span class="pre">AffiliationInline.get_formset()</span></code></a></li>
+</ul>
+</li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.MemberInline"><code class="docutils literal notranslate"><span class="pre">MemberInline</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.MemberInline.model"><code class="docutils literal notranslate"><span class="pre">MemberInline.model</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.MemberInline.form"><code class="docutils literal notranslate"><span class="pre">MemberInline.form</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.MemberInline.fk_name"><code class="docutils literal notranslate"><span class="pre">MemberInline.fk_name</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.MemberInline.fields"><code class="docutils literal notranslate"><span class="pre">MemberInline.fields</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.MemberInline.extra"><code class="docutils literal notranslate"><span class="pre">MemberInline.extra</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.MemberInline.verbose_name"><code class="docutils literal notranslate"><span class="pre">MemberInline.verbose_name</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.MemberInline.verbose_name_plural"><code class="docutils literal notranslate"><span class="pre">MemberInline.verbose_name_plural</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.MemberInline.get_formset"><code class="docutils literal notranslate"><span class="pre">MemberInline.get_formset()</span></code></a></li>
+</ul>
+</li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.IdentifierInline"><code class="docutils literal notranslate"><span class="pre">IdentifierInline</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.IdentifierInline.model"><code class="docutils literal notranslate"><span class="pre">IdentifierInline.model</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.IdentifierInline.fields"><code class="docutils literal notranslate"><span class="pre">IdentifierInline.fields</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.IdentifierInline.extra"><code class="docutils literal notranslate"><span class="pre">IdentifierInline.extra</span></code></a></li>
+</ul>
+</li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.SubOrganizationInline"><code class="docutils literal notranslate"><span class="pre">SubOrganizationInline</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.SubOrganizationInline.model"><code class="docutils literal notranslate"><span class="pre">SubOrganizationInline.model</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.SubOrganizationInline.fk_name"><code class="docutils literal notranslate"><span class="pre">SubOrganizationInline.fk_name</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.SubOrganizationInline.fields"><code class="docutils literal notranslate"><span class="pre">SubOrganizationInline.fields</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.SubOrganizationInline.extra"><code class="docutils literal notranslate"><span class="pre">SubOrganizationInline.extra</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.SubOrganizationInline.verbose_name"><code class="docutils literal notranslate"><span class="pre">SubOrganizationInline.verbose_name</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.SubOrganizationInline.verbose_name_plural"><code class="docutils literal notranslate"><span class="pre">SubOrganizationInline.verbose_name_plural</span></code></a></li>
+</ul>
+</li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin"><code class="docutils literal notranslate"><span class="pre">UserAdmin</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.base_model"><code class="docutils literal notranslate"><span class="pre">UserAdmin.base_model</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.show_in_index"><code class="docutils literal notranslate"><span class="pre">UserAdmin.show_in_index</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.change_form_template"><code class="docutils literal notranslate"><span class="pre">UserAdmin.change_form_template</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.resource_classes"><code class="docutils literal notranslate"><span class="pre">UserAdmin.resource_classes</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.skip_import_confirm"><code class="docutils literal notranslate"><span class="pre">UserAdmin.skip_import_confirm</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.inlines"><code class="docutils literal notranslate"><span class="pre">UserAdmin.inlines</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.list_display"><code class="docutils literal notranslate"><span class="pre">UserAdmin.list_display</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.list_filter"><code class="docutils literal notranslate"><span class="pre">UserAdmin.list_filter</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.exclude"><code class="docutils literal notranslate"><span class="pre">UserAdmin.exclude</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.autocomplete_fields"><code class="docutils literal notranslate"><span class="pre">UserAdmin.autocomplete_fields</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.readonly_fields"><code class="docutils literal notranslate"><span class="pre">UserAdmin.readonly_fields</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.fieldsets"><code class="docutils literal notranslate"><span class="pre">UserAdmin.fieldsets</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.add_fieldsets"><code class="docutils literal notranslate"><span class="pre">UserAdmin.add_fieldsets</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.search_fields"><code class="docutils literal notranslate"><span class="pre">UserAdmin.search_fields</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.ordering"><code class="docutils literal notranslate"><span class="pre">UserAdmin.ordering</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.actions"><code class="docutils literal notranslate"><span class="pre">UserAdmin.actions</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.get_fieldsets"><code class="docutils literal notranslate"><span class="pre">UserAdmin.get_fieldsets()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.get_form"><code class="docutils literal notranslate"><span class="pre">UserAdmin.get_form()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.has_import_permission"><code class="docutils literal notranslate"><span class="pre">UserAdmin.has_import_permission()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.has_export_permission"><code class="docutils literal notranslate"><span class="pre">UserAdmin.has_export_permission()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.get_actions"><code class="docutils literal notranslate"><span class="pre">UserAdmin.get_actions()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.account_state"><code class="docutils literal notranslate"><span class="pre">UserAdmin.account_state()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.merge_person_action"><code class="docutils literal notranslate"><span class="pre">UserAdmin.merge_person_action()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.generate_claim_link_action"><code class="docutils literal notranslate"><span class="pre">UserAdmin.generate_claim_link_action()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.change_view"><code class="docutils literal notranslate"><span class="pre">UserAdmin.change_view()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.dismiss_candidate_view"><code class="docutils literal notranslate"><span class="pre">UserAdmin.dismiss_candidate_view()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.get_urls"><code class="docutils literal notranslate"><span class="pre">UserAdmin.get_urls()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.claim_link_view"><code class="docutils literal notranslate"><span class="pre">UserAdmin.claim_link_view()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.UserAdmin.merge_view"><code class="docutils literal notranslate"><span class="pre">UserAdmin.merge_view()</span></code></a></li>
+</ul>
+</li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.OrganizationActionForm"><code class="docutils literal notranslate"><span class="pre">OrganizationActionForm</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.OrganizationActionForm.new_owner"><code class="docutils literal notranslate"><span class="pre">OrganizationActionForm.new_owner</span></code></a></li>
+</ul>
+</li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.OrganizationAdmin"><code class="docutils literal notranslate"><span class="pre">OrganizationAdmin</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.OrganizationAdmin.base_model"><code class="docutils literal notranslate"><span class="pre">OrganizationAdmin.base_model</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.OrganizationAdmin.show_in_index"><code class="docutils literal notranslate"><span class="pre">OrganizationAdmin.show_in_index</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.OrganizationAdmin.inlines"><code class="docutils literal notranslate"><span class="pre">OrganizationAdmin.inlines</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.OrganizationAdmin.action_form"><code class="docutils literal notranslate"><span class="pre">OrganizationAdmin.action_form</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.OrganizationAdmin.list_display"><code class="docutils literal notranslate"><span class="pre">OrganizationAdmin.list_display</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.OrganizationAdmin.list_filter"><code class="docutils literal notranslate"><span class="pre">OrganizationAdmin.list_filter</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.OrganizationAdmin.search_fields"><code class="docutils literal notranslate"><span class="pre">OrganizationAdmin.search_fields</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.OrganizationAdmin.readonly_fields"><code class="docutils literal notranslate"><span class="pre">OrganizationAdmin.readonly_fields</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.OrganizationAdmin.fieldsets"><code class="docutils literal notranslate"><span class="pre">OrganizationAdmin.fieldsets</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.OrganizationAdmin.actions"><code class="docutils literal notranslate"><span class="pre">OrganizationAdmin.actions</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.OrganizationAdmin.get_readonly_fields"><code class="docutils literal notranslate"><span class="pre">OrganizationAdmin.get_readonly_fields()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.OrganizationAdmin.sync_from_ror"><code class="docutils literal notranslate"><span class="pre">OrganizationAdmin.sync_from_ror()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.OrganizationAdmin.transfer_ownership_action"><code class="docutils literal notranslate"><span class="pre">OrganizationAdmin.transfer_ownership_action()</span></code></a></li>
+</ul>
+</li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.AffiliationAdmin"><code class="docutils literal notranslate"><span class="pre">AffiliationAdmin</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.AffiliationAdmin.form"><code class="docutils literal notranslate"><span class="pre">AffiliationAdmin.form</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.AffiliationAdmin.list_display"><code class="docutils literal notranslate"><span class="pre">AffiliationAdmin.list_display</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.AffiliationAdmin.list_filter"><code class="docutils literal notranslate"><span class="pre">AffiliationAdmin.list_filter</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.AffiliationAdmin.autocomplete_fields"><code class="docutils literal notranslate"><span class="pre">AffiliationAdmin.autocomplete_fields</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.AffiliationAdmin.get_form"><code class="docutils literal notranslate"><span class="pre">AffiliationAdmin.get_form()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.AffiliationAdmin.get_queryset"><code class="docutils literal notranslate"><span class="pre">AffiliationAdmin.get_queryset()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.AffiliationAdmin.has_change_permission"><code class="docutils literal notranslate"><span class="pre">AffiliationAdmin.has_change_permission()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.AffiliationAdmin.has_delete_permission"><code class="docutils literal notranslate"><span class="pre">AffiliationAdmin.has_delete_permission()</span></code></a></li>
+</ul>
+</li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin"><code class="docutils literal notranslate"><span class="pre">ClaimingAuditLogAdmin</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.list_display"><code class="docutils literal notranslate"><span class="pre">ClaimingAuditLogAdmin.list_display</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.list_filter"><code class="docutils literal notranslate"><span class="pre">ClaimingAuditLogAdmin.list_filter</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.search_fields"><code class="docutils literal notranslate"><span class="pre">ClaimingAuditLogAdmin.search_fields</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.date_hierarchy"><code class="docutils literal notranslate"><span class="pre">ClaimingAuditLogAdmin.date_hierarchy</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.ordering"><code class="docutils literal notranslate"><span class="pre">ClaimingAuditLogAdmin.ordering</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.has_add_permission"><code class="docutils literal notranslate"><span class="pre">ClaimingAuditLogAdmin.has_add_permission()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.has_view_permission"><code class="docutils literal notranslate"><span class="pre">ClaimingAuditLogAdmin.has_view_permission()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.has_change_permission"><code class="docutils literal notranslate"><span class="pre">ClaimingAuditLogAdmin.has_change_permission()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.has_delete_permission"><code class="docutils literal notranslate"><span class="pre">ClaimingAuditLogAdmin.has_delete_permission()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+</nav></div>
+      </aside>
+
+    <footer class="daisy-area-footer daisy-footer border-t border-base-300 bg-base-100 px-4 py-8 text-sm sm:px-6 lg:px-10">
+      <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div class="flex flex-col gap-1"><p>&copy; 2026, Samuel Jennings</p></div>
+        <div class="flex flex-col gap-1"></div>
+        <div class="flex flex-col gap-2 md:items-end"><p>Theme: <a class="link link-hover" href="https://github.com/SamuelJennings/sphinx-daisyui">sphinx-daisyui</a> 0.2.0.</p></div>
+      </div>
+    </footer>
+  </div>
+    <button type="button" class="daisy-back-to-top btn btn-sm fixed bottom-6 left-1/2 z-30 -translate-x-1/2 gap-1 rounded-full shadow-lg" hidden><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m5 12 7-7 7 7" /> <path d="M12 19V5" /> </svg>Back to top</button><dialog id="daisy-search" class="modal modal-top sm:modal-middle" aria-label="Search the documentation"
+  data-daisy-language-data="../../../../_static/language_data.js"
+  data-daisy-searchtools="../../../../_static/searchtools.js"
+  data-daisy-searchindex="../../../../searchindex.js"
+  data-daisy-prompt="Type to search pages, sections and API names."
+  data-daisy-nothing="Nothing matches %(query)s."
+  data-daisy-unavailable="Search is not available here."
+  data-daisy-page="Page"
+  data-daisy-section="Section"
+  data-daisy-as-you-type="true">
+  <div class="modal-box flex max-h-[min(40rem,85dvh)] max-w-2xl flex-col gap-0 p-0 sm:rounded-box">
+    <form action="../../../../search.html" method="get" class="flex items-center gap-3 border-b border-base-300 px-4 py-3" role="search">
+      <svg class="size-5 shrink-0 opacity-60" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m21 21-4.34-4.34" /> <circle cx="11" cy="11" r="8" /> </svg>
+      <input type="search" name="q" class="daisy-search-input min-w-0 flex-1 bg-transparent text-base outline-none" placeholder="Search the docs" aria-label="Search" autocomplete="off" spellcheck="false" role="combobox" aria-controls="daisy-search-results" aria-autocomplete="list" aria-expanded="false">
+      <kbd class="kbd kbd-sm hidden sm:inline-flex">Esc</kbd>
+      <span class="sm:hidden"><button type="button" class="btn btn-ghost btn-sm btn-square" aria-label="Close search" data-daisy-search-close=""><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M18 6 6 18" /> <path d="m6 6 12 12" /> </svg></button></span>
+    </form>
+    <div class="min-h-0 flex-1 overflow-y-auto p-2">
+      <p class="daisy-search-status daisy-muted px-3 py-6 text-center text-sm" aria-live="polite">Type to search pages, sections and API names.</p>
+      <ul id="daisy-search-results" class="daisy-search-results menu w-full gap-0.5 p-0" role="listbox"></ul>
+    </div>
+    <div class="daisy-muted hidden items-center gap-4 border-t border-base-300 px-4 py-2 text-xs sm:flex">
+      <span class="flex items-center gap-1"><kbd class="kbd kbd-xs">↑</kbd><kbd class="kbd kbd-xs">↓</kbd> to move</span>
+      <span class="flex items-center gap-1"><kbd class="kbd kbd-xs">↵</kbd> to open</span>
+      <span class="ms-auto">Enter with nothing chosen opens the full results.</span>
+    </div>
+  </div>
+  <form method="dialog" class="modal-backdrop"><button aria-label="Close search">close</button></form>
+</dialog>
+  </body>
+</html>

@@ -1,0 +1,53 @@
+# {py:mod}`fairdm.contrib.contributors.services.merge`
+
+```{py:module} fairdm.contrib.contributors.services.merge
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.merge
+:allowtitles:
+```
+
+## Module Contents
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`merge_persons <fairdm.contrib.contributors.services.merge.merge_persons>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.services.merge.merge_persons
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`logger <fairdm.contrib.contributors.services.merge.logger>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.services.merge.logger
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} logger
+:canonical: fairdm.contrib.contributors.services.merge.logger
+:value: >
+   'getLogger(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.merge.logger
+```
+
+````
+
+````{py:function} merge_persons(person_keep: fairdm.contrib.contributors.models.Person, person_discard: fairdm.contrib.contributors.models.Person) -> fairdm.contrib.contributors.models.Person
+:canonical: fairdm.contrib.contributors.services.merge.merge_persons
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.merge.merge_persons
+```
+````

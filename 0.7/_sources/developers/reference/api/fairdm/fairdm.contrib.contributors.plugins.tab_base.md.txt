@@ -1,0 +1,353 @@
+# {py:mod}`fairdm.contrib.contributors.plugins.tab_base`
+
+```{py:module} fairdm.contrib.contributors.plugins.tab_base
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_base
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`ContributorsBase <fairdm.contrib.contributors.plugins.tab_base.ContributorsBase>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_base.ContributorsBase
+    :summary:
+    ```
+````
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`role_by_slug <fairdm.contrib.contributors.plugins.tab_base.role_by_slug>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_base.role_by_slug
+    :summary:
+    ```
+* - {py:obj}`first_name_of <fairdm.contrib.contributors.plugins.tab_base.first_name_of>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_base.first_name_of
+    :summary:
+    ```
+* - {py:obj}`initials_of <fairdm.contrib.contributors.plugins.tab_base.initials_of>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_base.initials_of
+    :summary:
+    ```
+* - {py:obj}`affiliation_choices <fairdm.contrib.contributors.plugins.tab_base.affiliation_choices>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_base.affiliation_choices
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`SHEET_ID <fairdm.contrib.contributors.plugins.tab_base.SHEET_ID>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_base.SHEET_ID
+    :summary:
+    ```
+* - {py:obj}`ROLES_DOCS_URL <fairdm.contrib.contributors.plugins.tab_base.ROLES_DOCS_URL>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_base.ROLES_DOCS_URL
+    :summary:
+    ```
+* - {py:obj}`LEADER <fairdm.contrib.contributors.plugins.tab_base.LEADER>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_base.LEADER
+    :summary:
+    ```
+* - {py:obj}`MEMBER <fairdm.contrib.contributors.plugins.tab_base.MEMBER>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_base.MEMBER
+    :summary:
+    ```
+* - {py:obj}`ROLE_URI <fairdm.contrib.contributors.plugins.tab_base.ROLE_URI>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_base.ROLE_URI
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} SHEET_ID
+:canonical: fairdm.contrib.contributors.plugins.tab_base.SHEET_ID
+:value: >
+   'contrib-sheet'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_base.SHEET_ID
+```
+
+````
+
+````{py:data} ROLES_DOCS_URL
+:canonical: fairdm.contrib.contributors.plugins.tab_base.ROLES_DOCS_URL
+:value: >
+   'https://docs.fairdm.org/latest/reference/contributor-roles.html'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_base.ROLES_DOCS_URL
+```
+
+````
+
+````{py:data} LEADER
+:canonical: fairdm.contrib.contributors.plugins.tab_base.LEADER
+:value: >
+   'project-leader'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_base.LEADER
+```
+
+````
+
+````{py:data} MEMBER
+:canonical: fairdm.contrib.contributors.plugins.tab_base.MEMBER
+:value: >
+   'project-member'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_base.MEMBER
+```
+
+````
+
+````{py:data} ROLE_URI
+:canonical: fairdm.contrib.contributors.plugins.tab_base.ROLE_URI
+:value: >
+   'https://w3id.org/fairdm/vocabularies/contributor-roles/{}'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_base.ROLE_URI
+```
+
+````
+
+````{py:function} role_by_slug(slug)
+:canonical: fairdm.contrib.contributors.plugins.tab_base.role_by_slug
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_base.role_by_slug
+```
+````
+
+````{py:function} first_name_of(person, new_name=None)
+:canonical: fairdm.contrib.contributors.plugins.tab_base.first_name_of
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_base.first_name_of
+```
+````
+
+````{py:function} initials_of(record, organization=False)
+:canonical: fairdm.contrib.contributors.plugins.tab_base.initials_of
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_base.initials_of
+```
+````
+
+`````{py:class} ContributorsBase(**kwargs)
+:canonical: fairdm.contrib.contributors.plugins.tab_base.ContributorsBase
+
+Bases: {py:obj}`fairdm.contrib.contributors.plugins.shared.ContributionPage`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_base.ContributorsBase
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.__init__
+```
+
+````{py:attribute} manager_only
+:canonical: fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.manager_only
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.manager_only
+```
+
+````
+
+````{py:attribute} region_template
+:canonical: fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.region_template
+:value: >
+   'cotton/contributor/tab/region.html'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.region_template
+```
+
+````
+
+````{py:method} record_url(name, **kwargs)
+:canonical: fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.record_url
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.record_url
+```
+
+````
+
+````{py:method} people()
+:canonical: fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.people
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.people
+```
+
+````
+
+````{py:method} organizations(people)
+:canonical: fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.organizations
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.organizations
+```
+
+````
+
+````{py:method} in_default_order(rows, people)
+:canonical: fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.in_default_order
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.in_default_order
+```
+
+````
+
+````{py:method} access_from_above(people)
+:canonical: fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.access_from_above
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.access_from_above
+```
+
+````
+
+````{py:property} can_change
+:canonical: fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.can_change
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.can_change
+```
+
+````
+
+````{py:method} region_context(toast=None)
+:canonical: fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.region_context
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.region_context
+```
+
+````
+
+````{py:method} region_response(toast=None, close_sheet=True)
+:canonical: fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.region_response
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.region_response
+```
+
+````
+
+````{py:method} refusal(error)
+:canonical: fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.refusal
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.refusal
+```
+
+````
+
+````{py:method} sheet_response(template, context, title, lead='')
+:canonical: fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.sheet_response
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.sheet_response
+```
+
+````
+
+````{py:method} step_response(template, context, chrome=True)
+:canonical: fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.step_response
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.step_response
+```
+
+````
+
+````{py:method} head_for(contributor, new_name=None, organization=False)
+:canonical: fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.head_for
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.head_for
+```
+
+````
+
+````{py:method} foot(context)
+:canonical: fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.foot
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.foot
+```
+
+````
+
+````{py:method} search_registry(call, *args, **kwargs)
+:canonical: fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.search_registry
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.search_registry
+```
+
+````
+
+````{py:method} registry_refusal(registry, problem)
+:canonical: fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.registry_refusal
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.registry_refusal
+```
+
+````
+
+````{py:method} offered_roles()
+:canonical: fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.offered_roles
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.offered_roles
+```
+
+````
+
+````{py:method} locked_roles(held)
+:canonical: fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.locked_roles
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.locked_roles
+```
+
+````
+
+````{py:method} chosen_roles(held)
+:canonical: fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.chosen_roles
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.chosen_roles
+```
+
+````
+
+````{py:method} held_by(credit)
+:canonical: fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.held_by
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.held_by
+```
+
+````
+
+````{py:method} role_context(credit)
+:canonical: fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.role_context
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_base.ContributorsBase.role_context
+```
+
+````
+
+`````
+
+````{py:function} affiliation_choices(person)
+:canonical: fairdm.contrib.contributors.plugins.tab_base.affiliation_choices
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab_base.affiliation_choices
+```
+````

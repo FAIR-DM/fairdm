@@ -1,0 +1,64 @@
+# {py:mod}`fairdm.contrib.contributors.validators`
+
+```{py:module} fairdm.contrib.contributors.validators
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.validators
+:allowtitles:
+```
+
+## Module Contents
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`validate_iso_639_1_language_code <fairdm.contrib.contributors.validators.validate_iso_639_1_language_code>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.validators.validate_iso_639_1_language_code
+    :summary:
+    ```
+* - {py:obj}`validate_iso_639_1_language_codes <fairdm.contrib.contributors.validators.validate_iso_639_1_language_codes>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.validators.validate_iso_639_1_language_codes
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`ISO_639_1_CODES <fairdm.contrib.contributors.validators.ISO_639_1_CODES>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.validators.ISO_639_1_CODES
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} ISO_639_1_CODES
+:canonical: fairdm.contrib.contributors.validators.ISO_639_1_CODES
+:value: >
+   'frozenset(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.validators.ISO_639_1_CODES
+```
+
+````
+
+````{py:function} validate_iso_639_1_language_code(value)
+:canonical: fairdm.contrib.contributors.validators.validate_iso_639_1_language_code
+
+```{autodoc2-docstring} fairdm.contrib.contributors.validators.validate_iso_639_1_language_code
+```
+````
+
+````{py:function} validate_iso_639_1_language_codes(value)
+:canonical: fairdm.contrib.contributors.validators.validate_iso_639_1_language_codes
+
+```{autodoc2-docstring} fairdm.contrib.contributors.validators.validate_iso_639_1_language_codes
+```
+````

@@ -1,0 +1,209 @@
+# {py:mod}`fairdm.contrib.autocomplete.throttling`
+
+```{py:module} fairdm.contrib.autocomplete.throttling
+```
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.throttling
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`DefaultRateMixin <fairdm.contrib.autocomplete.throttling.DefaultRateMixin>`
+  - ```{autodoc2-docstring} fairdm.contrib.autocomplete.throttling.DefaultRateMixin
+    :summary:
+    ```
+* - {py:obj}`AutocompleteAnonBurstThrottle <fairdm.contrib.autocomplete.throttling.AutocompleteAnonBurstThrottle>`
+  - ```{autodoc2-docstring} fairdm.contrib.autocomplete.throttling.AutocompleteAnonBurstThrottle
+    :summary:
+    ```
+* - {py:obj}`AutocompleteAnonDailyThrottle <fairdm.contrib.autocomplete.throttling.AutocompleteAnonDailyThrottle>`
+  - ```{autodoc2-docstring} fairdm.contrib.autocomplete.throttling.AutocompleteAnonDailyThrottle
+    :summary:
+    ```
+* - {py:obj}`AutocompleteUserBurstThrottle <fairdm.contrib.autocomplete.throttling.AutocompleteUserBurstThrottle>`
+  - ```{autodoc2-docstring} fairdm.contrib.autocomplete.throttling.AutocompleteUserBurstThrottle
+    :summary:
+    ```
+* - {py:obj}`AutocompleteUserDailyThrottle <fairdm.contrib.autocomplete.throttling.AutocompleteUserDailyThrottle>`
+  - ```{autodoc2-docstring} fairdm.contrib.autocomplete.throttling.AutocompleteUserDailyThrottle
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} DefaultRateMixin
+:canonical: fairdm.contrib.autocomplete.throttling.DefaultRateMixin
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.throttling.DefaultRateMixin
+```
+
+````{py:attribute} default_rate
+:canonical: fairdm.contrib.autocomplete.throttling.DefaultRateMixin.default_rate
+:value: <Multiline-String>
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.throttling.DefaultRateMixin.default_rate
+```
+
+````
+
+````{py:method} get_rate()
+:canonical: fairdm.contrib.autocomplete.throttling.DefaultRateMixin.get_rate
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.throttling.DefaultRateMixin.get_rate
+```
+
+````
+
+`````
+
+`````{py:class} AutocompleteAnonBurstThrottle()
+:canonical: fairdm.contrib.autocomplete.throttling.AutocompleteAnonBurstThrottle
+
+Bases: {py:obj}`fairdm.contrib.autocomplete.throttling.DefaultRateMixin`, {py:obj}`fairdm.api.throttling.AnonBurstThrottle`
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.throttling.AutocompleteAnonBurstThrottle
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.throttling.AutocompleteAnonBurstThrottle.__init__
+```
+
+````{py:attribute} scope
+:canonical: fairdm.contrib.autocomplete.throttling.AutocompleteAnonBurstThrottle.scope
+:value: >
+   'autocomplete_anon_burst'
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.throttling.AutocompleteAnonBurstThrottle.scope
+```
+
+````
+
+````{py:attribute} default_rate
+:canonical: fairdm.contrib.autocomplete.throttling.AutocompleteAnonBurstThrottle.default_rate
+:value: >
+   '60/minute'
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.throttling.AutocompleteAnonBurstThrottle.default_rate
+```
+
+````
+
+`````
+
+`````{py:class} AutocompleteAnonDailyThrottle()
+:canonical: fairdm.contrib.autocomplete.throttling.AutocompleteAnonDailyThrottle
+
+Bases: {py:obj}`fairdm.contrib.autocomplete.throttling.DefaultRateMixin`, {py:obj}`fairdm.api.throttling.AnonDailyThrottle`
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.throttling.AutocompleteAnonDailyThrottle
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.throttling.AutocompleteAnonDailyThrottle.__init__
+```
+
+````{py:attribute} scope
+:canonical: fairdm.contrib.autocomplete.throttling.AutocompleteAnonDailyThrottle.scope
+:value: >
+   'autocomplete_anon_day'
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.throttling.AutocompleteAnonDailyThrottle.scope
+```
+
+````
+
+````{py:attribute} default_rate
+:canonical: fairdm.contrib.autocomplete.throttling.AutocompleteAnonDailyThrottle.default_rate
+:value: >
+   '5000/day'
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.throttling.AutocompleteAnonDailyThrottle.default_rate
+```
+
+````
+
+`````
+
+`````{py:class} AutocompleteUserBurstThrottle()
+:canonical: fairdm.contrib.autocomplete.throttling.AutocompleteUserBurstThrottle
+
+Bases: {py:obj}`fairdm.contrib.autocomplete.throttling.DefaultRateMixin`, {py:obj}`fairdm.api.throttling.UserBurstThrottle`
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.throttling.AutocompleteUserBurstThrottle
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.throttling.AutocompleteUserBurstThrottle.__init__
+```
+
+````{py:attribute} scope
+:canonical: fairdm.contrib.autocomplete.throttling.AutocompleteUserBurstThrottle.scope
+:value: >
+   'autocomplete_user_burst'
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.throttling.AutocompleteUserBurstThrottle.scope
+```
+
+````
+
+````{py:attribute} default_rate
+:canonical: fairdm.contrib.autocomplete.throttling.AutocompleteUserBurstThrottle.default_rate
+:value: >
+   '240/minute'
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.throttling.AutocompleteUserBurstThrottle.default_rate
+```
+
+````
+
+`````
+
+`````{py:class} AutocompleteUserDailyThrottle()
+:canonical: fairdm.contrib.autocomplete.throttling.AutocompleteUserDailyThrottle
+
+Bases: {py:obj}`fairdm.contrib.autocomplete.throttling.DefaultRateMixin`, {py:obj}`fairdm.api.throttling.UserDailyThrottle`
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.throttling.AutocompleteUserDailyThrottle
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.throttling.AutocompleteUserDailyThrottle.__init__
+```
+
+````{py:attribute} scope
+:canonical: fairdm.contrib.autocomplete.throttling.AutocompleteUserDailyThrottle.scope
+:value: >
+   'autocomplete_user_day'
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.throttling.AutocompleteUserDailyThrottle.scope
+```
+
+````
+
+````{py:attribute} default_rate
+:canonical: fairdm.contrib.autocomplete.throttling.AutocompleteUserDailyThrottle.default_rate
+:value: >
+   '50000/day'
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.throttling.AutocompleteUserDailyThrottle.default_rate
+```
+
+````
+
+`````

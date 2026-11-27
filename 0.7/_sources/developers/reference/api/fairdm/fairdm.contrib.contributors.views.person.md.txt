@@ -1,0 +1,184 @@
+# {py:mod}`fairdm.contrib.contributors.views.person`
+
+```{py:module} fairdm.contrib.contributors.views.person
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.person
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`PersonListView <fairdm.contrib.contributors.views.person.PersonListView>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.views.person.PersonListView
+    :summary:
+    ```
+* - {py:obj}`PersonCreateView <fairdm.contrib.contributors.views.person.PersonCreateView>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.views.person.PersonCreateView
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} PersonListView(**kwargs)
+:canonical: fairdm.contrib.contributors.views.person.PersonListView
+
+Bases: {py:obj}`fairdm.views.FairDMListView`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.person.PersonListView
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.person.PersonListView.__init__
+```
+
+````{py:attribute} model
+:canonical: fairdm.contrib.contributors.views.person.PersonListView.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.person.PersonListView.model
+```
+
+````
+
+````{py:attribute} page_title
+:canonical: fairdm.contrib.contributors.views.person.PersonListView.page_title
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.person.PersonListView.page_title
+```
+
+````
+
+````{py:attribute} page_icon
+:canonical: fairdm.contrib.contributors.views.person.PersonListView.page_icon
+:value: >
+   'people'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.person.PersonListView.page_icon
+```
+
+````
+
+````{py:attribute} filterset_class
+:canonical: fairdm.contrib.contributors.views.person.PersonListView.filterset_class
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.person.PersonListView.filterset_class
+```
+
+````
+
+````{py:attribute} queryset
+:canonical: fairdm.contrib.contributors.views.person.PersonListView.queryset
+:value: >
+   'real(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.person.PersonListView.queryset
+```
+
+````
+
+````{py:attribute} list_item_template
+:canonical: fairdm.contrib.contributors.views.person.PersonListView.list_item_template
+:value: >
+   'contributors/contributor_card.html'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.person.PersonListView.list_item_template
+```
+
+````
+
+````{py:attribute} grid
+:canonical: fairdm.contrib.contributors.views.person.PersonListView.grid
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.person.PersonListView.grid
+```
+
+````
+
+````{py:attribute} show_create_action
+:canonical: fairdm.contrib.contributors.views.person.PersonListView.show_create_action
+:value: >
+   False
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.person.PersonListView.show_create_action
+```
+
+````
+
+````{py:attribute} toolbar_filters
+:canonical: fairdm.contrib.contributors.views.person.PersonListView.toolbar_filters
+:value: >
+   ['q', 'is_active', 'is_staff']
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.person.PersonListView.toolbar_filters
+```
+
+````
+
+````{py:method} get_queryset()
+:canonical: fairdm.contrib.contributors.views.person.PersonListView.get_queryset
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.person.PersonListView.get_queryset
+```
+
+````
+
+`````
+
+`````{py:class} PersonCreateView(**kwargs)
+:canonical: fairdm.contrib.contributors.views.person.PersonCreateView
+
+Bases: {py:obj}`django.contrib.auth.mixins.LoginRequiredMixin`, {py:obj}`fairdm.views.FairDMCreateView`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.person.PersonCreateView
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.person.PersonCreateView.__init__
+```
+
+````{py:attribute} form_class
+:canonical: fairdm.contrib.contributors.views.person.PersonCreateView.form_class
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.person.PersonCreateView.form_class
+```
+
+````
+
+````{py:method} form_valid(form)
+:canonical: fairdm.contrib.contributors.views.person.PersonCreateView.form_valid
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.person.PersonCreateView.form_valid
+```
+
+````
+
+````{py:method} assign_permissions()
+:canonical: fairdm.contrib.contributors.views.person.PersonCreateView.assign_permissions
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.person.PersonCreateView.assign_permissions
+```
+
+````
+
+`````

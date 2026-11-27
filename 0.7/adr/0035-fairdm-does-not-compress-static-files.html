@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta property="og:title" content="ADR 0035 — FairDM does not compress static files" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="adr/0035-fairdm-does-not-compress-static-files.html" />
+<meta property="og:site_name" content="fairdm" />
+<meta property="og:description" content="Status: accepted Decision: FairDM does not depend on django-compressor or django-libsass, and its settings carry no compression configuration. Static files are collected with collectstatic and serv..." />
+<meta name="description" content="Status: accepted Decision: FairDM does not depend on django-compressor or django-libsass, and its settings carry no compression configuration. Static files are collected with collectstatic and serv..." />
+
+    <title>ADR 0035 — FairDM does not compress static files &#8212; fairdm 0.7.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-daisyui.css?v=aedd34d4" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <script src="../_static/documentation_options.js?v=d87af0f4"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script kind="utterances">
+
+    var commentsRunWhenDOMLoaded = cb => {
+    if (document.readyState != 'loading') {
+        cb()
+    } else if (document.addEventListener) {
+        document.addEventListener('DOMContentLoaded', cb)
+    } else {
+        document.attachEvent('onreadystatechange', function() {
+        if (document.readyState == 'complete') cb()
+        })
+    }
+}
+
+var addUtterances = () => {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src = "https://utteranc.es/client.js";
+    script.async = "async";
+
+    script.setAttribute("repo", "FAIR-DM/fairdm");
+    script.setAttribute("issue-term", "pathname");
+    script.setAttribute("theme", "preferred-color-scheme");
+    script.setAttribute("label", "documentation");
+    script.setAttribute("crossorigin", "anonymous");
+
+    sections = document.querySelectorAll("div.section");
+    if (sections !== null) {
+        section = sections[sections.length-1];
+        section.appendChild(script);
+    }
+}
+commentsRunWhenDOMLoaded(addUtterances);
+</script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <link rel="icon" href="../_static/icon.svg"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="ADR 0036 — FairDM declares the image and database a portal runs on" href="0036-fairdm-declares-the-image-and-database-a-portal-runs-on.html" />
+    <link rel="prev" title="ADR 0034 — Portals build on the base images FairDM publishes" href="0034-portals-build-on-the-published-base-images.html" /> 
+  <meta name="color-scheme" content="light dark">
+  <script src="../_static/scripts/mode.js" data-light-theme="light" data-dark-theme="dark" data-default-mode="auto" data-themes=""></script>
+  <script defer src="../_static/scripts/keys.js"></script>
+  <script defer src="../_static/scripts/page-address.js"></script>
+  <script defer src="../_static/scripts/versions.js"></script>
+  <script defer src="../_static/scripts/search.js"></script>
+  <script defer src="../_static/scripts/frame.js"></script>
+  <script defer src="../_static/scripts/back-to-top.js"></script>
+  <script defer src="../_static/scripts/announcement.js"></script>
+  <script defer src="../_static/scripts/navigation.js"></script>
+  <script defer src="../_static/scripts/theme-menu.js"></script>
+  <script defer src="../_static/scripts/page-toc.js"></script>
+  </head><body class="bg-base-100 text-base-content antialiased" data-daisy-root="../" data-daisy-suffix=".html" data-daisy-link-suffix=".html" data-daisy-builder="html" data-daisy-page="adr/0035-fairdm-does-not-compress-static-files">
+  <a href="#main-content" class="btn btn-primary btn-sm absolute -top-20 left-4 z-50 focus:top-2">Skip to content</a>
+  <div class="daisy-layout" style='--daisy-areas-lg: "header header header" "primary main main" "primary footer footer"; --daisy-areas-xl: "header header header" "primary main secondary" "primary footer footer"; --daisy-primary-top: var(--daisy-header-height); --daisy-secondary-top: var(--daisy-header-height);' data-layout="hHh LpR lff" data-header-fixed data-primary-fixed data-secondary-fixed>
+    <input id="daisy-drawer" type="checkbox" class="hidden" aria-hidden="true" tabindex="-1">
+
+    <header class="daisy-area-header daisy-navbar bg-base-100/90 backdrop-blur supports-[backdrop-filter]:bg-base-100/75">
+      <div class="navbar mx-auto min-h-16 max-w-[96rem] gap-2 px-3 sm:px-4">
+        <label for="daisy-drawer" role="button" tabindex="0" data-daisy-drawer-open class="btn btn-ghost btn-square btn-sm lg:hidden" aria-label="Open the navigation"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M4 5h16" /> <path d="M4 12h16" /> <path d="M4 19h16" /> </svg></label>
+        <div class="flex min-w-0 items-center gap-2">
+<a href="../index.html" class="daisy-brand flex min-w-0 items-center gap-2.5 rounded-field px-1 py-1 font-semibold hover:opacity-85">
+    <img src="../_static/fairdm_light.svg" alt="fairdm" class="daisy-logo-light h-8 w-auto">
+    <img src="../_static/fairdm_dark.svg" alt="fairdm" class="daisy-logo-dark h-8 w-auto">
+</a>
+        </div>
+        <div class="hidden min-w-0 flex-1 items-center lg:flex" data-navbar-align="left">
+<nav aria-label="Sections" class="min-w-0">
+  <ul class="flex items-center gap-1"><li class="daisy-dropdown dropdown dropdown-end">
+    <div tabindex="0" role="button" aria-haspopup="menu" class="btn btn-ghost btn-sm font-medium btn-active text-primary" aria-current="true">More<svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m6 9 6 6 6-6" /> </svg></div>
+    <ul tabindex="-1" class="dropdown-content z-40 mt-2 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg menu w-56">
+            <li><a href="../developers/index.html">Developers</a></li>
+            <li><a href="../administrators/index.html">Administrators</a></li>
+            <li><a href="../users/index.html">Users</a></li>
+            <li><a href="../explanation/what-fairdm-is-for.html">What FairDM is for</a></li>
+            <li><a href="../explanation/fair-data-and-research-data-infrastructure.html">FAIR data and research data infrastructure</a></li>
+            <li><a href="../explanation/the-technology-stack.html">The technology stack</a></li>
+            <li><a href="../explanation/the-core-data-model.html">The core data model</a></li>
+            <li><a href="../explanation/how-sample-and-measurement-types-are-stored.html">How sample and measurement types are stored</a></li>
+            <li><a href="../explanation/controlled-vocabularies.html">Controlled vocabularies</a></li>
+            <li><a href="../explanation/configuration-over-code.html">Configuration over code</a></li>
+            <li><a href="../explanation/why-complete-metadata-matters.html">Why complete metadata matters</a></li>
+            <li><a href="../explanation/how-access-to-a-record-is-decided.html">How access to a record is decided</a></li>
+            <li><a href="../explanation/why-fairdm-records-contributors.html">Why FairDM records contributors</a></li>
+            <li><a href="../explanation/how-contributor-accounts-and-credits-work.html">How contributor accounts and credits work</a></li>
+            <li><a href="../explanation/how-a-profile-is-claimed.html">How a profile is claimed</a></li>
+            <li><a href="../explanation/how-fairdm-configures-a-portal.html">How FairDM configures a portal</a></li>
+            <li><a href="../explanation/who-is-asked-to-agree-to-a-legal-document.html">Who is asked to agree to a legal document</a></li>
+            <li><a href="../explanation/how-locations-are-stored-and-protected.html">How locations are stored and protected</a></li>
+            <li><a href="../explanation/dataset-publication-dois-and-datacite-metadata.html">Dataset publication, DOIs and DataCite metadata</a></li>
+            <li><a href="../reference/glossary.html">Glossary</a></li>
+            <li><a href="../reference/contributor-roles.html">Contributor roles</a></li>
+            <li><a href="../contributing/index.html">Framework Contributors</a></li>
+            <li><a href="index.html" class="menu-active" aria-current="true">Architecture Decision Records</a></li>
+            <li><a href="../ROADMAP.html">Roadmap — FairDM</a></li>
+            <li><a href="../changelog.html">Changelog</a></li>
+            <li><a href="https://github.com/FAIR-DM/fairdm/blob/main/CHANGELOG.md">Changelog<svg class="size-3.5 opacity-60" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M15 3h6v6" /> <path d="M10 14 21 3" /> <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /> </svg><span class="sr-only">(leads outside the site)</span></a></li></ul>
+  </li>
+  </ul>
+</nav></div>
+        <div class="ms-auto flex items-center gap-1">
+          
+<button type="button" class="daisy-search-open daisy-muted btn btn-sm h-9 gap-2 border-base-300 bg-base-200/70 font-normal shadow-none hover:bg-base-200 md:w-56 md:justify-start" aria-label="Search" aria-haspopup="dialog">
+  <svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m21 21-4.34-4.34" /> <circle cx="11" cy="11" r="8" /> </svg>
+  <span class="hidden md:inline">Search the docs</span>
+  <span class="ms-auto hidden items-center gap-0.5 md:flex"><kbd class="kbd kbd-xs" data-daisy-mod>Ctrl</kbd><kbd class="kbd kbd-xs">K</kbd></span>
+</button>
+          <div class="hidden items-center gap-1 sm:flex" data-daisy-navbar-end><div class="daisy-dropdown dropdown dropdown-end" data-daisy-json-url="https://docs.fairdm.org/switcher.json" data-daisy-version-match="0.7" data-text-preferred="Preferred" data-text-current="Current version">
+    <div tabindex="0" role="button" aria-haspopup="menu" class="btn btn-ghost btn-sm gap-1 font-medium" aria-label="Choose a version">
+      <svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /> <path d="M3 3v5h5" /> <path d="M12 7v5l4 2" /> </svg><span data-daisy-version-label>0.7</span><svg class="size-3.5 opacity-60" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m6 9 6 6 6-6" /> </svg></div>
+    <div tabindex="-1" class="dropdown-content z-40 mt-2 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg w-52">
+      <ul class="menu w-full p-0" data-daisy-version-list></ul></div>
+  </div><div class="daisy-dropdown dropdown dropdown-end" data-daisy-mode-names="Match the system|Light|Dark">
+    <div tabindex="0" role="button" aria-haspopup="menu" class="btn btn-ghost btn-sm btn-square" aria-label="Choose the colour theme">
+    <span data-daisy-mode-icon="auto"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M12 2v2" /> <path d="M14.837 16.385a6 6 0 1 1-7.223-7.222c.624-.147.97.66.715 1.248a4 4 0 0 0 5.26 5.259c.589-.255 1.396.09 1.248.715" /> <path d="M16 12a4 4 0 0 0-4-4" /> <path d="m19 5-1.256 1.256" /> <path d="M20 12h2" /> </svg></span>
+    <span data-daisy-mode-icon="light"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <circle cx="12" cy="12" r="4" /> <path d="M12 2v2" /> <path d="M12 20v2" /> <path d="m4.93 4.93 1.41 1.41" /> <path d="m17.66 17.66 1.41 1.41" /> <path d="M2 12h2" /> <path d="M20 12h2" /> <path d="m6.34 17.66-1.41 1.41" /> <path d="m19.07 4.93-1.41 1.41" /> </svg></span>
+    <span data-daisy-mode-icon="dark"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401" /> </svg></span>
+    <span data-daisy-mode-icon="theme"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z" /> <circle cx="13.5" cy="6.5" r=".5" fill="currentColor" /> <circle cx="17.5" cy="10.5" r=".5" fill="currentColor" /> <circle cx="6.5" cy="12.5" r=".5" fill="currentColor" /> <circle cx="8.5" cy="7.5" r=".5" fill="currentColor" /> </svg></span>
+    <span class="sr-only" data-daisy-mode-current></span></div>
+    <div tabindex="-1" class="dropdown-content z-40 mt-2 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg w-60">
+    <ul class="menu menu-sm w-full p-0">
+      <li><button type="button" data-daisy-set-mode="auto" aria-pressed="false"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M12 2v2" /> <path d="M14.837 16.385a6 6 0 1 1-7.223-7.222c.624-.147.97.66.715 1.248a4 4 0 0 0 5.26 5.259c.589-.255 1.396.09 1.248.715" /> <path d="M16 12a4 4 0 0 0-4-4" /> <path d="m19 5-1.256 1.256" /> <path d="M20 12h2" /> </svg>Match the system</button></li>
+      <li><button type="button" data-daisy-set-mode="light" aria-pressed="false"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <circle cx="12" cy="12" r="4" /> <path d="M12 2v2" /> <path d="M12 20v2" /> <path d="m4.93 4.93 1.41 1.41" /> <path d="m17.66 17.66 1.41 1.41" /> <path d="M2 12h2" /> <path d="M20 12h2" /> <path d="m6.34 17.66-1.41 1.41" /> <path d="m19.07 4.93-1.41 1.41" /> </svg>Light</button></li>
+      <li><button type="button" data-daisy-set-mode="dark" aria-pressed="false"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401" /> </svg>Dark</button></li>
+    </ul></div>
+  </div>
+<ul class="flex items-center" aria-label="Icon links">
+    <li><a href="https://github.com/FAIR-DM/fairdm/" class="btn btn-ghost btn-sm btn-square tooltip tooltip-bottom" data-tip="GitHub" aria-label="GitHub"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></a></li>
+</ul></div>
+        </div>
+      </div>
+    </header>
+
+    <aside class="daisy-area-primary" aria-label="Site navigation">
+      <div class="daisy-primary-inner">
+        <div class="flex items-center gap-2 border-b border-base-300 p-3 lg:hidden">
+          
+<a href="../index.html" class="daisy-brand flex min-w-0 items-center gap-2.5 rounded-field px-1 py-1 font-semibold hover:opacity-85">
+    <img src="../_static/fairdm_light.svg" alt="fairdm" class="daisy-logo-light h-8 w-auto">
+    <img src="../_static/fairdm_dark.svg" alt="fairdm" class="daisy-logo-dark h-8 w-auto">
+</a>
+          <label for="daisy-drawer" role="button" tabindex="0" data-daisy-drawer-close class="btn btn-ghost btn-sm btn-square ms-auto" aria-label="Close the navigation"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M18 6 6 18" /> <path d="m6 6 12 12" /> </svg></label>
+        </div>
+        <div class="flex flex-wrap items-center gap-1 border-b border-base-300 p-3 sm:hidden empty:hidden" data-daisy-navbar-end-slot></div>
+          <nav class="border-b border-base-300 p-3 lg:hidden" aria-label="Sections">
+            <ul class="menu menu-sm w-full p-0">
+                <li><a href="../developers/index.html">Developers</a></li>
+                <li><a href="../administrators/index.html">Administrators</a></li>
+                <li><a href="../users/index.html">Users</a></li>
+                <li><a href="../explanation/what-fairdm-is-for.html">What FairDM is for</a></li>
+                <li><a href="../explanation/fair-data-and-research-data-infrastructure.html">FAIR data and research data infrastructure</a></li>
+                <li><a href="../explanation/the-technology-stack.html">The technology stack</a></li>
+                <li><a href="../explanation/the-core-data-model.html">The core data model</a></li>
+                <li><a href="../explanation/how-sample-and-measurement-types-are-stored.html">How sample and measurement types are stored</a></li>
+                <li><a href="../explanation/controlled-vocabularies.html">Controlled vocabularies</a></li>
+                <li><a href="../explanation/configuration-over-code.html">Configuration over code</a></li>
+                <li><a href="../explanation/why-complete-metadata-matters.html">Why complete metadata matters</a></li>
+                <li><a href="../explanation/how-access-to-a-record-is-decided.html">How access to a record is decided</a></li>
+                <li><a href="../explanation/why-fairdm-records-contributors.html">Why FairDM records contributors</a></li>
+                <li><a href="../explanation/how-contributor-accounts-and-credits-work.html">How contributor accounts and credits work</a></li>
+                <li><a href="../explanation/how-a-profile-is-claimed.html">How a profile is claimed</a></li>
+                <li><a href="../explanation/how-fairdm-configures-a-portal.html">How FairDM configures a portal</a></li>
+                <li><a href="../explanation/who-is-asked-to-agree-to-a-legal-document.html">Who is asked to agree to a legal document</a></li>
+                <li><a href="../explanation/how-locations-are-stored-and-protected.html">How locations are stored and protected</a></li>
+                <li><a href="../explanation/dataset-publication-dois-and-datacite-metadata.html">Dataset publication, DOIs and DataCite metadata</a></li>
+                <li><a href="../reference/glossary.html">Glossary</a></li>
+                <li><a href="../reference/contributor-roles.html">Contributor roles</a></li>
+                <li><a href="../contributing/index.html">Framework Contributors</a></li>
+                <li><a href="index.html" class="menu-active" aria-current="true">Architecture Decision Records</a></li>
+                <li><a href="../ROADMAP.html">Roadmap — FairDM</a></li>
+                <li><a href="../changelog.html">Changelog</a></li>
+                <li><a href="https://github.com/FAIR-DM/fairdm/blob/main/CHANGELOG.md">Changelog<svg class="size-3.5 opacity-60" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M15 3h6v6" /> <path d="M10 14 21 3" /> <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /> </svg><span class="sr-only">(leads outside the site)</span></a></li>
+            </ul>
+          </nav>
+        <div class="daisy-sidebar-scroll px-3 py-4 lg:py-8 lg:ps-4 lg:pe-2">
+          
+<nav class="daisy-nav" aria-label="Documentation"><ul class="daisy-nav-list">
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="0001-environment-overrides-are-found-by-existence.html">ADR 0001 — Environment overrides are found by existence, beside a known anchor</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="0002-configuration-checks-run-in-production-only.html">ADR 0002 — Configuration checks run automatically in production, and nowhere else</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="0003-no-working-default-for-a-security-critical-value.html">ADR 0003 — The baseline ships no working default for a security-critical value</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="0004-portal-apps-precede-framework-apps.html">ADR 0004 — A portal’s apps are registered ahead of FairDM’s</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="0005-a-measurement-type-nominates-its-value.html">ADR 0005 — A measurement type nominates its value; the base reports and formats it</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="0006-generated-components-carry-the-framework-mixins.html">ADR 0006 — What the registry generates carries the framework’s mixins</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="0007-every-record-has-a-page-of-its-own.html">ADR 0007 — Every record has a page of its own</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="0008-one-editing-page-per-record-with-its-rows-inline.html">ADR 0008 — One editing page per record, with its related rows inline</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="0009-a-form-default-and-a-model-default-may-differ.html">ADR 0009 — A form’s default and a model’s default may legitimately differ</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="0010-record-addresses-name-the-record-type-in-the-plural.html">ADR 0010 — Record addresses name the record type in the plural</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="0011-one-navigation-entry-per-collection.html">ADR 0011 — One navigation entry per collection of pages</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="0012-every-page-states-its-own-access-rules.html">ADR 0012 — Every page states its own access rules</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="0013-a-listing-shows-published-records-only-for-everyone.html">ADR 0013 — A listing shows published records only, for everyone</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="0014-publication-is-a-separate-flag-from-visibility.html">ADR 0014 — Publication is a separate flag from visibility</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="0015-a-records-own-dataset-decides-and-a-row-never-links-past-it.html">ADR 0015 — A record’s own dataset decides, and a row never links past it</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="0016-the-framework-indexes-the-fields-it-searches-by-default.html">ADR 0016 — The framework indexes the fields it searches by default</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="0017-listings-are-addressed-and-named-apart-from-records.html">ADR 0017 — Listings are addressed and named apart from records</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="0018-publication-is-a-queryset-method-not-a-default-manager.html">ADR 0018 — Publication is a queryset method, not a default manager</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="0019-a-portal-role-is-the-unit-of-portal-wide-rights.html">ADR 0019 — A portal role is the unit of portal-wide rights</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="0020-a-missing-role-is-answered-four-ways.html">ADR 0020 — A missing role is answered four ways, and never by blocking repair</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="0021-claims-and-merges-belong-to-a-named-role.html">ADR 0021 — Profile claims and merges belong to a named role, not to superusers</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="0022-development-accounts-are-a-command-that-refuses.html">ADR 0022 — Development accounts are a command that refuses, not a fixture that loads</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="0023-an-overview-page-is-extended-through-blocks-plugin-methods-and-type-templates.html">ADR 0023 — An overview page is extended through blocks, plugin methods and type templates</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="0024-the-right-to-edit-a-profile-is-asked-of-the-record.html">ADR 0024 — The right to edit a profile is asked of the record</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="0025-a-level-on-the-contribution-decides-rights-over-a-core-record.html">ADR 0025 — A level on the contribution decides rights over a core record</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="0026-a-records-editing-pages-are-six-shared-pages.html">ADR 0026: A record’s editing pages are six shared pages</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="0027-records-refer-to-each-other-by-short-identifier.html">ADR 0027 — Records refer to each other by short identifier, never by database number</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="0028-api-tokens-are-created-on-the-account-pages.html">ADR 0028 — API tokens are created on the account pages, never exchanged for a password</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="0029-people-and-organizations-have-their-own-api-endpoints.html">ADR 0029 — People and organizations have their own API endpoints</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="0030-a-credit-carries-what-datacite-asks-of-a-creator.html">ADR 0030 — A credit on a record carries what DataCite asks of a creator</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="0031-portals-run-on-postgis.html">ADR 0031 — Portals run on PostgreSQL with PostGIS</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="0032-a-location-is-a-value-on-each-record.html">ADR 0032 — A location is a value on each record, not a shared row</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="0033-a-measurement-borrows-its-samples-location-only-for-a-viewer-who-may-open-the-sample.html">ADR 0033 — A measurement borrows its sample’s location only for a viewer who may open the sample</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="0034-portals-build-on-the-published-base-images.html">ADR 0034 — Portals build on the base images FairDM publishes</a></li>
+<li class="daisy-nav-item"><a aria-current="page" class="current daisy-nav-link menu-active reference internal" href="#">ADR 0035 — FairDM does not compress static files</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="0036-fairdm-declares-the-image-and-database-a-portal-runs-on.html">ADR 0036 — FairDM declares the image and database a portal runs on</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="0037-autocomplete-fields-are-built-on-django-tomselect.html">ADR 0037 — Autocomplete fields are built on django-tomselect</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="0038-each-autocomplete-scope-is-its-own-view.html">ADR 0038 — Each autocomplete scope is its own view</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="0039-autocomplete-addresses-are-limited-per-caller.html">ADR 0039 — Autocomplete addresses are limited per caller</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="0040-backup-schedules-are-periodic-tasks.html">ADR 0040 — Backup schedules are periodic tasks</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="0041-backups-are-encrypted-to-a-public-key.html">ADR 0041 — Backups are encrypted to a public key</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="0042-a-records-permalink-is-its-portal-id-at-the-root.html">ADR 0042 — A record’s permalink is its portal ID at the portal’s root</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="0043-the-operations-dashboard-is-for-superusers-only.html">ADR 0043 — The operations dashboard is for superusers only</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="0044-each-part-of-a-record-is-edited-from-the-panel-that-shows-it.html">ADR 0044: Each part of a record is edited from the panel that shows it</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="0045-recent-activity-is-recorded-hidden-and-read-through-the-records-rules.html">ADR 0045: Recent activity is recorded hidden and read through the records’ rules</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="0046-an-import-keeps-one-row-per-file-row-with-its-outcome.html">ADR 0046: An import keeps one row per file row, with its outcome</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="0047-undo-compares-a-digest-of-each-touched-record.html">ADR 0047: Undo compares a digest of each touched record</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="0048-the-site-search-matches-with-each-lists-own-search.html">ADR 0048 — The site search matches with each list’s own search</a></li>
+</ul>
+</nav>
+          
+        </div>
+      </div>
+    </aside>
+    <label for="daisy-drawer" class="daisy-drawer-overlay" aria-label="Close the navigation"></label>
+    <main id="main-content" role="main" class="daisy-area-main min-w-0 px-4 sm:px-6 lg:px-10" tabindex="-1">
+      <div class="mx-auto max-w-[46rem] pt-6 pb-10">
+          <div class="daisy-article-header flex min-h-8 items-center gap-3">
+            <div class="min-w-0 flex-1">
+<nav class="breadcrumbs daisy-breadcrumbs py-0 text-sm" aria-label="Breadcrumb">
+  <ul>
+    <li><a href="../index.html" aria-label="Home"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M12 5v16" /> <path d="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z" /> </svg></a></li>
+    <li><a href="index.html">Architecture Decision Records</a></li>
+    <li aria-current="page"><span class="truncate">ADR 0035 — FairDM does not compress static files</span></li>
+  </ul>
+</nav></div>
+            <div class="flex shrink-0 items-center gap-1">
+              <a href="https://github.com/FAIR-DM/fairdm/edit/main/docs/adr/0035-fairdm-does-not-compress-static-files.md" class="btn btn-ghost btn-sm btn-square tooltip tooltip-left" data-tip="Edit this page" aria-label="Edit this page"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" /> <path d="m15 5 4 4" /> </svg></a>
+            </div>
+          </div>
+          <details class="daisy-toc-mobile collapse collapse-arrow mt-4 rounded-box border border-base-300 bg-base-200/60 xl:hidden">
+            <summary class="collapse-title min-h-0 py-3 text-sm font-semibold">On this page</summary>
+            <nav class="collapse-content text-sm" aria-label="On this page"><ul class="daisy-toc-list">
+<li><a class="daisy-toc-link reference internal" href="#decision">Decision</a></li>
+<li><a class="daisy-toc-link reference internal" href="#why">Why</a></li>
+<li><a class="daisy-toc-link reference internal" href="#revisit-if">Revisit if</a></li>
+</ul>
+</nav>
+          </details>
+        <article class="daisy-sphinx-content">
+          
+  <section id="adr-0035-fairdm-does-not-compress-static-files">
+<h1>ADR 0035 — FairDM does not compress static files<a class="headerlink" aria-label="Link to this heading: ADR 0035 — FairDM does not compress static files" href="#adr-0035-fairdm-does-not-compress-static-files" title="Link to this heading">¶</a></h1>
+<p><strong>Status:</strong> accepted</p>
+<section id="decision">
+<h2>Decision<a class="headerlink" aria-label="Link to this heading: Decision" href="#decision" title="Link to this heading">¶</a></h2>
+<p>FairDM does not depend on django-compressor or django-libsass, and its settings carry no
+compression configuration. Static files are collected with <code class="docutils literal notranslate"><span class="pre">collectstatic</span></code> and served by
+WhiteNoise. A portal that wants <code class="docutils literal notranslate"><span class="pre">{%</span> <span class="pre">compress</span> <span class="pre">%}</span></code> installs django-compressor itself, adds it to
+<code class="docutils literal notranslate"><span class="pre">INSTALLED_APPS</span></code>, and adds <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">manage.py</span> <span class="pre">compress</span></code> to its own start steps.</p>
+</section>
+<section id="why">
+<h2>Why<a class="headerlink" aria-label="Link to this heading: Why" href="#why" title="Link to this heading">¶</a></h2>
+<p>No template in FairDM, its demo, the django-mvp packages or the deployed GHFDB portal used
+<code class="docutils literal notranslate"><span class="pre">{%</span> <span class="pre">compress</span> <span class="pre">%}</span></code>. With offline compression on in production, <code class="docutils literal notranslate"><span class="pre">manage.py</span> <span class="pre">compress</span></code> stops with an
+error when it finds no such tag, so a start sequence that ran it could never succeed. django-libsass
+was installed only as compressor’s SCSS precompiler. Keeping two dependencies and a start step
+that do nothing, or fail, costs every portal and helps none.</p>
+</section>
+<section id="revisit-if">
+<h2>Revisit if<a class="headerlink" aria-label="Link to this heading: Revisit if" href="#revisit-if" title="Link to this heading">¶</a></h2>
+<p>FairDM’s own templates need bundling or minification that WhiteNoise and the django-mvp
+stylesheets do not provide.</p>
+</section>
+</section>
+
+
+        </article>
+        
+          <nav class="daisy-prev-next mt-12 grid gap-3 border-t border-base-300 pt-6 sm:grid-cols-2" aria-label="Previous and next page">
+              <a href="0034-portals-build-on-the-published-base-images.html" rel="prev" class="group flex items-center gap-3 rounded-box border border-base-300 p-4 transition hover:border-primary/50 hover:bg-base-200 focus-visible:bg-base-200">
+                <svg class="size-4 shrink-0 opacity-60 transition group-hover:-translate-x-0.5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m12 19-7-7 7-7" /> <path d="M19 12H5" /> </svg>
+                <span class="min-w-0"><span class="daisy-prev-next-label block text-xs">Previous</span><span class="block font-medium">ADR 0034 — Portals build on the base images FairDM publishes</span></span>
+              </a>
+              <a href="0036-fairdm-declares-the-image-and-database-a-portal-runs-on.html" rel="next" class="group flex items-center justify-end gap-3 rounded-box border border-base-300 p-4 text-end transition hover:border-primary/50 hover:bg-base-200 focus-visible:bg-base-200">
+                <span class="min-w-0"><span class="daisy-prev-next-label block text-xs">Next</span><span class="block font-medium">ADR 0036 — FairDM declares the image and database a portal runs on</span></span>
+                <svg class="size-4 shrink-0 opacity-60 transition group-hover:translate-x-0.5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M5 12h14" /> <path d="m12 5 7 7-7 7" /> </svg>
+              </a>
+          </nav>
+        
+      </div>
+    </main>
+      <aside class="daisy-area-secondary" aria-label="Page tools">
+        <div class="daisy-secondary daisy-secondary-inner">
+<nav class="daisy-page-toc mb-6" aria-labelledby="daisy-page-toc-label" data-toc-level="2">
+  <p id="daisy-page-toc-label" class="daisy-section-label mb-2 flex items-center gap-2 leading-4"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M3 5h.01" /> <path d="M3 12h.01" /> <path d="M3 19h.01" /> <path d="M8 5h13" /> <path d="M8 12h13" /> <path d="M8 19h13" /> </svg>On this page</p>
+  <ul class="daisy-toc-list">
+<li><a class="daisy-toc-link reference internal" href="#decision">Decision</a></li>
+<li><a class="daisy-toc-link reference internal" href="#why">Why</a></li>
+<li><a class="daisy-toc-link reference internal" href="#revisit-if">Revisit if</a></li>
+</ul>
+
+</nav></div>
+      </aside>
+
+    <footer class="daisy-area-footer daisy-footer border-t border-base-300 bg-base-100 px-4 py-8 text-sm sm:px-6 lg:px-10">
+      <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div class="flex flex-col gap-1"><p>&copy; 2026, Samuel Jennings</p></div>
+        <div class="flex flex-col gap-1"></div>
+        <div class="flex flex-col gap-2 md:items-end"><p>Theme: <a class="link link-hover" href="https://github.com/SamuelJennings/sphinx-daisyui">sphinx-daisyui</a> 0.2.0.</p></div>
+      </div>
+    </footer>
+  </div>
+    <button type="button" class="daisy-back-to-top btn btn-sm fixed bottom-6 left-1/2 z-30 -translate-x-1/2 gap-1 rounded-full shadow-lg" hidden><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m5 12 7-7 7 7" /> <path d="M12 19V5" /> </svg>Back to top</button><dialog id="daisy-search" class="modal modal-top sm:modal-middle" aria-label="Search the documentation"
+  data-daisy-language-data="../_static/language_data.js"
+  data-daisy-searchtools="../_static/searchtools.js"
+  data-daisy-searchindex="../searchindex.js"
+  data-daisy-prompt="Type to search pages, sections and API names."
+  data-daisy-nothing="Nothing matches %(query)s."
+  data-daisy-unavailable="Search is not available here."
+  data-daisy-page="Page"
+  data-daisy-section="Section"
+  data-daisy-as-you-type="true">
+  <div class="modal-box flex max-h-[min(40rem,85dvh)] max-w-2xl flex-col gap-0 p-0 sm:rounded-box">
+    <form action="../search.html" method="get" class="flex items-center gap-3 border-b border-base-300 px-4 py-3" role="search">
+      <svg class="size-5 shrink-0 opacity-60" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m21 21-4.34-4.34" /> <circle cx="11" cy="11" r="8" /> </svg>
+      <input type="search" name="q" class="daisy-search-input min-w-0 flex-1 bg-transparent text-base outline-none" placeholder="Search the docs" aria-label="Search" autocomplete="off" spellcheck="false" role="combobox" aria-controls="daisy-search-results" aria-autocomplete="list" aria-expanded="false">
+      <kbd class="kbd kbd-sm hidden sm:inline-flex">Esc</kbd>
+      <span class="sm:hidden"><button type="button" class="btn btn-ghost btn-sm btn-square" aria-label="Close search" data-daisy-search-close=""><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M18 6 6 18" /> <path d="m6 6 12 12" /> </svg></button></span>
+    </form>
+    <div class="min-h-0 flex-1 overflow-y-auto p-2">
+      <p class="daisy-search-status daisy-muted px-3 py-6 text-center text-sm" aria-live="polite">Type to search pages, sections and API names.</p>
+      <ul id="daisy-search-results" class="daisy-search-results menu w-full gap-0.5 p-0" role="listbox"></ul>
+    </div>
+    <div class="daisy-muted hidden items-center gap-4 border-t border-base-300 px-4 py-2 text-xs sm:flex">
+      <span class="flex items-center gap-1"><kbd class="kbd kbd-xs">↑</kbd><kbd class="kbd kbd-xs">↓</kbd> to move</span>
+      <span class="flex items-center gap-1"><kbd class="kbd kbd-xs">↵</kbd> to open</span>
+      <span class="ms-auto">Enter with nothing chosen opens the full results.</span>
+    </div>
+  </div>
+  <form method="dialog" class="modal-backdrop"><button aria-label="Close search">close</button></form>
+</dialog>
+  </body>
+</html>

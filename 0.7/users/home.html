@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta property="og:title" content="Home" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="users/home.html" />
+<meta property="og:site_name" content="fairdm" />
+<meta property="og:description" content="The home screen is the first page of the portal. What it shows depends on whether you are signed in. A visitor who has not signed in sees a landing page that introduces the portal. A signed-in user..." />
+<meta name="description" content="The home screen is the first page of the portal. What it shows depends on whether you are signed in. A visitor who has not signed in sees a landing page that introduces the portal. A signed-in user..." />
+
+    <title>Home &#8212; fairdm 0.7.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-daisyui.css?v=aedd34d4" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <script src="../_static/documentation_options.js?v=d87af0f4"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script kind="utterances">
+
+    var commentsRunWhenDOMLoaded = cb => {
+    if (document.readyState != 'loading') {
+        cb()
+    } else if (document.addEventListener) {
+        document.addEventListener('DOMContentLoaded', cb)
+    } else {
+        document.attachEvent('onreadystatechange', function() {
+        if (document.readyState == 'complete') cb()
+        })
+    }
+}
+
+var addUtterances = () => {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src = "https://utteranc.es/client.js";
+    script.async = "async";
+
+    script.setAttribute("repo", "FAIR-DM/fairdm");
+    script.setAttribute("issue-term", "pathname");
+    script.setAttribute("theme", "preferred-color-scheme");
+    script.setAttribute("label", "documentation");
+    script.setAttribute("crossorigin", "anonymous");
+
+    sections = document.querySelectorAll("div.section");
+    if (sections !== null) {
+        section = sections[sections.length-1];
+        section.appendChild(script);
+    }
+}
+commentsRunWhenDOMLoaded(addUtterances);
+</script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <link rel="icon" href="../_static/icon.svg"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Collections" href="collections.html" />
+    <link rel="prev" title="Create your first dataset" href="tutorial.html" /> 
+  <meta name="color-scheme" content="light dark">
+  <script src="../_static/scripts/mode.js" data-light-theme="light" data-dark-theme="dark" data-default-mode="auto" data-themes=""></script>
+  <script defer src="../_static/scripts/keys.js"></script>
+  <script defer src="../_static/scripts/page-address.js"></script>
+  <script defer src="../_static/scripts/versions.js"></script>
+  <script defer src="../_static/scripts/search.js"></script>
+  <script defer src="../_static/scripts/frame.js"></script>
+  <script defer src="../_static/scripts/back-to-top.js"></script>
+  <script defer src="../_static/scripts/announcement.js"></script>
+  <script defer src="../_static/scripts/navigation.js"></script>
+  <script defer src="../_static/scripts/theme-menu.js"></script>
+  <script defer src="../_static/scripts/page-toc.js"></script>
+  </head><body class="bg-base-100 text-base-content antialiased" data-daisy-root="../" data-daisy-suffix=".html" data-daisy-link-suffix=".html" data-daisy-builder="html" data-daisy-page="users/home">
+  <a href="#main-content" class="btn btn-primary btn-sm absolute -top-20 left-4 z-50 focus:top-2">Skip to content</a>
+  <div class="daisy-layout" style='--daisy-areas-lg: "header header header" "primary main main" "primary footer footer"; --daisy-areas-xl: "header header header" "primary main secondary" "primary footer footer"; --daisy-primary-top: var(--daisy-header-height); --daisy-secondary-top: var(--daisy-header-height);' data-layout="hHh LpR lff" data-header-fixed data-primary-fixed data-secondary-fixed>
+    <input id="daisy-drawer" type="checkbox" class="hidden" aria-hidden="true" tabindex="-1">
+
+    <header class="daisy-area-header daisy-navbar bg-base-100/90 backdrop-blur supports-[backdrop-filter]:bg-base-100/75">
+      <div class="navbar mx-auto min-h-16 max-w-[96rem] gap-2 px-3 sm:px-4">
+        <label for="daisy-drawer" role="button" tabindex="0" data-daisy-drawer-open class="btn btn-ghost btn-square btn-sm lg:hidden" aria-label="Open the navigation"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M4 5h16" /> <path d="M4 12h16" /> <path d="M4 19h16" /> </svg></label>
+        <div class="flex min-w-0 items-center gap-2">
+<a href="../index.html" class="daisy-brand flex min-w-0 items-center gap-2.5 rounded-field px-1 py-1 font-semibold hover:opacity-85">
+    <img src="../_static/fairdm_light.svg" alt="fairdm" class="daisy-logo-light h-8 w-auto">
+    <img src="../_static/fairdm_dark.svg" alt="fairdm" class="daisy-logo-dark h-8 w-auto">
+</a>
+        </div>
+        <div class="hidden min-w-0 flex-1 items-center lg:flex" data-navbar-align="left">
+<nav aria-label="Sections" class="min-w-0">
+  <ul class="flex items-center gap-1"><li class="daisy-dropdown dropdown dropdown-end">
+    <div tabindex="0" role="button" aria-haspopup="menu" class="btn btn-ghost btn-sm font-medium btn-active text-primary" aria-current="true">More<svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m6 9 6 6 6-6" /> </svg></div>
+    <ul tabindex="-1" class="dropdown-content z-40 mt-2 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg menu w-56">
+            <li><a href="../developers/index.html">Developers</a></li>
+            <li><a href="../administrators/index.html">Administrators</a></li>
+            <li><a href="index.html" class="menu-active" aria-current="true">Users</a></li>
+            <li><a href="../explanation/what-fairdm-is-for.html">What FairDM is for</a></li>
+            <li><a href="../explanation/fair-data-and-research-data-infrastructure.html">FAIR data and research data infrastructure</a></li>
+            <li><a href="../explanation/the-technology-stack.html">The technology stack</a></li>
+            <li><a href="../explanation/the-core-data-model.html">The core data model</a></li>
+            <li><a href="../explanation/how-sample-and-measurement-types-are-stored.html">How sample and measurement types are stored</a></li>
+            <li><a href="../explanation/controlled-vocabularies.html">Controlled vocabularies</a></li>
+            <li><a href="../explanation/configuration-over-code.html">Configuration over code</a></li>
+            <li><a href="../explanation/why-complete-metadata-matters.html">Why complete metadata matters</a></li>
+            <li><a href="../explanation/how-access-to-a-record-is-decided.html">How access to a record is decided</a></li>
+            <li><a href="../explanation/why-fairdm-records-contributors.html">Why FairDM records contributors</a></li>
+            <li><a href="../explanation/how-contributor-accounts-and-credits-work.html">How contributor accounts and credits work</a></li>
+            <li><a href="../explanation/how-a-profile-is-claimed.html">How a profile is claimed</a></li>
+            <li><a href="../explanation/how-fairdm-configures-a-portal.html">How FairDM configures a portal</a></li>
+            <li><a href="../explanation/who-is-asked-to-agree-to-a-legal-document.html">Who is asked to agree to a legal document</a></li>
+            <li><a href="../explanation/how-locations-are-stored-and-protected.html">How locations are stored and protected</a></li>
+            <li><a href="../explanation/dataset-publication-dois-and-datacite-metadata.html">Dataset publication, DOIs and DataCite metadata</a></li>
+            <li><a href="../reference/glossary.html">Glossary</a></li>
+            <li><a href="../reference/contributor-roles.html">Contributor roles</a></li>
+            <li><a href="../contributing/index.html">Framework Contributors</a></li>
+            <li><a href="../adr/index.html">Architecture Decision Records</a></li>
+            <li><a href="../ROADMAP.html">Roadmap — FairDM</a></li>
+            <li><a href="../changelog.html">Changelog</a></li>
+            <li><a href="https://github.com/FAIR-DM/fairdm/blob/main/CHANGELOG.md">Changelog<svg class="size-3.5 opacity-60" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M15 3h6v6" /> <path d="M10 14 21 3" /> <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /> </svg><span class="sr-only">(leads outside the site)</span></a></li></ul>
+  </li>
+  </ul>
+</nav></div>
+        <div class="ms-auto flex items-center gap-1">
+          
+<button type="button" class="daisy-search-open daisy-muted btn btn-sm h-9 gap-2 border-base-300 bg-base-200/70 font-normal shadow-none hover:bg-base-200 md:w-56 md:justify-start" aria-label="Search" aria-haspopup="dialog">
+  <svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m21 21-4.34-4.34" /> <circle cx="11" cy="11" r="8" /> </svg>
+  <span class="hidden md:inline">Search the docs</span>
+  <span class="ms-auto hidden items-center gap-0.5 md:flex"><kbd class="kbd kbd-xs" data-daisy-mod>Ctrl</kbd><kbd class="kbd kbd-xs">K</kbd></span>
+</button>
+          <div class="hidden items-center gap-1 sm:flex" data-daisy-navbar-end><div class="daisy-dropdown dropdown dropdown-end" data-daisy-json-url="https://docs.fairdm.org/switcher.json" data-daisy-version-match="0.7" data-text-preferred="Preferred" data-text-current="Current version">
+    <div tabindex="0" role="button" aria-haspopup="menu" class="btn btn-ghost btn-sm gap-1 font-medium" aria-label="Choose a version">
+      <svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /> <path d="M3 3v5h5" /> <path d="M12 7v5l4 2" /> </svg><span data-daisy-version-label>0.7</span><svg class="size-3.5 opacity-60" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m6 9 6 6 6-6" /> </svg></div>
+    <div tabindex="-1" class="dropdown-content z-40 mt-2 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg w-52">
+      <ul class="menu w-full p-0" data-daisy-version-list></ul></div>
+  </div><div class="daisy-dropdown dropdown dropdown-end" data-daisy-mode-names="Match the system|Light|Dark">
+    <div tabindex="0" role="button" aria-haspopup="menu" class="btn btn-ghost btn-sm btn-square" aria-label="Choose the colour theme">
+    <span data-daisy-mode-icon="auto"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M12 2v2" /> <path d="M14.837 16.385a6 6 0 1 1-7.223-7.222c.624-.147.97.66.715 1.248a4 4 0 0 0 5.26 5.259c.589-.255 1.396.09 1.248.715" /> <path d="M16 12a4 4 0 0 0-4-4" /> <path d="m19 5-1.256 1.256" /> <path d="M20 12h2" /> </svg></span>
+    <span data-daisy-mode-icon="light"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <circle cx="12" cy="12" r="4" /> <path d="M12 2v2" /> <path d="M12 20v2" /> <path d="m4.93 4.93 1.41 1.41" /> <path d="m17.66 17.66 1.41 1.41" /> <path d="M2 12h2" /> <path d="M20 12h2" /> <path d="m6.34 17.66-1.41 1.41" /> <path d="m19.07 4.93-1.41 1.41" /> </svg></span>
+    <span data-daisy-mode-icon="dark"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401" /> </svg></span>
+    <span data-daisy-mode-icon="theme"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z" /> <circle cx="13.5" cy="6.5" r=".5" fill="currentColor" /> <circle cx="17.5" cy="10.5" r=".5" fill="currentColor" /> <circle cx="6.5" cy="12.5" r=".5" fill="currentColor" /> <circle cx="8.5" cy="7.5" r=".5" fill="currentColor" /> </svg></span>
+    <span class="sr-only" data-daisy-mode-current></span></div>
+    <div tabindex="-1" class="dropdown-content z-40 mt-2 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg w-60">
+    <ul class="menu menu-sm w-full p-0">
+      <li><button type="button" data-daisy-set-mode="auto" aria-pressed="false"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M12 2v2" /> <path d="M14.837 16.385a6 6 0 1 1-7.223-7.222c.624-.147.97.66.715 1.248a4 4 0 0 0 5.26 5.259c.589-.255 1.396.09 1.248.715" /> <path d="M16 12a4 4 0 0 0-4-4" /> <path d="m19 5-1.256 1.256" /> <path d="M20 12h2" /> </svg>Match the system</button></li>
+      <li><button type="button" data-daisy-set-mode="light" aria-pressed="false"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <circle cx="12" cy="12" r="4" /> <path d="M12 2v2" /> <path d="M12 20v2" /> <path d="m4.93 4.93 1.41 1.41" /> <path d="m17.66 17.66 1.41 1.41" /> <path d="M2 12h2" /> <path d="M20 12h2" /> <path d="m6.34 17.66-1.41 1.41" /> <path d="m19.07 4.93-1.41 1.41" /> </svg>Light</button></li>
+      <li><button type="button" data-daisy-set-mode="dark" aria-pressed="false"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401" /> </svg>Dark</button></li>
+    </ul></div>
+  </div>
+<ul class="flex items-center" aria-label="Icon links">
+    <li><a href="https://github.com/FAIR-DM/fairdm/" class="btn btn-ghost btn-sm btn-square tooltip tooltip-bottom" data-tip="GitHub" aria-label="GitHub"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></a></li>
+</ul></div>
+        </div>
+      </div>
+    </header>
+
+    <aside class="daisy-area-primary" aria-label="Site navigation">
+      <div class="daisy-primary-inner">
+        <div class="flex items-center gap-2 border-b border-base-300 p-3 lg:hidden">
+          
+<a href="../index.html" class="daisy-brand flex min-w-0 items-center gap-2.5 rounded-field px-1 py-1 font-semibold hover:opacity-85">
+    <img src="../_static/fairdm_light.svg" alt="fairdm" class="daisy-logo-light h-8 w-auto">
+    <img src="../_static/fairdm_dark.svg" alt="fairdm" class="daisy-logo-dark h-8 w-auto">
+</a>
+          <label for="daisy-drawer" role="button" tabindex="0" data-daisy-drawer-close class="btn btn-ghost btn-sm btn-square ms-auto" aria-label="Close the navigation"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M18 6 6 18" /> <path d="m6 6 12 12" /> </svg></label>
+        </div>
+        <div class="flex flex-wrap items-center gap-1 border-b border-base-300 p-3 sm:hidden empty:hidden" data-daisy-navbar-end-slot></div>
+          <nav class="border-b border-base-300 p-3 lg:hidden" aria-label="Sections">
+            <ul class="menu menu-sm w-full p-0">
+                <li><a href="../developers/index.html">Developers</a></li>
+                <li><a href="../administrators/index.html">Administrators</a></li>
+                <li><a href="index.html" class="menu-active" aria-current="true">Users</a></li>
+                <li><a href="../explanation/what-fairdm-is-for.html">What FairDM is for</a></li>
+                <li><a href="../explanation/fair-data-and-research-data-infrastructure.html">FAIR data and research data infrastructure</a></li>
+                <li><a href="../explanation/the-technology-stack.html">The technology stack</a></li>
+                <li><a href="../explanation/the-core-data-model.html">The core data model</a></li>
+                <li><a href="../explanation/how-sample-and-measurement-types-are-stored.html">How sample and measurement types are stored</a></li>
+                <li><a href="../explanation/controlled-vocabularies.html">Controlled vocabularies</a></li>
+                <li><a href="../explanation/configuration-over-code.html">Configuration over code</a></li>
+                <li><a href="../explanation/why-complete-metadata-matters.html">Why complete metadata matters</a></li>
+                <li><a href="../explanation/how-access-to-a-record-is-decided.html">How access to a record is decided</a></li>
+                <li><a href="../explanation/why-fairdm-records-contributors.html">Why FairDM records contributors</a></li>
+                <li><a href="../explanation/how-contributor-accounts-and-credits-work.html">How contributor accounts and credits work</a></li>
+                <li><a href="../explanation/how-a-profile-is-claimed.html">How a profile is claimed</a></li>
+                <li><a href="../explanation/how-fairdm-configures-a-portal.html">How FairDM configures a portal</a></li>
+                <li><a href="../explanation/who-is-asked-to-agree-to-a-legal-document.html">Who is asked to agree to a legal document</a></li>
+                <li><a href="../explanation/how-locations-are-stored-and-protected.html">How locations are stored and protected</a></li>
+                <li><a href="../explanation/dataset-publication-dois-and-datacite-metadata.html">Dataset publication, DOIs and DataCite metadata</a></li>
+                <li><a href="../reference/glossary.html">Glossary</a></li>
+                <li><a href="../reference/contributor-roles.html">Contributor roles</a></li>
+                <li><a href="../contributing/index.html">Framework Contributors</a></li>
+                <li><a href="../adr/index.html">Architecture Decision Records</a></li>
+                <li><a href="../ROADMAP.html">Roadmap — FairDM</a></li>
+                <li><a href="../changelog.html">Changelog</a></li>
+                <li><a href="https://github.com/FAIR-DM/fairdm/blob/main/CHANGELOG.md">Changelog<svg class="size-3.5 opacity-60" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M15 3h6v6" /> <path d="M10 14 21 3" /> <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /> </svg><span class="sr-only">(leads outside the site)</span></a></li>
+            </ul>
+          </nav>
+        <div class="daisy-sidebar-scroll px-3 py-4 lg:py-8 lg:ps-4 lg:pe-2">
+          
+<nav class="daisy-nav" aria-label="Documentation"><ul class="daisy-nav-list">
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="tutorial.html">Create your first dataset</a></li>
+<li class="daisy-nav-item"><a aria-current="page" class="current daisy-nav-link menu-active reference internal" href="#">Home</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="collections.html">Collections</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="account/sign-up.html">Sign up</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="account/sign-in.html">Sign in</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="account/account-centre.html">Account Center</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="account/your-profile.html">Your profile</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="account/edit-profile.html">Edit profile</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="account/organization.html">Organization</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="account/edit-organization.html">Edit organization</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="account/api-tokens.html">API tokens</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="account/create-an-account.html">How to create an account</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="account/claim-your-profile-with-orcid.html">How to claim your profile with ORCID</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="account/fix-a-profile-that-will-not-claim.html">How to fix a profile that will not claim</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="account/edit-your-profile.html">How to edit your profile</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="account/edit-an-organizations-profile.html">How to edit an organization’s profile</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="projects/projects.html">Projects</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="projects/project.html">The project page</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="projects/create-project.html">Create a project</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="projects/edit-details.html">Edit details</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="projects/create-a-project.html">How to create a project</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="projects/delete-a-project.html">How to delete a project</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="datasets/datasets.html">Datasets</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="datasets/dataset.html">The dataset page</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="datasets/create-dataset.html">Create a Dataset</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="datasets/edit-details.html">Edit details</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="datasets/browse-samples-and-measurements.html">Browse samples and measurements</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="datasets/create-a-dataset.html">How to create a dataset</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="datasets/delete-a-dataset.html">How to delete a dataset</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="datasets/restrict-a-dataset-to-specific-people.html">How to restrict a dataset to specific people</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="datasets/make-a-dataset-public.html">How to make a dataset public</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="datasets/remove-someones-access-to-a-dataset.html">How to remove someone’s access to a dataset</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="datasets/write-metadata-others-can-reuse.html">How to write metadata others can reuse</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="samples/samples.html">Samples</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="samples/sample.html">The sample page</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="samples/edit-details.html">Edit details</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="samples/delete-a-sample.html">How to delete a sample</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="measurements/measurements.html">Measurements</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="measurements/measurement.html">The measurement page</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="measurements/edit-details.html">Edit details</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="measurements/delete-a-measurement.html">How to delete a measurement</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="editing-a-record/descriptions.html">Descriptions</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="editing-a-record/keywords.html">Keywords</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="editing-a-record/key-dates.html">Key dates</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="editing-a-record/identifiers.html">Identifiers</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="editing-a-record/delete.html">Delete</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="contributors/contributors-tab.html">Contributors</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="contributors/let-a-colleague-into-a-private-record.html">How to let a colleague into a private record</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="contributors/add-a-person-or-organization.html">How to add a person or organization</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="contributors/set-a-contributors-roles.html">How to set a contributor’s roles</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="contributors/put-contributors-in-order.html">How to put contributors in order</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="contributors/remove-a-contributor.html">How to remove a contributor</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="contributors/change-the-organization-a-person-is-credited-from.html">How to change the organization a person is credited from</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="community/people.html">People</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="community/organizations.html">Organizations</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="community/team.html">Portal Team</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="api/api-docs.html">API documentation</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="api/get-an-api-token.html">How to get an API token</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="api/revoke-an-api-token.html">How to revoke an API token</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="api/read-a-datasets-samples-with-a-script.html">How to read a dataset’s samples with a script</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="api/read-only-what-changed.html">How to read only what changed</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="api/create-a-record-with-the-api.html">How to create a record with the API</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="api/change-a-record-with-the-api.html">How to change a record with the API</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="api/delete-a-record-with-the-api.html">How to delete a record with the API</a></li>
+</ul>
+</nav>
+          
+        </div>
+      </div>
+    </aside>
+    <label for="daisy-drawer" class="daisy-drawer-overlay" aria-label="Close the navigation"></label>
+    <main id="main-content" role="main" class="daisy-area-main min-w-0 px-4 sm:px-6 lg:px-10" tabindex="-1">
+      <div class="mx-auto max-w-[46rem] pt-6 pb-10">
+          <div class="daisy-article-header flex min-h-8 items-center gap-3">
+            <div class="min-w-0 flex-1">
+<nav class="breadcrumbs daisy-breadcrumbs py-0 text-sm" aria-label="Breadcrumb">
+  <ul>
+    <li><a href="../index.html" aria-label="Home"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M12 5v16" /> <path d="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z" /> </svg></a></li>
+    <li><a href="index.html">Users</a></li>
+    <li aria-current="page"><span class="truncate">Home</span></li>
+  </ul>
+</nav></div>
+            <div class="flex shrink-0 items-center gap-1">
+              <a href="https://github.com/FAIR-DM/fairdm/edit/main/docs/users/home.md" class="btn btn-ghost btn-sm btn-square tooltip tooltip-left" data-tip="Edit this page" aria-label="Edit this page"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" /> <path d="m15 5 4 4" /> </svg></a>
+            </div>
+          </div>
+          <details class="daisy-toc-mobile collapse collapse-arrow mt-4 rounded-box border border-base-300 bg-base-200/60 xl:hidden">
+            <summary class="collapse-title min-h-0 py-3 text-sm font-semibold">On this page</summary>
+            <nav class="collapse-content text-sm" aria-label="On this page"><ul class="daisy-toc-list">
+<li><a class="daisy-toc-link reference internal" href="#the-landing-page">The landing page</a><ul class="daisy-toc-list">
+<li><a class="daisy-toc-link reference internal" href="#welcome">Welcome</a></li>
+<li><a class="daisy-toc-link reference internal" href="#figures">Figures</a></li>
+<li><a class="daisy-toc-link reference internal" href="#about">About</a></li>
+<li><a class="daisy-toc-link reference internal" href="#latest-datasets">Latest datasets</a></li>
+<li><a class="daisy-toc-link reference internal" href="#samples-and-measurements">Samples and measurements</a></li>
+<li><a class="daisy-toc-link reference internal" href="#community">Community</a></li>
+<li><a class="daisy-toc-link reference internal" href="#new-projects">New projects</a></li>
+<li><a class="daisy-toc-link reference internal" href="#api">API</a></li>
+<li><a class="daisy-toc-link reference internal" href="#join">Join</a></li>
+<li><a class="daisy-toc-link reference internal" href="#footer">Footer</a></li>
+</ul>
+</li>
+<li><a class="daisy-toc-link reference internal" href="#the-dashboard">The dashboard</a></li>
+<li><a class="daisy-toc-link reference internal" href="#what-you-can-do-here">What you can do here</a></li>
+</ul>
+</nav>
+          </details>
+        <article class="daisy-sphinx-content">
+          
+  <section id="home">
+<h1>Home<a class="headerlink" aria-label="Link to this heading: Home" href="#home" title="Link to this heading">¶</a></h1>
+<p>The home screen is the first page of the portal. What it shows depends on whether you are signed in. A visitor who has not signed in sees a landing page that introduces the portal. A signed-in user sees a dashboard.</p>
+<p>You reach it by opening the portal’s address, or by selecting <strong>Home</strong> in the navigation menu. After you sign in, the portal sends you here.</p>
+<section id="the-landing-page">
+<h2>The landing page<a class="headerlink" aria-label="Link to this heading: The landing page" href="#the-landing-page" title="Link to this heading">¶</a></h2>
+<p>The landing page is for visitors who have not signed in. It has no navigation bar, so the first thing on screen is the welcome section. Each section below the welcome section appears only when the portal has something to put in it, except where stated.</p>
+<section id="welcome">
+<h3>Welcome<a class="headerlink" aria-label="Link to this heading: Welcome" href="#welcome" title="Link to this heading">¶</a></h3>
+<p>The welcome section fills the first screen. It shows:</p>
+<ul class="simple">
+<li><p>a short line above the heading, <code class="docutils literal notranslate"><span class="pre">Research</span> <span class="pre">data</span> <span class="pre">portal</span></code> unless the portal has changed it</p></li>
+<li><p>the heading, <code class="docutils literal notranslate"><span class="pre">Welcome</span> <span class="pre">to</span></code> followed by the portal’s name unless the portal has changed it</p></li>
+<li><p>a sentence under the heading saying what the portal is for</p></li>
+<li><p>the <strong>Browse datasets</strong> and <strong>Explore projects</strong> buttons</p></li>
+<li><p>a line under the buttons with the <strong>Create account</strong> link and the <strong>Sign in</strong> link. The <strong>Create account</strong> link appears only when the portal’s registration setting is on. The link can still lead to a notice that sign up is closed, because an administrator can close sign up in other ways. See <a class="reference internal" href="account/sign-up.html"><span class="std std-doc">Sign up</span></a>.</p></li>
+</ul>
+<p>How a portal changes the wording and the picture is set out in <a class="reference internal" href="../developers/reference/home-page.html"><span class="std std-doc">Home page</span></a>. The registration setting is described in <a class="reference internal" href="../developers/reference/settings.html"><span class="std std-doc">Settings</span></a>.</p>
+</section>
+<section id="figures">
+<h3>Figures<a class="headerlink" aria-label="Link to this heading: Figures" href="#figures" title="Link to this heading">¶</a></h3>
+<p>A band of counts, one for each kind of record the portal holds: <strong>Datasets</strong>, <strong>Samples</strong>, <strong>Measurements</strong>, <strong>People</strong> and <strong>Organizations</strong>. A kind with a count of zero is left out. When every count is zero the band does not appear. The dataset, sample and measurement counts cover public records only.</p>
+</section>
+<section id="about">
+<h3>About<a class="headerlink" aria-label="Link to this heading: About" href="#about" title="Link to this heading">¶</a></h3>
+<p>A section headed <strong>Built by researchers, for researchers</strong>, under the label <code class="docutils literal notranslate"><span class="pre">About</span></code> and the portal’s name. It shows:</p>
+<ul class="simple">
+<li><p>the portal’s description, when it has one</p></li>
+<li><p>the portal’s keywords, as badges</p></li>
+<li><p>a line <code class="docutils literal notranslate"><span class="pre">Run</span> <span class="pre">by</span></code> and the name of the organization that runs the portal, linked to its website when it has one</p></li>
+<li><p>four short points headed <strong>Findable.</strong>, <strong>Accessible.</strong>, <strong>Interoperable.</strong> and <strong>Reusable.</strong></p></li>
+</ul>
+</section>
+<section id="latest-datasets">
+<h3>Latest datasets<a class="headerlink" aria-label="Link to this heading: Latest datasets" href="#latest-datasets" title="Link to this heading">¶</a></h3>
+<p>Under the label <code class="docutils literal notranslate"><span class="pre">Recently</span> <span class="pre">updated</span></code>, a section headed <strong>Latest datasets</strong>. It shows up to three public datasets, the most recently changed first, as cards, with a <strong>Browse datasets</strong> button below them. When the portal has no public dataset the section does not appear.</p>
+</section>
+<section id="samples-and-measurements">
+<h3>Samples and measurements<a class="headerlink" aria-label="Link to this heading: Samples and measurements" href="#samples-and-measurements" title="Link to this heading">¶</a></h3>
+<p>A section headed <strong>Samples and measurements</strong>. It has a <strong>Samples</strong> list and a <strong>Measurements</strong> list. Each row names a kind of sample or measurement the portal holds, gives a short description of it, links to its <a class="reference internal" href="collections.html"><span class="std std-doc">Collections</span></a> listing and shows how many public records of that kind exist. A dash stands in for none. The five kinds with the most records are listed, and a last row reads <code class="docutils literal notranslate"><span class="pre">and</span></code> a number <code class="docutils literal notranslate"><span class="pre">more</span> <span class="pre">kinds</span></code> when there are others. When the portal has registered no kind of sample or measurement, the section does not appear.</p>
+</section>
+<section id="community">
+<h3>Community<a class="headerlink" aria-label="Link to this heading: Community" href="#community" title="Link to this heading">¶</a></h3>
+<p>A section headed <code class="docutils literal notranslate"><span class="pre">Developed</span> <span class="pre">and</span> <span class="pre">maintained</span> <span class="pre">by</span> <span class="pre">your</span> <span class="pre">research</span> <span class="pre">community</span></code>. It shows:</p>
+<ul class="simple">
+<li><p>a <strong>Meet the people</strong> button, which opens <a class="reference internal" href="community/people.html"><span class="std std-doc">People</span></a></p></li>
+<li><p>an <strong>Organizations</strong> button, which opens <a class="reference internal" href="community/organizations.html"><span class="std std-doc">Organizations</span></a></p></li>
+<li><p>a row of up to eight faces of the people credited on the most records, followed by a count and a link to the full list</p></li>
+<li><p>up to six organizations credited on the most records, each linked to its page</p></li>
+</ul>
+<p>When nobody has been credited yet, the section does not appear.</p>
+</section>
+<section id="new-projects">
+<h3>New projects<a class="headerlink" aria-label="Link to this heading: New projects" href="#new-projects" title="Link to this heading">¶</a></h3>
+<p>Under the label <code class="docutils literal notranslate"><span class="pre">Recently</span> <span class="pre">added</span></code>, a section headed <strong>New projects</strong>. It shows up to three public projects, the most recently added first, as cards, with an <strong>Explore projects</strong> button below them. When the portal has no public project the section does not appear.</p>
+</section>
+<section id="api">
+<h3>API<a class="headerlink" aria-label="Link to this heading: API" href="#api" title="Link to this heading">¶</a></h3>
+<p>A section headed <strong>Browse public data via the API</strong>. It shows an example request and an <strong>API docs</strong> button, which opens <a class="reference internal" href="api/api-docs.html"><span class="std std-doc">API documentation</span></a>. This section always appears.</p>
+</section>
+<section id="join">
+<h3>Join<a class="headerlink" aria-label="Link to this heading: Join" href="#join" title="Link to this heading">¶</a></h3>
+<p>A closing section. When the portal allows people to register, it is headed <code class="docutils literal notranslate"><span class="pre">Add</span> <span class="pre">your</span> <span class="pre">data</span> <span class="pre">to</span></code> and the portal’s name, with the <strong>Create account</strong> and <strong>Sign in</strong> buttons. When it does not, it is headed <strong>Sign in to contribute</strong> and has a <strong>Sign in</strong> button, with a line saying that administrators create the accounts. This section always appears.</p>
+</section>
+<section id="footer">
+<h3>Footer<a class="headerlink" aria-label="Link to this heading: Footer" href="#footer" title="Link to this heading">¶</a></h3>
+<p>Three groups of links:</p>
+<ul class="simple">
+<li><p><strong>Explore</strong>: <strong>Projects</strong>, <strong>Datasets</strong>, <strong>People</strong> and <strong>Organizations</strong></p></li>
+<li><p><strong>Resources</strong>: <strong>API docs</strong>, <strong>User guide</strong> and <strong>Contact</strong></p></li>
+<li><p><strong>Account</strong>: <strong>Sign in</strong>, and <strong>Create account</strong> when the portal allows people to register</p></li>
+</ul>
+<p>The footer also shows the copyright line with the name of the organization that runs the portal, and a <strong>Powered by FairDM</strong> link.</p>
+</section>
+</section>
+<section id="the-dashboard">
+<h2>The dashboard<a class="headerlink" aria-label="Link to this heading: The dashboard" href="#the-dashboard" title="Link to this heading">¶</a></h2>
+<p>The dashboard is for signed-in users. It is headed <strong>My Dashboard</strong>. Under the heading is a greeting made of <code class="docutils literal notranslate"><span class="pre">Welcome,</span></code> and your first name, or your username when you have no first name, followed by an exclamation mark.</p>
+<p>The body of the dashboard has no content of its own. It shows one placeholder line.</p>
+</section>
+<section id="what-you-can-do-here">
+<h2>What you can do here<a class="headerlink" aria-label="Link to this heading: What you can do here" href="#what-you-can-do-here" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Sign in or create an account with <a class="reference internal" href="account/sign-in.html"><span class="std std-doc">Sign in</span></a> and <a class="reference internal" href="account/create-an-account.html"><span class="std std-doc">How to create an account</span></a>.</p></li>
+<li><p>Create a project with <a class="reference internal" href="projects/create-a-project.html"><span class="std std-doc">How to create a project</span></a>.</p></li>
+<li><p>Create a dataset with <a class="reference internal" href="datasets/create-a-dataset.html"><span class="std std-doc">How to create a dataset</span></a>.</p></li>
+<li><p>Follow the <a class="reference internal" href="tutorial.html"><span class="std std-doc">tutorial</span></a> from the dashboard to your first dataset.</p></li>
+</ul>
+</section>
+</section>
+
+
+        </article>
+        
+          <nav class="daisy-prev-next mt-12 grid gap-3 border-t border-base-300 pt-6 sm:grid-cols-2" aria-label="Previous and next page">
+              <a href="tutorial.html" rel="prev" class="group flex items-center gap-3 rounded-box border border-base-300 p-4 transition hover:border-primary/50 hover:bg-base-200 focus-visible:bg-base-200">
+                <svg class="size-4 shrink-0 opacity-60 transition group-hover:-translate-x-0.5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m12 19-7-7 7-7" /> <path d="M19 12H5" /> </svg>
+                <span class="min-w-0"><span class="daisy-prev-next-label block text-xs">Previous</span><span class="block font-medium">Create your first dataset</span></span>
+              </a>
+              <a href="collections.html" rel="next" class="group flex items-center justify-end gap-3 rounded-box border border-base-300 p-4 text-end transition hover:border-primary/50 hover:bg-base-200 focus-visible:bg-base-200">
+                <span class="min-w-0"><span class="daisy-prev-next-label block text-xs">Next</span><span class="block font-medium">Collections</span></span>
+                <svg class="size-4 shrink-0 opacity-60 transition group-hover:translate-x-0.5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M5 12h14" /> <path d="m12 5 7 7-7 7" /> </svg>
+              </a>
+          </nav>
+        
+      </div>
+    </main>
+      <aside class="daisy-area-secondary" aria-label="Page tools">
+        <div class="daisy-secondary daisy-secondary-inner">
+<nav class="daisy-page-toc mb-6" aria-labelledby="daisy-page-toc-label" data-toc-level="2">
+  <p id="daisy-page-toc-label" class="daisy-section-label mb-2 flex items-center gap-2 leading-4"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M3 5h.01" /> <path d="M3 12h.01" /> <path d="M3 19h.01" /> <path d="M8 5h13" /> <path d="M8 12h13" /> <path d="M8 19h13" /> </svg>On this page</p>
+  <ul class="daisy-toc-list">
+<li><a class="daisy-toc-link reference internal" href="#the-landing-page">The landing page</a><ul class="daisy-toc-list">
+<li><a class="daisy-toc-link reference internal" href="#welcome">Welcome</a></li>
+<li><a class="daisy-toc-link reference internal" href="#figures">Figures</a></li>
+<li><a class="daisy-toc-link reference internal" href="#about">About</a></li>
+<li><a class="daisy-toc-link reference internal" href="#latest-datasets">Latest datasets</a></li>
+<li><a class="daisy-toc-link reference internal" href="#samples-and-measurements">Samples and measurements</a></li>
+<li><a class="daisy-toc-link reference internal" href="#community">Community</a></li>
+<li><a class="daisy-toc-link reference internal" href="#new-projects">New projects</a></li>
+<li><a class="daisy-toc-link reference internal" href="#api">API</a></li>
+<li><a class="daisy-toc-link reference internal" href="#join">Join</a></li>
+<li><a class="daisy-toc-link reference internal" href="#footer">Footer</a></li>
+</ul>
+</li>
+<li><a class="daisy-toc-link reference internal" href="#the-dashboard">The dashboard</a></li>
+<li><a class="daisy-toc-link reference internal" href="#what-you-can-do-here">What you can do here</a></li>
+</ul>
+
+</nav></div>
+      </aside>
+
+    <footer class="daisy-area-footer daisy-footer border-t border-base-300 bg-base-100 px-4 py-8 text-sm sm:px-6 lg:px-10">
+      <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div class="flex flex-col gap-1"><p>&copy; 2026, Samuel Jennings</p></div>
+        <div class="flex flex-col gap-1"></div>
+        <div class="flex flex-col gap-2 md:items-end"><p>Theme: <a class="link link-hover" href="https://github.com/SamuelJennings/sphinx-daisyui">sphinx-daisyui</a> 0.2.0.</p></div>
+      </div>
+    </footer>
+  </div>
+    <button type="button" class="daisy-back-to-top btn btn-sm fixed bottom-6 left-1/2 z-30 -translate-x-1/2 gap-1 rounded-full shadow-lg" hidden><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m5 12 7-7 7 7" /> <path d="M12 19V5" /> </svg>Back to top</button><dialog id="daisy-search" class="modal modal-top sm:modal-middle" aria-label="Search the documentation"
+  data-daisy-language-data="../_static/language_data.js"
+  data-daisy-searchtools="../_static/searchtools.js"
+  data-daisy-searchindex="../searchindex.js"
+  data-daisy-prompt="Type to search pages, sections and API names."
+  data-daisy-nothing="Nothing matches %(query)s."
+  data-daisy-unavailable="Search is not available here."
+  data-daisy-page="Page"
+  data-daisy-section="Section"
+  data-daisy-as-you-type="true">
+  <div class="modal-box flex max-h-[min(40rem,85dvh)] max-w-2xl flex-col gap-0 p-0 sm:rounded-box">
+    <form action="../search.html" method="get" class="flex items-center gap-3 border-b border-base-300 px-4 py-3" role="search">
+      <svg class="size-5 shrink-0 opacity-60" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m21 21-4.34-4.34" /> <circle cx="11" cy="11" r="8" /> </svg>
+      <input type="search" name="q" class="daisy-search-input min-w-0 flex-1 bg-transparent text-base outline-none" placeholder="Search the docs" aria-label="Search" autocomplete="off" spellcheck="false" role="combobox" aria-controls="daisy-search-results" aria-autocomplete="list" aria-expanded="false">
+      <kbd class="kbd kbd-sm hidden sm:inline-flex">Esc</kbd>
+      <span class="sm:hidden"><button type="button" class="btn btn-ghost btn-sm btn-square" aria-label="Close search" data-daisy-search-close=""><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M18 6 6 18" /> <path d="m6 6 12 12" /> </svg></button></span>
+    </form>
+    <div class="min-h-0 flex-1 overflow-y-auto p-2">
+      <p class="daisy-search-status daisy-muted px-3 py-6 text-center text-sm" aria-live="polite">Type to search pages, sections and API names.</p>
+      <ul id="daisy-search-results" class="daisy-search-results menu w-full gap-0.5 p-0" role="listbox"></ul>
+    </div>
+    <div class="daisy-muted hidden items-center gap-4 border-t border-base-300 px-4 py-2 text-xs sm:flex">
+      <span class="flex items-center gap-1"><kbd class="kbd kbd-xs">↑</kbd><kbd class="kbd kbd-xs">↓</kbd> to move</span>
+      <span class="flex items-center gap-1"><kbd class="kbd kbd-xs">↵</kbd> to open</span>
+      <span class="ms-auto">Enter with nothing chosen opens the full results.</span>
+    </div>
+  </div>
+  <form method="dialog" class="modal-backdrop"><button aria-label="Close search">close</button></form>
+</dialog>
+  </body>
+</html>

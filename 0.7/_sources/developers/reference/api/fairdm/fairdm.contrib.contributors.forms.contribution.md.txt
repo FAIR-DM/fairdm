@@ -1,0 +1,246 @@
+# {py:mod}`fairdm.contrib.contributors.forms.contribution`
+
+```{py:module} fairdm.contrib.contributors.forms.contribution
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.contribution
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`PersonCreateForm <fairdm.contrib.contributors.forms.contribution.PersonCreateForm>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.forms.contribution.PersonCreateForm
+    :summary:
+    ```
+* - {py:obj}`UpdateContributionForm <fairdm.contrib.contributors.forms.contribution.UpdateContributionForm>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.forms.contribution.UpdateContributionForm
+    :summary:
+    ```
+````
+
+### API
+
+``````{py:class} PersonCreateForm(*args, **kwargs)
+:canonical: fairdm.contrib.contributors.forms.contribution.PersonCreateForm
+
+Bases: {py:obj}`fairdm.forms.ModelForm`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.contribution.PersonCreateForm
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.contribution.PersonCreateForm.__init__
+```
+
+````{py:attribute} from_orcid
+:canonical: fairdm.contrib.contributors.forms.contribution.PersonCreateForm.from_orcid
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.contribution.PersonCreateForm.from_orcid
+```
+
+````
+
+````{py:attribute} affiliations
+:canonical: fairdm.contrib.contributors.forms.contribution.PersonCreateForm.affiliations
+:value: >
+   'OrganizationChoiceField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.contribution.PersonCreateForm.affiliations
+```
+
+````
+
+````{py:attribute} is_primary
+:canonical: fairdm.contrib.contributors.forms.contribution.PersonCreateForm.is_primary
+:value: >
+   'BooleanField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.contribution.PersonCreateForm.is_primary
+```
+
+````
+
+````{py:attribute} is_current
+:canonical: fairdm.contrib.contributors.forms.contribution.PersonCreateForm.is_current
+:value: >
+   'BooleanField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.contribution.PersonCreateForm.is_current
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.contrib.contributors.forms.contribution.PersonCreateForm.Meta
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.contribution.PersonCreateForm.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.contrib.contributors.forms.contribution.PersonCreateForm.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.contribution.PersonCreateForm.Meta.model
+```
+
+````
+
+````{py:attribute} fields
+:canonical: fairdm.contrib.contributors.forms.contribution.PersonCreateForm.Meta.fields
+:value: >
+   ['from_orcid', 'name', 'first_name', 'last_name', 'affiliations', 'is_primary', 'is_current']
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.contribution.PersonCreateForm.Meta.fields
+```
+
+````
+
+````{py:attribute} help_texts
+:canonical: fairdm.contrib.contributors.forms.contribution.PersonCreateForm.Meta.help_texts
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.contribution.PersonCreateForm.Meta.help_texts
+```
+
+````
+
+`````
+
+````{py:method} clean_first_name()
+:canonical: fairdm.contrib.contributors.forms.contribution.PersonCreateForm.clean_first_name
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.contribution.PersonCreateForm.clean_first_name
+```
+
+````
+
+````{py:method} clean_last_name()
+:canonical: fairdm.contrib.contributors.forms.contribution.PersonCreateForm.clean_last_name
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.contribution.PersonCreateForm.clean_last_name
+```
+
+````
+
+````{py:method} clean_affiliations()
+:canonical: fairdm.contrib.contributors.forms.contribution.PersonCreateForm.clean_affiliations
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.contribution.PersonCreateForm.clean_affiliations
+```
+
+````
+
+````{py:method} clean_from_orcid()
+:canonical: fairdm.contrib.contributors.forms.contribution.PersonCreateForm.clean_from_orcid
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.contribution.PersonCreateForm.clean_from_orcid
+```
+
+````
+
+````{py:method} save(commit=True)
+:canonical: fairdm.contrib.contributors.forms.contribution.PersonCreateForm.save
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.contribution.PersonCreateForm.save
+```
+
+````
+
+``````
+
+``````{py:class} UpdateContributionForm(*args, **kwargs)
+:canonical: fairdm.contrib.contributors.forms.contribution.UpdateContributionForm
+
+Bases: {py:obj}`fairdm.forms.ModelForm`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.contribution.UpdateContributionForm
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.contribution.UpdateContributionForm.__init__
+```
+
+````{py:attribute} roles
+:canonical: fairdm.contrib.contributors.forms.contribution.UpdateContributionForm.roles
+:value: >
+   'ModelMultipleChoiceField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.contribution.UpdateContributionForm.roles
+```
+
+````
+
+````{py:attribute} affiliation
+:canonical: fairdm.contrib.contributors.forms.contribution.UpdateContributionForm.affiliation
+:value: >
+   'ModelChoiceField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.contribution.UpdateContributionForm.affiliation
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.contrib.contributors.forms.contribution.UpdateContributionForm.Meta
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.contribution.UpdateContributionForm.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.contrib.contributors.forms.contribution.UpdateContributionForm.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.contribution.UpdateContributionForm.Meta.model
+```
+
+````
+
+````{py:attribute} fields
+:canonical: fairdm.contrib.contributors.forms.contribution.UpdateContributionForm.Meta.fields
+:value: >
+   ['roles', 'affiliation']
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.contribution.UpdateContributionForm.Meta.fields
+```
+
+````
+
+````{py:attribute} labels
+:canonical: fairdm.contrib.contributors.forms.contribution.UpdateContributionForm.Meta.labels
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.contribution.UpdateContributionForm.Meta.labels
+```
+
+````
+
+````{py:attribute} help_texts
+:canonical: fairdm.contrib.contributors.forms.contribution.UpdateContributionForm.Meta.help_texts
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.contribution.UpdateContributionForm.Meta.help_texts
+```
+
+````
+
+`````
+
+``````

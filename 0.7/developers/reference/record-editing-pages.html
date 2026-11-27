@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta property="og:title" content="Record editing pages" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="developers/reference/record-editing-pages.html" />
+<meta property="og:site_name" content="fairdm" />
+<meta property="og:description" content="A project, a dataset, a sample and a measurement are edited through the same six pages. Each page is a plugin class in fairdm/core/editing.py, registered on all four record models, so a sample type..." />
+<meta name="description" content="A project, a dataset, a sample and a measurement are edited through the same six pages. Each page is a plugin class in fairdm/core/editing.py, registered on all four record models, so a sample type..." />
+
+    <title>Record editing pages &#8212; fairdm 0.7.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/sphinx-daisyui.css?v=aedd34d4" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <script src="../../_static/documentation_options.js?v=d87af0f4"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script kind="utterances">
+
+    var commentsRunWhenDOMLoaded = cb => {
+    if (document.readyState != 'loading') {
+        cb()
+    } else if (document.addEventListener) {
+        document.addEventListener('DOMContentLoaded', cb)
+    } else {
+        document.attachEvent('onreadystatechange', function() {
+        if (document.readyState == 'complete') cb()
+        })
+    }
+}
+
+var addUtterances = () => {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src = "https://utteranc.es/client.js";
+    script.async = "async";
+
+    script.setAttribute("repo", "FAIR-DM/fairdm");
+    script.setAttribute("issue-term", "pathname");
+    script.setAttribute("theme", "preferred-color-scheme");
+    script.setAttribute("label", "documentation");
+    script.setAttribute("crossorigin", "anonymous");
+
+    sections = document.querySelectorAll("div.section");
+    if (sections !== null) {
+        section = sections[sections.length-1];
+        section.appendChild(script);
+    }
+}
+commentsRunWhenDOMLoaded(addUtterances);
+</script>
+    <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+    <link rel="icon" href="../../_static/icon.svg"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Record fields" href="record-fields.html" />
+    <link rel="prev" title="Recent activity" href="recent-activity.html" /> 
+  <meta name="color-scheme" content="light dark">
+  <script src="../../_static/scripts/mode.js" data-light-theme="light" data-dark-theme="dark" data-default-mode="auto" data-themes=""></script>
+  <script defer src="../../_static/scripts/keys.js"></script>
+  <script defer src="../../_static/scripts/page-address.js"></script>
+  <script defer src="../../_static/scripts/versions.js"></script>
+  <script defer src="../../_static/scripts/search.js"></script>
+  <script defer src="../../_static/scripts/frame.js"></script>
+  <script defer src="../../_static/scripts/back-to-top.js"></script>
+  <script defer src="../../_static/scripts/announcement.js"></script>
+  <script defer src="../../_static/scripts/navigation.js"></script>
+  <script defer src="../../_static/scripts/theme-menu.js"></script>
+  <script defer src="../../_static/scripts/page-toc.js"></script>
+  </head><body class="bg-base-100 text-base-content antialiased" data-daisy-root="../../" data-daisy-suffix=".html" data-daisy-link-suffix=".html" data-daisy-builder="html" data-daisy-page="developers/reference/record-editing-pages">
+  <a href="#main-content" class="btn btn-primary btn-sm absolute -top-20 left-4 z-50 focus:top-2">Skip to content</a>
+  <div class="daisy-layout" style='--daisy-areas-lg: "header header header" "primary main main" "primary footer footer"; --daisy-areas-xl: "header header header" "primary main secondary" "primary footer footer"; --daisy-primary-top: var(--daisy-header-height); --daisy-secondary-top: var(--daisy-header-height);' data-layout="hHh LpR lff" data-header-fixed data-primary-fixed data-secondary-fixed>
+    <input id="daisy-drawer" type="checkbox" class="hidden" aria-hidden="true" tabindex="-1">
+
+    <header class="daisy-area-header daisy-navbar bg-base-100/90 backdrop-blur supports-[backdrop-filter]:bg-base-100/75">
+      <div class="navbar mx-auto min-h-16 max-w-[96rem] gap-2 px-3 sm:px-4">
+        <label for="daisy-drawer" role="button" tabindex="0" data-daisy-drawer-open class="btn btn-ghost btn-square btn-sm lg:hidden" aria-label="Open the navigation"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M4 5h16" /> <path d="M4 12h16" /> <path d="M4 19h16" /> </svg></label>
+        <div class="flex min-w-0 items-center gap-2">
+<a href="../../index.html" class="daisy-brand flex min-w-0 items-center gap-2.5 rounded-field px-1 py-1 font-semibold hover:opacity-85">
+    <img src="../../_static/fairdm_light.svg" alt="fairdm" class="daisy-logo-light h-8 w-auto">
+    <img src="../../_static/fairdm_dark.svg" alt="fairdm" class="daisy-logo-dark h-8 w-auto">
+</a>
+        </div>
+        <div class="hidden min-w-0 flex-1 items-center lg:flex" data-navbar-align="left">
+<nav aria-label="Sections" class="min-w-0">
+  <ul class="flex items-center gap-1"><li class="daisy-dropdown dropdown dropdown-end">
+    <div tabindex="0" role="button" aria-haspopup="menu" class="btn btn-ghost btn-sm font-medium btn-active text-primary" aria-current="true">More<svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m6 9 6 6 6-6" /> </svg></div>
+    <ul tabindex="-1" class="dropdown-content z-40 mt-2 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg menu w-56">
+            <li><a href="../index.html" class="menu-active" aria-current="true">Developers</a></li>
+            <li><a href="../../administrators/index.html">Administrators</a></li>
+            <li><a href="../../users/index.html">Users</a></li>
+            <li><a href="../../explanation/what-fairdm-is-for.html">What FairDM is for</a></li>
+            <li><a href="../../explanation/fair-data-and-research-data-infrastructure.html">FAIR data and research data infrastructure</a></li>
+            <li><a href="../../explanation/the-technology-stack.html">The technology stack</a></li>
+            <li><a href="../../explanation/the-core-data-model.html">The core data model</a></li>
+            <li><a href="../../explanation/how-sample-and-measurement-types-are-stored.html">How sample and measurement types are stored</a></li>
+            <li><a href="../../explanation/controlled-vocabularies.html">Controlled vocabularies</a></li>
+            <li><a href="../../explanation/configuration-over-code.html">Configuration over code</a></li>
+            <li><a href="../../explanation/why-complete-metadata-matters.html">Why complete metadata matters</a></li>
+            <li><a href="../../explanation/how-access-to-a-record-is-decided.html">How access to a record is decided</a></li>
+            <li><a href="../../explanation/why-fairdm-records-contributors.html">Why FairDM records contributors</a></li>
+            <li><a href="../../explanation/how-contributor-accounts-and-credits-work.html">How contributor accounts and credits work</a></li>
+            <li><a href="../../explanation/how-a-profile-is-claimed.html">How a profile is claimed</a></li>
+            <li><a href="../../explanation/how-fairdm-configures-a-portal.html">How FairDM configures a portal</a></li>
+            <li><a href="../../explanation/who-is-asked-to-agree-to-a-legal-document.html">Who is asked to agree to a legal document</a></li>
+            <li><a href="../../explanation/how-locations-are-stored-and-protected.html">How locations are stored and protected</a></li>
+            <li><a href="../../explanation/dataset-publication-dois-and-datacite-metadata.html">Dataset publication, DOIs and DataCite metadata</a></li>
+            <li><a href="../../reference/glossary.html">Glossary</a></li>
+            <li><a href="../../reference/contributor-roles.html">Contributor roles</a></li>
+            <li><a href="../../contributing/index.html">Framework Contributors</a></li>
+            <li><a href="../../adr/index.html">Architecture Decision Records</a></li>
+            <li><a href="../../ROADMAP.html">Roadmap — FairDM</a></li>
+            <li><a href="../../changelog.html">Changelog</a></li>
+            <li><a href="https://github.com/FAIR-DM/fairdm/blob/main/CHANGELOG.md">Changelog<svg class="size-3.5 opacity-60" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M15 3h6v6" /> <path d="M10 14 21 3" /> <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /> </svg><span class="sr-only">(leads outside the site)</span></a></li></ul>
+  </li>
+  </ul>
+</nav></div>
+        <div class="ms-auto flex items-center gap-1">
+          
+<button type="button" class="daisy-search-open daisy-muted btn btn-sm h-9 gap-2 border-base-300 bg-base-200/70 font-normal shadow-none hover:bg-base-200 md:w-56 md:justify-start" aria-label="Search" aria-haspopup="dialog">
+  <svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m21 21-4.34-4.34" /> <circle cx="11" cy="11" r="8" /> </svg>
+  <span class="hidden md:inline">Search the docs</span>
+  <span class="ms-auto hidden items-center gap-0.5 md:flex"><kbd class="kbd kbd-xs" data-daisy-mod>Ctrl</kbd><kbd class="kbd kbd-xs">K</kbd></span>
+</button>
+          <div class="hidden items-center gap-1 sm:flex" data-daisy-navbar-end><div class="daisy-dropdown dropdown dropdown-end" data-daisy-json-url="https://docs.fairdm.org/switcher.json" data-daisy-version-match="0.7" data-text-preferred="Preferred" data-text-current="Current version">
+    <div tabindex="0" role="button" aria-haspopup="menu" class="btn btn-ghost btn-sm gap-1 font-medium" aria-label="Choose a version">
+      <svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /> <path d="M3 3v5h5" /> <path d="M12 7v5l4 2" /> </svg><span data-daisy-version-label>0.7</span><svg class="size-3.5 opacity-60" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m6 9 6 6 6-6" /> </svg></div>
+    <div tabindex="-1" class="dropdown-content z-40 mt-2 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg w-52">
+      <ul class="menu w-full p-0" data-daisy-version-list></ul></div>
+  </div><div class="daisy-dropdown dropdown dropdown-end" data-daisy-mode-names="Match the system|Light|Dark">
+    <div tabindex="0" role="button" aria-haspopup="menu" class="btn btn-ghost btn-sm btn-square" aria-label="Choose the colour theme">
+    <span data-daisy-mode-icon="auto"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M12 2v2" /> <path d="M14.837 16.385a6 6 0 1 1-7.223-7.222c.624-.147.97.66.715 1.248a4 4 0 0 0 5.26 5.259c.589-.255 1.396.09 1.248.715" /> <path d="M16 12a4 4 0 0 0-4-4" /> <path d="m19 5-1.256 1.256" /> <path d="M20 12h2" /> </svg></span>
+    <span data-daisy-mode-icon="light"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <circle cx="12" cy="12" r="4" /> <path d="M12 2v2" /> <path d="M12 20v2" /> <path d="m4.93 4.93 1.41 1.41" /> <path d="m17.66 17.66 1.41 1.41" /> <path d="M2 12h2" /> <path d="M20 12h2" /> <path d="m6.34 17.66-1.41 1.41" /> <path d="m19.07 4.93-1.41 1.41" /> </svg></span>
+    <span data-daisy-mode-icon="dark"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401" /> </svg></span>
+    <span data-daisy-mode-icon="theme"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z" /> <circle cx="13.5" cy="6.5" r=".5" fill="currentColor" /> <circle cx="17.5" cy="10.5" r=".5" fill="currentColor" /> <circle cx="6.5" cy="12.5" r=".5" fill="currentColor" /> <circle cx="8.5" cy="7.5" r=".5" fill="currentColor" /> </svg></span>
+    <span class="sr-only" data-daisy-mode-current></span></div>
+    <div tabindex="-1" class="dropdown-content z-40 mt-2 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg w-60">
+    <ul class="menu menu-sm w-full p-0">
+      <li><button type="button" data-daisy-set-mode="auto" aria-pressed="false"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M12 2v2" /> <path d="M14.837 16.385a6 6 0 1 1-7.223-7.222c.624-.147.97.66.715 1.248a4 4 0 0 0 5.26 5.259c.589-.255 1.396.09 1.248.715" /> <path d="M16 12a4 4 0 0 0-4-4" /> <path d="m19 5-1.256 1.256" /> <path d="M20 12h2" /> </svg>Match the system</button></li>
+      <li><button type="button" data-daisy-set-mode="light" aria-pressed="false"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <circle cx="12" cy="12" r="4" /> <path d="M12 2v2" /> <path d="M12 20v2" /> <path d="m4.93 4.93 1.41 1.41" /> <path d="m17.66 17.66 1.41 1.41" /> <path d="M2 12h2" /> <path d="M20 12h2" /> <path d="m6.34 17.66-1.41 1.41" /> <path d="m19.07 4.93-1.41 1.41" /> </svg>Light</button></li>
+      <li><button type="button" data-daisy-set-mode="dark" aria-pressed="false"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401" /> </svg>Dark</button></li>
+    </ul></div>
+  </div>
+<ul class="flex items-center" aria-label="Icon links">
+    <li><a href="https://github.com/FAIR-DM/fairdm/" class="btn btn-ghost btn-sm btn-square tooltip tooltip-bottom" data-tip="GitHub" aria-label="GitHub"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></a></li>
+</ul></div>
+        </div>
+      </div>
+    </header>
+
+    <aside class="daisy-area-primary" aria-label="Site navigation">
+      <div class="daisy-primary-inner">
+        <div class="flex items-center gap-2 border-b border-base-300 p-3 lg:hidden">
+          
+<a href="../../index.html" class="daisy-brand flex min-w-0 items-center gap-2.5 rounded-field px-1 py-1 font-semibold hover:opacity-85">
+    <img src="../../_static/fairdm_light.svg" alt="fairdm" class="daisy-logo-light h-8 w-auto">
+    <img src="../../_static/fairdm_dark.svg" alt="fairdm" class="daisy-logo-dark h-8 w-auto">
+</a>
+          <label for="daisy-drawer" role="button" tabindex="0" data-daisy-drawer-close class="btn btn-ghost btn-sm btn-square ms-auto" aria-label="Close the navigation"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M18 6 6 18" /> <path d="m6 6 12 12" /> </svg></label>
+        </div>
+        <div class="flex flex-wrap items-center gap-1 border-b border-base-300 p-3 sm:hidden empty:hidden" data-daisy-navbar-end-slot></div>
+          <nav class="border-b border-base-300 p-3 lg:hidden" aria-label="Sections">
+            <ul class="menu menu-sm w-full p-0">
+                <li><a href="../index.html" class="menu-active" aria-current="true">Developers</a></li>
+                <li><a href="../../administrators/index.html">Administrators</a></li>
+                <li><a href="../../users/index.html">Users</a></li>
+                <li><a href="../../explanation/what-fairdm-is-for.html">What FairDM is for</a></li>
+                <li><a href="../../explanation/fair-data-and-research-data-infrastructure.html">FAIR data and research data infrastructure</a></li>
+                <li><a href="../../explanation/the-technology-stack.html">The technology stack</a></li>
+                <li><a href="../../explanation/the-core-data-model.html">The core data model</a></li>
+                <li><a href="../../explanation/how-sample-and-measurement-types-are-stored.html">How sample and measurement types are stored</a></li>
+                <li><a href="../../explanation/controlled-vocabularies.html">Controlled vocabularies</a></li>
+                <li><a href="../../explanation/configuration-over-code.html">Configuration over code</a></li>
+                <li><a href="../../explanation/why-complete-metadata-matters.html">Why complete metadata matters</a></li>
+                <li><a href="../../explanation/how-access-to-a-record-is-decided.html">How access to a record is decided</a></li>
+                <li><a href="../../explanation/why-fairdm-records-contributors.html">Why FairDM records contributors</a></li>
+                <li><a href="../../explanation/how-contributor-accounts-and-credits-work.html">How contributor accounts and credits work</a></li>
+                <li><a href="../../explanation/how-a-profile-is-claimed.html">How a profile is claimed</a></li>
+                <li><a href="../../explanation/how-fairdm-configures-a-portal.html">How FairDM configures a portal</a></li>
+                <li><a href="../../explanation/who-is-asked-to-agree-to-a-legal-document.html">Who is asked to agree to a legal document</a></li>
+                <li><a href="../../explanation/how-locations-are-stored-and-protected.html">How locations are stored and protected</a></li>
+                <li><a href="../../explanation/dataset-publication-dois-and-datacite-metadata.html">Dataset publication, DOIs and DataCite metadata</a></li>
+                <li><a href="../../reference/glossary.html">Glossary</a></li>
+                <li><a href="../../reference/contributor-roles.html">Contributor roles</a></li>
+                <li><a href="../../contributing/index.html">Framework Contributors</a></li>
+                <li><a href="../../adr/index.html">Architecture Decision Records</a></li>
+                <li><a href="../../ROADMAP.html">Roadmap — FairDM</a></li>
+                <li><a href="../../changelog.html">Changelog</a></li>
+                <li><a href="https://github.com/FAIR-DM/fairdm/blob/main/CHANGELOG.md">Changelog<svg class="size-3.5 opacity-60" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M15 3h6v6" /> <path d="M10 14 21 3" /> <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /> </svg><span class="sr-only">(leads outside the site)</span></a></li>
+            </ul>
+          </nav>
+        <div class="daisy-sidebar-scroll px-3 py-4 lg:py-8 lg:ps-4 lg:pe-2">
+          
+<nav class="daisy-nav" aria-label="Documentation"><ul class="daisy-nav-list">
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../tutorial.html">Build your first sample and measurement types</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/add-a-factory-for-a-portal-model.html">How to add a factory for a portal model</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/add-a-filter-to-a-sample-type.html">How to add a filter to a sample type</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/add-a-measurement-type.html">How to add a measurement type</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/add-a-record-field-to-a-form.html">How to add a record field to a form</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/add-a-sample-type.html">How to add a sample type</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/add-a-section-to-the-home-page.html">How to add a section to the home page</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/add-a-start-step-to-a-container.html">How to add a start step to a container</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/add-a-transform-for-another-format.html">How to add a transform for another format</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/add-a-viewset-to-the-api-router.html">How to add a viewset to the API router</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/add-an-action-to-an-overview-page.html">How to add an action to an overview page</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/add-an-environment-override-module.html">How to add an environment override module</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/add-pages-to-a-plugin.html">How to add pages to a plugin</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/add-queryset-methods-to-a-measurement-type.html">How to add queryset methods to a measurement type</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/add-search-and-sort-to-a-list-view.html">How to add search and sort to a list view</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/allow-only-some-sites-to-call-the-api.html">How to allow only some sites to call the API</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/back-up-a-portal.html">How to back up a portal</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/change-a-types-api-address.html">How to change a type’s API address</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/change-how-the-team-page-looks.html">How to change how the team page looks</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/change-the-api-rate-limits.html">How to change the API rate limits</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/change-the-entrance-layout.html">How to change the entrance layout</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/change-the-entrance-pane.html">How to change the entrance pane</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/change-the-portal-theme.html">How to change the portal theme</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/change-what-a-home-page-section-shows.html">How to change what a home page section shows</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/change-what-the-edit-details-page-offers.html">How to change what the edit details page offers</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/change-who-can-open-the-control-room.html">How to change who can open the control room</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/choose-the-fields-the-api-returns.html">How to choose the fields the API returns</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/configure-the-agreement-check.html">How to configure the agreement check</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/count-api-callers-behind-a-proxy.html">How to count API callers behind a proxy</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/create-a-ghost-person.html">How to create a ghost person</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/create-a-plugin.html">How to create a plugin</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/create-an-addon.html">How to create an addon</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/credit-a-person-on-a-record.html">How to credit a person on a record</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/customise-a-generated-component.html">How to customise a generated component</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/customise-a-sample-form.html">How to customise a sample form</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/customise-the-admin-for-a-measurement-type.html">How to customise the admin for a measurement type</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/customise-the-api-documentation.html">How to customise the API documentation</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/customise-the-profile-form.html">How to customise the profile form</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/define-a-portal-role-of-your-own.html">How to define a portal role of your own</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/deploy-a-portal-in-a-container.html">How to deploy a portal in a container</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/develop-a-portal-on-the-development-image.html">How to develop a portal on the development image</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/extend-an-overview-page.html">How to extend an overview page</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/extend-the-profile-claiming-flow.html">How to extend the profile-claiming flow</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/filter-a-list-by-a-record.html">How to filter a list by a record</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/filter-projects-by-vocabulary-keywords.html">How to filter projects by vocabulary keywords</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/find-records-by-where-they-are.html">How to find records by where they are</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/give-a-registered-type-a-location.html">How to give a sample or measurement a location</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/give-a-sample-or-measurement-type-its-own-overview-page.html">How to give a sample or measurement type its own overview page</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/grant-object-permissions-on-polymorphic-models.html">How to grant object permissions on a polymorphic model</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/import-and-export-locations.html">How to import and export locations</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/import-people-from-orcid.html">How to import people from a list of ORCID iDs</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/link-to-a-legal-document.html">How to link to a legal document</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/load-development-data-for-the-overview-pages.html">How to load development data for the overview pages</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/loop-over-the-registered-types.html">How to loop over the registered types</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/narrow-a-record-field-by-another-field.html">How to narrow a record field by another field</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/override-a-fairdm-setting.html">How to override a FairDM setting</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/place-an-organization-on-a-map.html">How to place an organization on a map</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/record-sample-relationships.html">How to record sample relationships</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/register-a-sample-or-measurement-type.html">How to register a sample or measurement type</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/register-an-import-definition.html">How to register an import definition</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/render-markdown-in-a-template.html">How to render markdown in a template</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/restore-a-portal-from-a-backup.html">How to restore a portal from a backup</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/restrict-a-plugin-to-some-users.html">How to restrict a plugin to some users</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/restrict-a-record-field-to-one-sample-type.html">How to restrict a record field to one sample type</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/restrict-api-tokens-to-some-people.html">How to restrict API tokens to some people</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/run-a-background-worker-in-a-container.html">How to run a background worker in a container</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/search-a-registered-type-by-more-than-its-name.html">How to search a registered type by more than its name</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/show-part-of-a-page-to-a-records-team.html">How to show part of a page to a record’s team</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/sign-in-as-each-portal-role-while-developing.html">How to sign in as each portal role while developing</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/sync-a-profile-from-orcid-or-ror-without-celery.html">How to sync a profile from ORCID or ROR without Celery</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/test-a-portal-with-fairdm-factories.html">How to test a portal with FairDM factories</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/upgrade-a-portal-to-django-literature-0-3.html">How to upgrade a portal to django-literature 0.3</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/upgrade-a-portal-to-django-partial-dates.html">How to upgrade a portal to django-partial-dates</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/upgrade-a-portal-to-vocabulary-addresses.html">How to upgrade a portal to vocabulary addresses</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/use-a-controlled-vocabulary-in-a-model.html">How to use a controlled vocabulary in a model</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/use-a-sample-form-in-a-view.html">How to use a sample form in a view</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/write-a-custom-form-or-filter-for-a-measurement-type.html">How to write a custom form or filter for a measurement type</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="base-views.html">Base views</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="components.html">Components</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="configuration.html">Configuration</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="container-images.html">Container images</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="contribution-levels-and-record-access.html">Contribution levels and record access</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="contributor-models.html">Contributor models</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="core-models.html">Core models</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="crediting.html">Crediting</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="development-accounts.html">Development accounts</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="entrance-pages.html">Entrance pages</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="form-and-filter-mixins.html">Form and filter mixins</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="home-page.html">Home page</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="legal-documents.html">Legal documents</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="location-fields.html">Location fields</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="management-commands.html">Management commands</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="measurement-model.html">Measurement model</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="model-configuration.html">Model configuration</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="model-fields.html">Model fields</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="overview-page-blocks.html">Overview page blocks</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="overview-plugins.html">Overview plugins</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="permalinks.html">Permalinks</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="plugins.html">Plugins</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="portal-roles.html">Portal roles in code</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="profile-claiming.html">Profile claiming</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="recent-activity.html">Recent activity</a></li>
+<li class="daisy-nav-item"><a aria-current="page" class="current daisy-nav-link menu-active reference internal" href="#">Record editing pages</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="record-fields.html">Record fields</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="records-export.html">Records export</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="records-import.html">Records import</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="rest-api.html">REST API</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="sample-model.html">Sample model</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="settings.html">Settings</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="site-search.html">Site search</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="table-schema.html">Table schema</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="template-tags.html">Template tags</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="factories.html">Test factories</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="registry.html">The registry</a></li>
+<li class="daisy-nav-item daisy-nav-branch"><a class="daisy-nav-link reference internal" href="python-api.html">Python API</a><button type="button" class="daisy-nav-toggle btn btn-ghost btn-xs btn-square" aria-expanded="false" aria-label="Show the pages in Python API"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m9 18 6-6-6-6" /> </svg></button><ul class="daisy-nav-list">
+<li class="daisy-nav-item daisy-nav-branch"><a class="daisy-nav-link reference internal" href="api/fairdm/fairdm.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm</span></code></a><button type="button" class="daisy-nav-toggle btn btn-ghost btn-xs btn-square" aria-expanded="false" aria-label="Show the pages in fairdm"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m9 18 6-6-6-6" /> </svg></button><ul class="daisy-nav-list">
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="api/fairdm/fairdm.registry.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.registry</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="api/fairdm/fairdm.utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="api/fairdm/fairdm.backups.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.backups</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="api/fairdm/fairdm.core.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="api/fairdm/fairdm.views.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.views</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="api/fairdm/fairdm.conf.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.conf</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="api/fairdm/fairdm.forms.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.forms</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="api/fairdm/fairdm.db.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.db</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="api/fairdm/fairdm.api.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="api/fairdm/fairdm.factories.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.factories</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="api/fairdm/fairdm.templatetags.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.templatetags</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="api/fairdm/fairdm.management.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.management</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="api/fairdm/fairdm.contrib.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="api/fairdm/fairdm.models.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.models</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="api/fairdm/fairdm.search.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.search</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="api/fairdm/fairdm.plugins.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.plugins</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="api/fairdm/fairdm.config.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.config</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="api/fairdm/fairdm.permissions.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.permissions</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="api/fairdm/fairdm.portal_roles.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.portal_roles</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="api/fairdm/fairdm.apps.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.apps</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="api/fairdm/fairdm.menus.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.menus</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../explanation/how-a-measurement-reports-its-value.html">How a measurement reports its value</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../explanation/how-api-callers-are-limited.html">How API callers are limited</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../explanation/how-fairdm-views-are-layered.html">How FairDM views are layered</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../explanation/how-markdown-is-sanitised.html">How markdown is sanitised</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../explanation/how-record-fields-decide-what-to-offer.html">How record fields decide what to offer</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../explanation/how-the-container-images-are-versioned.html">How the container images are versioned</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../explanation/what-registering-a-type-produces.html">What registering a type produces</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../explanation/why-factories-create-metadata-only-when-asked.html">Why factories create metadata only when asked</a></li>
+</ul>
+</nav>
+          
+        </div>
+      </div>
+    </aside>
+    <label for="daisy-drawer" class="daisy-drawer-overlay" aria-label="Close the navigation"></label>
+    <main id="main-content" role="main" class="daisy-area-main min-w-0 px-4 sm:px-6 lg:px-10" tabindex="-1">
+      <div class="mx-auto max-w-[46rem] pt-6 pb-10">
+          <div class="daisy-article-header flex min-h-8 items-center gap-3">
+            <div class="min-w-0 flex-1">
+<nav class="breadcrumbs daisy-breadcrumbs py-0 text-sm" aria-label="Breadcrumb">
+  <ul>
+    <li><a href="../../index.html" aria-label="Home"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M12 5v16" /> <path d="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z" /> </svg></a></li>
+    <li><a href="../index.html">Developers</a></li>
+    <li aria-current="page"><span class="truncate">Record editing pages</span></li>
+  </ul>
+</nav></div>
+            <div class="flex shrink-0 items-center gap-1">
+              <a href="https://github.com/FAIR-DM/fairdm/edit/main/docs/developers/reference/record-editing-pages.md" class="btn btn-ghost btn-sm btn-square tooltip tooltip-left" data-tip="Edit this page" aria-label="Edit this page"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" /> <path d="m15 5 4 4" /> </svg></a>
+            </div>
+          </div>
+          <details class="daisy-toc-mobile collapse collapse-arrow mt-4 rounded-box border border-base-300 bg-base-200/60 xl:hidden">
+            <summary class="collapse-title min-h-0 py-3 text-sm font-semibold">On this page</summary>
+            <nav class="collapse-content text-sm" aria-label="On this page"><ul class="daisy-toc-list">
+<li><a class="daisy-toc-link reference internal" href="#the-pages">The pages</a></li>
+<li><a class="daisy-toc-link reference internal" href="#addresses">Addresses</a></li>
+<li><a class="daisy-toc-link reference internal" href="#recordeditingpage"><code class="docutils literal notranslate"><span class="pre">RecordEditingPage</span></code></a><ul class="daisy-toc-list">
+<li><a class="daisy-toc-link reference internal" href="#who-may-open-a-page">Who may open a page</a></li>
+</ul>
+</li>
+<li><a class="daisy-toc-link reference internal" href="#the-edit-links">The edit links</a></li>
+<li><a class="daisy-toc-link reference internal" href="#edit-details">Edit details</a></li>
+<li><a class="daisy-toc-link reference internal" href="#descriptions">Descriptions</a></li>
+<li><a class="daisy-toc-link reference internal" href="#keywords">Keywords</a></li>
+<li><a class="daisy-toc-link reference internal" href="#key-dates-and-identifiers">Key dates and identifiers</a><ul class="daisy-toc-list">
+<li><a class="daisy-toc-link reference internal" href="#row-sets">Row sets</a></li>
+<li><a class="daisy-toc-link reference internal" href="#date-ordering">Date ordering</a></li>
+</ul>
+</li>
+<li><a class="daisy-toc-link reference internal" href="#delete">Delete</a></li>
+<li><a class="daisy-toc-link reference internal" href="#after-a-save">After a save</a></li>
+<li><a class="daisy-toc-link reference internal" href="#tasks">Tasks</a></li>
+</ul>
+</nav>
+          </details>
+        <article class="daisy-sphinx-content">
+          
+  <section id="record-editing-pages">
+<h1>Record editing pages<a class="headerlink" aria-label="Link to this heading: Record editing pages" href="#record-editing-pages" title="Link to this heading">¶</a></h1>
+<p>A project, a dataset, a sample and a measurement are edited through the same six pages. Each page is a plugin class in <code class="docutils literal notranslate"><span class="pre">fairdm/core/editing.py</span></code>, registered on all four record models, so a sample type or measurement type your portal registers receives them with no further work. This page lists the classes, their addresses, who may open each one and the building blocks behind them. It does not walk through changing them, which the how-to guides linked at the end do, or show what each screen looks like, which the user guides do: <a class="reference internal" href="../../users/projects/edit-details.html"><span class="std std-doc">Edit details</span></a>, <a class="reference internal" href="../../users/editing-a-record/descriptions.html"><span class="std std-doc">Descriptions</span></a>, <a class="reference internal" href="../../users/editing-a-record/keywords.html"><span class="std std-doc">Keywords</span></a>, <a class="reference internal" href="../../users/editing-a-record/key-dates.html"><span class="std std-doc">Key dates</span></a>, <a class="reference internal" href="../../users/editing-a-record/identifiers.html"><span class="std std-doc">Identifiers</span></a> and <a class="reference internal" href="../../users/editing-a-record/delete.html"><span class="std std-doc">Delete</span></a>. The decision behind the design is <a class="reference internal" href="../../adr/0026-a-records-editing-pages-are-six-shared-pages.html"><span class="std std-doc">ADR 0026</span></a>.</p>
+<section id="the-pages">
+<h2>The pages<a class="headerlink" aria-label="Link to this heading: The pages" href="#the-pages" title="Link to this heading">¶</a></h2>
+<div aria-label="Table" class="daisy-sphinx-scroll" role="region" tabindex="0"><table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Class</p></th>
+<th class="head"><p>Plugin name</p></th>
+<th class="head"><p><code class="docutils literal notranslate"><span class="pre">part</span></code></p></th>
+<th class="head"><p><code class="docutils literal notranslate"><span class="pre">access</span></code></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">EditDetails</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">edit</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">details</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">change</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">EditDescriptions</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">descriptions</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">descriptions</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">change</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">EditKeywords</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">keywords</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">keywords</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">change</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">EditKeyDates</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">key-dates</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dates</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">change</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">EditIdentifiers</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">identifiers</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">identifiers</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">change</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">DeleteRecord</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">delete</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">delete</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">delete</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The plugin name is the last segment of the page’s address and its URL name in the namespace of the record’s kind. For a sample, <code class="docutils literal notranslate"><span class="pre">reverse(&quot;sample:key-dates&quot;,</span> <span class="pre">kwargs={&quot;uuid&quot;:</span> <span class="pre">sample.uuid})</span></code> gives the key dates address whatever type the sample is. The kinds’ namespaces are <code class="docutils literal notranslate"><span class="pre">project</span></code>, <code class="docutils literal notranslate"><span class="pre">dataset</span></code>, <code class="docutils literal notranslate"><span class="pre">sample</span></code> and <code class="docutils literal notranslate"><span class="pre">measurement</span></code>.</p>
+<p>The pages are registered with <code class="docutils literal notranslate"><span class="pre">menu=False</span></code>, so the tab strip beside the overview never lists them.</p>
+</section>
+<section id="addresses">
+<h2>Addresses<a class="headerlink" aria-label="Link to this heading: Addresses" href="#addresses" title="Link to this heading">¶</a></h2>
+<p>A page’s address is the record’s own address followed by the plugin name and a slash.</p>
+<div aria-label="Table" class="daisy-sphinx-scroll" role="region" tabindex="0"><table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Record</p></th>
+<th class="head"><p>Edit details</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Project</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">/projects/&lt;uuid&gt;/edit/</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Dataset</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">/datasets/&lt;uuid&gt;/edit/</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Sample</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">/samples/&lt;uuid&gt;/edit/</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Measurement</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">/measurements/&lt;uuid&gt;/edit/</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The other pages replace <code class="docutils literal notranslate"><span class="pre">edit/</span></code> with <code class="docutils literal notranslate"><span class="pre">descriptions/</span></code>, <code class="docutils literal notranslate"><span class="pre">keywords/</span></code>, <code class="docutils literal notranslate"><span class="pre">key-dates/</span></code>, <code class="docutils literal notranslate"><span class="pre">identifiers/</span></code> or <code class="docutils literal notranslate"><span class="pre">delete/</span></code>.</p>
+</section>
+<section id="recordeditingpage">
+<h2><code class="docutils literal notranslate"><span class="pre">RecordEditingPage</span></code><a class="headerlink" aria-label="Link to this heading: RecordEditingPage" href="#recordeditingpage" title="Link to this heading">¶</a></h2>
+<p>The class every page inherits. It holds who may open a page and where the page leads afterwards.</p>
+<div aria-label="Table" class="daisy-sphinx-scroll" role="region" tabindex="0"><table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Attribute</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>What it sets</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">access</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;change&quot;</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;change&quot;</span></code> for the pages that edit the record, <code class="docutils literal notranslate"><span class="pre">&quot;delete&quot;</span></code> for the one that removes it.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">part</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code></p></td>
+<td><p>The part of the record the page changes, which keys its link in <code class="docutils literal notranslate"><span class="pre">edit_links</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">PERMISSIONS</span></code></p></td>
+<td><p>a dictionary</p></td>
+<td><p>For each <code class="docutils literal notranslate"><span class="pre">access</span></code>, the permission name for each of the four core models, such as <code class="docutils literal notranslate"><span class="pre">project.change_project</span></code>.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div aria-label="Table" class="daisy-sphinx-scroll" role="region" tabindex="0"><table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Method</p></th>
+<th class="head"><p>Returns</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">permission_for(record)</span></code></p></td>
+<td><p>The permission that opens the page on a record.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">overview_for(record)</span></code></p></td>
+<td><p>The overview plugin class of the record’s kind, whose <code class="docutils literal notranslate"><span class="pre">check</span></code> decides who may see the record.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">verdict(request,</span> <span class="pre">record,</span> <span class="pre">may_see=None)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">OPEN</span></code>, <code class="docutils literal notranslate"><span class="pre">MISSING</span></code> or <code class="docutils literal notranslate"><span class="pre">REFUSED</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">may_be_used_by(request,</span> <span class="pre">record,</span> <span class="pre">may_see=None)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">True</span></code> when the verdict is <code class="docutils literal notranslate"><span class="pre">OPEN</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">name_of(record)</span></code></p></td>
+<td><p>The record’s name. A measurement with no name is named by its portal ID.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">without_form_tag(form)</span></code></p></td>
+<td><p>The form with its crispy-forms helper’s form tag and buttons removed.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_success_message(cleaned_data)</span></code></p></td>
+<td><p>“Saved” and the record’s name.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_success_url()</span></code></p></td>
+<td><p>The record’s own page.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<section id="who-may-open-a-page">
+<h3>Who may open a page<a class="headerlink" aria-label="Link to this heading: Who may open a page" href="#who-may-open-a-page" title="Link to this heading">¶</a></h3>
+<p>A page opens for whoever holds the permission its <code class="docutils literal notranslate"><span class="pre">access</span></code> names on the record: change for the five editing pages, delete for the delete page. These are the permissions the portal already checks, whether the level is held on the record, on a record above it or comes from a portal role. See <a class="reference internal" href="../../explanation/how-access-to-a-record-is-decided.html"><span class="std std-doc">How access to a record is decided</span></a>.</p>
+<p>Every request is answered in this order, on a view and again on a save:</p>
+<ol class="arabic simple">
+<li><p>A person who may neither see the record nor hold the permission is told the record does not exist (404).</p></li>
+<li><p>A visitor who is not signed in, and who may see the record, is sent to sign in.</p></li>
+<li><p>A signed-in person who may see the record and may not use the page is refused (403).</p></li>
+</ol>
+<p>A person whose level is removed while a page is open is refused when they save.</p>
+</section>
+</section>
+<section id="the-edit-links">
+<h2>The edit links<a class="headerlink" aria-label="Link to this heading: The edit links" href="#the-edit-links" title="Link to this heading">¶</a></h2>
+<p>There is no central editing menu. Each page is reached from an Edit control on the overview panel that shows what it changes.</p>
+<p><code class="docutils literal notranslate"><span class="pre">edit_links(request,</span> <span class="pre">record)</span></code> returns the address of each page the viewer may open, keyed by the page’s <code class="docutils literal notranslate"><span class="pre">part</span></code>: <code class="docutils literal notranslate"><span class="pre">details</span></code>, <code class="docutils literal notranslate"><span class="pre">descriptions</span></code>, <code class="docutils literal notranslate"><span class="pre">keywords</span></code>, <code class="docutils literal notranslate"><span class="pre">dates</span></code>, <code class="docutils literal notranslate"><span class="pre">identifiers</span></code> and <code class="docutils literal notranslate"><span class="pre">delete</span></code>. A page the viewer may not open is left out, so a visitor gets an empty dictionary. <code class="docutils literal notranslate"><span class="pre">RecordOverviewPlugin</span></code> adds it to every overview’s context as <code class="docutils literal notranslate"><span class="pre">edit</span></code>. <code class="docutils literal notranslate"><span class="pre">EDITING_PAGES</span></code> lists the six pages it asks.</p>
+<div aria-label="Table" class="daisy-sphinx-scroll" role="region" tabindex="0"><table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Part</p></th>
+<th class="head"><p>Where the overview page draws it</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">details</span></code></p></td>
+<td><p>The header’s Edit, and the Edit on the Details panel.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">keywords</span></code></p></td>
+<td><p>Beside the keywords in the header: Edit, or Add keywords when there are none.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">descriptions</span></code></p></td>
+<td><p>The descriptions panel, and a sample’s or measurement’s Notes.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">dates</span></code></p></td>
+<td><p>The project’s timeline row, and the dataset’s, sample’s and measurement’s key dates panel.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">identifiers</span></code></p></td>
+<td><p>The Identifiers section of the Details panel.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">delete</span></code></p></td>
+<td><p>The last line of the Details panel.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The People panel’s Manage leads to the record’s Contributors tab, for its team. <a class="reference internal" href="components.html#c-overview-edit"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">c-overview.edit</span></code></span></a> draws a control, and draws nothing when its address is empty.</p>
+</section>
+<section id="edit-details">
+<h2>Edit details<a class="headerlink" aria-label="Link to this heading: Edit details" href="#edit-details" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">EditDetails</span></code> edits the record’s own fields.</p>
+<ul class="simple">
+<li><p>A project is edited with <code class="docutils literal notranslate"><span class="pre">ProjectForm</span></code> and a dataset with <code class="docutils literal notranslate"><span class="pre">DatasetForm</span></code>. Visibility, and the owner of a project or the project of a dataset, are offered only to someone at the manage level (<code class="docutils literal notranslate"><span class="pre">manager_only_fields</span></code>).</p></li>
+<li><p>A sample or a measurement is edited with the form class its registered type’s configuration returns from <code class="docutils literal notranslate"><span class="pre">get_form_class()</span></code>. The fields <code class="docutils literal notranslate"><span class="pre">dataset</span></code> and <code class="docutils literal notranslate"><span class="pre">sample</span></code> are removed, so a record cannot be moved. Set <code class="docutils literal notranslate"><span class="pre">form_class</span></code> or <code class="docutils literal notranslate"><span class="pre">form_fields</span></code> on the type’s configuration to change what the page offers. See <a class="reference internal" href="model-configuration.html"><span class="std std-doc">Model configuration</span></a>.</p></li>
+<li><p>A type that is not registered is edited with a form of <code class="docutils literal notranslate"><span class="pre">name</span></code> and <code class="docutils literal notranslate"><span class="pre">image</span></code>.</p></li>
+<li><p>A form whose <code class="docutils literal notranslate"><span class="pre">__init__</span></code> names <code class="docutils literal notranslate"><span class="pre">request</span></code> or takes <code class="docutils literal notranslate"><span class="pre">**kwargs</span></code> receives it, so a form that passes <code class="docutils literal notranslate"><span class="pre">**kwargs</span></code> on to <code class="docutils literal notranslate"><span class="pre">ModelForm</span></code> must remove <code class="docutils literal notranslate"><span class="pre">request</span></code> first, as <code class="docutils literal notranslate"><span class="pre">SampleFormMixin</span></code> and <code class="docutils literal notranslate"><span class="pre">MeasurementFormMixin</span></code> do.</p></li>
+<li><p>Dates and identifiers are not on this page.</p></li>
+</ul>
+<p>When a form carries a crispy-forms helper with a form tag or buttons of its own, the page turns both off. The page draws one form element and its own Save buttons. The keywords page does the same.</p>
+</section>
+<section id="descriptions">
+<h2>Descriptions<a class="headerlink" aria-label="Link to this heading: Descriptions" href="#descriptions" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">EditDescriptions</span></code> uses <code class="docutils literal notranslate"><span class="pre">VocabularyDescriptionsForm</span></code> from <code class="docutils literal notranslate"><span class="pre">fairdm.core.descriptions</span></code>. It makes one text area for each concept in the collection the record’s description model offers, in the collection’s order, named after the concept’s address, labelled with its name and helped by its definition, so the page grows with the vocabulary. Saving writes, updates or deletes one row for each area: a non-blank area becomes one row of its type, and a blank one (including whitespace only) removes the row already stored.</p>
+<div aria-label="Table" class="daisy-sphinx-scroll" role="region" tabindex="0"><table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Record</p></th>
+<th class="head"><p>Description collection</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Project</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ProjectDescription.get_type_concepts()</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Dataset</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">DatasetDescription.get_type_concepts()</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Sample</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SampleDescription.get_type_concepts()</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Measurement</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">MeasurementDescription.get_type_concepts()</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="keywords">
+<h2>Keywords<a class="headerlink" aria-label="Link to this heading: Keywords" href="#keywords" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">EditKeywords</span></code> uses <code class="docutils literal notranslate"><span class="pre">KeywordForm</span></code> from <code class="docutils literal notranslate"><span class="pre">fairdm.core.forms</span></code>: one <code class="docutils literal notranslate"><span class="pre">tags</span></code> field where a person chooses a tag already in use or types a new one. Saving replaces the record’s free keywords with the field’s contents, and an empty field removes them all. The page offers nothing from a controlled vocabulary. Vocabulary keywords a record already carries are left as they are.</p>
+</section>
+<section id="key-dates-and-identifiers">
+<h2>Key dates and identifiers<a class="headerlink" aria-label="Link to this heading: Key dates and identifiers" href="#key-dates-and-identifiers" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">EditKeyDates</span></code> and <code class="docutils literal notranslate"><span class="pre">EditIdentifiers</span></code> are sets of rows, one per date or identifier, each with a <code class="docutils literal notranslate"><span class="pre">type</span></code> and a <code class="docutils literal notranslate"><span class="pre">value</span></code>. Both use the template <code class="docutils literal notranslate"><span class="pre">editing/rows.html</span></code>. The types on offer are those of the record’s collection, drawn as a drop-down in the collection’s order, and a record holds at most one row of each type.</p>
+<div aria-label="Table" class="daisy-sphinx-scroll" role="region" tabindex="0"><table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Record</p></th>
+<th class="head"><p>Date collection</p></th>
+<th class="head"><p>Identifier collection</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Project</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ProjectDate.get_type_concepts()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ProjectIdentifier.get_type_concepts()</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Dataset</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">DatasetDate.get_type_concepts()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">DatasetIdentifier.get_type_concepts()</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Sample</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SampleDate.get_type_concepts()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SampleIdentifier.get_type_concepts()</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Measurement</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">MeasurementDate.get_type_concepts()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">MeasurementIdentifier.get_type_concepts()</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<ul class="simple">
+<li><p>A date is kept as precisely as it was entered: a year, a month and a full day are each stored and shown as entered.</p></li>
+<li><p>An identifier value already recorded against any other record is refused, and so is the same value entered twice in one save.</p></li>
+<li><p>The identifier the portal gives the record is its <code class="docutils literal notranslate"><span class="pre">uuid</span></code>. It is never a row on this page.</p></li>
+<li><p>A row set that fails validation saves none of its rows.</p></li>
+</ul>
+<section id="row-sets">
+<h3>Row sets<a class="headerlink" aria-label="Link to this heading: Row sets" href="#row-sets" title="Link to this heading">¶</a></h3>
+<p>The row sets are declared in <code class="docutils literal notranslate"><span class="pre">fairdm/core/related_records.py</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">RelatedRecordInline</span></code> is the base, built on django-mvp’s <code class="docutils literal notranslate"><span class="pre">InlineFormSet</span></code>. It fixes <code class="docutils literal notranslate"><span class="pre">fields</span> <span class="pre">=</span> <span class="pre">(&quot;type&quot;,</span> <span class="pre">&quot;value&quot;)</span></code>, <code class="docutils literal notranslate"><span class="pre">extra</span> <span class="pre">=</span> <span class="pre">0</span></code> so that no blank rows appear beyond the existing ones, draws <code class="docutils literal notranslate"><span class="pre">type</span></code> with <code class="docutils literal notranslate"><span class="pre">ConceptSelectField</span></code>, and caps the set at one row for each type in the model’s collection (<code class="docutils literal notranslate"><span class="pre">max_num</span></code>, with <code class="docutils literal notranslate"><span class="pre">validate_max</span></code>). A subclass names only its <code class="docutils literal notranslate"><span class="pre">model</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fairdm.core.related_records</span><span class="w"> </span><span class="kn">import</span> <span class="n">RelatedRecordInline</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fairdm.core.project.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ProjectDate</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">ProjectDateInline</span><span class="p">(</span><span class="n">RelatedRecordInline</span><span class="p">):</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">ProjectDate</span>
+</pre></div>
+</div>
+<div aria-label="Table" class="daisy-sphinx-scroll" role="region" tabindex="0"><table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Record</p></th>
+<th class="head"><p>Dates</p></th>
+<th class="head"><p>Identifiers</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Project</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ProjectDatesInline</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ProjectIdentifierInline</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Dataset</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">DatasetDatesInline</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">DatasetIdentifierInline</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Sample</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SampleDateInline</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SampleIdentifierInline</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Measurement</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">MeasurementDateInline</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">MeasurementIdentifierInline</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">ProjectDatesInline</span></code> and <code class="docutils literal notranslate"><span class="pre">DatasetDatesInline</span></code> add the ordering rule below to <code class="docutils literal notranslate"><span class="pre">ProjectDateInline</span></code> and <code class="docutils literal notranslate"><span class="pre">DatasetDateInline</span></code>. A sample type or measurement type uses the row sets of its base record, so it declares none.</p>
+</section>
+<section id="date-ordering">
+<h3>Date ordering<a class="headerlink" aria-label="Link to this heading: Date ordering" href="#date-ordering" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">date_ordering_formset(start_type,</span> <span class="pre">end_type,</span> <span class="pre">message)</span></code> in <code class="docutils literal notranslate"><span class="pre">fairdm.core.formsets</span></code> returns a <code class="docutils literal notranslate"><span class="pre">BaseInlineFormSet</span></code> subclass that refuses an end earlier than its start across the whole formset. It reads the two values from each form’s <code class="docutils literal notranslate"><span class="pre">cleaned_data</span></code>, so it works when both rows are new in the same submission. <code class="docutils literal notranslate"><span class="pre">message</span></code> is a whole sentence with <code class="docutils literal notranslate"><span class="pre">%(start)s</span></code> and <code class="docutils literal notranslate"><span class="pre">%(end)s</span></code> placeholders.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">django.utils.translation</span><span class="w"> </span><span class="kn">import</span> <span class="n">gettext_lazy</span> <span class="k">as</span> <span class="n">_</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">fairdm.core.formsets</span><span class="w"> </span><span class="kn">import</span> <span class="n">date_ordering_formset</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fairdm.core.project.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ProjectDate</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fairdm.core.related_records</span><span class="w"> </span><span class="kn">import</span> <span class="n">ProjectDateInline</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">ProjectDatesInline</span><span class="p">(</span><span class="n">ProjectDateInline</span><span class="p">):</span>
+    <span class="n">formset</span> <span class="o">=</span> <span class="n">date_ordering_formset</span><span class="p">(</span>
+        <span class="n">ProjectDate</span><span class="o">.</span><span class="n">START_TYPE</span><span class="p">,</span>
+        <span class="n">ProjectDate</span><span class="o">.</span><span class="n">END_TYPE</span><span class="p">,</span>
+        <span class="n">_</span><span class="p">(</span><span class="s2">"The project's end date (</span><span class="si">%(end)s</span><span class="s2">) cannot be before its start date (</span><span class="si">%(start)s</span><span class="s2">)."</span><span class="p">),</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+<p>A project refuses an end before its start, and a dataset refuses a collection end before its collection start. No other record type has an ordering rule.</p>
+<p><code class="docutils literal notranslate"><span class="pre">a.relation_to(b)</span> <span class="pre">is</span> <span class="pre">Relation.BEFORE</span></code> is the comparison every date rule rests on. <code class="docutils literal notranslate"><span class="pre">relation_to</span></code> compares the periods two <code class="docutils literal notranslate"><span class="pre">PartialDate</span></code> values cover, so <code class="docutils literal notranslate"><span class="pre">2020</span></code> and <code class="docutils literal notranslate"><span class="pre">2020-03-14</span></code> overlap and neither is before the other. Use it instead of comparing partial dates with <code class="docutils literal notranslate"><span class="pre">&lt;</span></code>, which gives their sort order.</p>
+</section>
+</section>
+<section id="delete">
+<h2>Delete<a class="headerlink" aria-label="Link to this heading: Delete" href="#delete" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">DeleteRecord</span></code> removes the record and everything recorded beneath it. It requires confirmation: nothing is deleted until the person types the record’s name, or the portal ID of a measurement with no name. It has <code class="docutils literal notranslate"><span class="pre">require_confirmation</span> <span class="pre">=</span> <span class="pre">True</span></code> and <code class="docutils literal notranslate"><span class="pre">show_related_objects</span> <span class="pre">=</span> <span class="pre">True</span></code>, and the template <code class="docutils literal notranslate"><span class="pre">editing/delete_record.html</span></code>.</p>
+<div aria-label="Table" class="daisy-sphinx-scroll" role="region" tabindex="0"><table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Record</p></th>
+<th class="head"><p>What is shown before confirming</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Project, dataset</p></td>
+<td><p>A count for each kind of record that goes with it, by concrete type. <code class="docutils literal notranslate"><span class="pre">related_objects_summary()</span></code> builds them.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Sample, measurement</p></td>
+<td><p>The rows that go with it, such as descriptions, dates and identifiers, and never the record itself. A relationship row names both samples, so a relationship that reaches a sample the viewer may not see is left out and counted in <code class="docutils literal notranslate"><span class="pre">related_unlisted</span></code>.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>A record that cannot be deleted says so, names what is in the way and offers no way to confirm:</p>
+<ul class="simple">
+<li><p>A project with a public dataset lists those datasets.</p></li>
+<li><p>A sample with measurements made on it, and a dataset whose samples another dataset measures, list the measurements. A measurement the viewer may not see is counted in <code class="docutils literal notranslate"><span class="pre">protected_unlisted</span></code> and never named.</p></li>
+</ul>
+<p>The protection is checked again when the deletion is confirmed. If the record became protected after the page opened, nothing is deleted and the page is drawn again in its protected state.</p>
+<p>After a deletion a sample or a measurement leads to the dataset it belonged to, or to the dataset list when the person may not open that dataset. A dataset leads to the dataset list and a project to the project list. The page adds a message saying which record was deleted.</p>
+</section>
+<section id="after-a-save">
+<h2>After a save<a class="headerlink" aria-label="Link to this heading: After a save" href="#after-a-save" title="Link to this heading">¶</a></h2>
+<p>Every editing page returns to the record’s own page and adds a message saying what was saved.</p>
+</section>
+<section id="tasks">
+<h2>Tasks<a class="headerlink" aria-label="Link to this heading: Tasks" href="#tasks" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="../how-to/add-an-action-to-an-overview-page.html"><span class="std std-doc">How to add an action to an overview page</span></a></p></li>
+<li><p><a class="reference internal" href="../how-to/change-what-the-edit-details-page-offers.html"><span class="std std-doc">How to change what the edit details page offers</span></a></p></li>
+</ul>
+</section>
+</section>
+
+
+        </article>
+        
+          <nav class="daisy-prev-next mt-12 grid gap-3 border-t border-base-300 pt-6 sm:grid-cols-2" aria-label="Previous and next page">
+              <a href="recent-activity.html" rel="prev" class="group flex items-center gap-3 rounded-box border border-base-300 p-4 transition hover:border-primary/50 hover:bg-base-200 focus-visible:bg-base-200">
+                <svg class="size-4 shrink-0 opacity-60 transition group-hover:-translate-x-0.5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m12 19-7-7 7-7" /> <path d="M19 12H5" /> </svg>
+                <span class="min-w-0"><span class="daisy-prev-next-label block text-xs">Previous</span><span class="block font-medium">Recent activity</span></span>
+              </a>
+              <a href="record-fields.html" rel="next" class="group flex items-center justify-end gap-3 rounded-box border border-base-300 p-4 text-end transition hover:border-primary/50 hover:bg-base-200 focus-visible:bg-base-200">
+                <span class="min-w-0"><span class="daisy-prev-next-label block text-xs">Next</span><span class="block font-medium">Record fields</span></span>
+                <svg class="size-4 shrink-0 opacity-60 transition group-hover:translate-x-0.5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M5 12h14" /> <path d="m12 5 7 7-7 7" /> </svg>
+              </a>
+          </nav>
+        
+      </div>
+    </main>
+      <aside class="daisy-area-secondary" aria-label="Page tools">
+        <div class="daisy-secondary daisy-secondary-inner">
+<nav class="daisy-page-toc mb-6" aria-labelledby="daisy-page-toc-label" data-toc-level="2">
+  <p id="daisy-page-toc-label" class="daisy-section-label mb-2 flex items-center gap-2 leading-4"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M3 5h.01" /> <path d="M3 12h.01" /> <path d="M3 19h.01" /> <path d="M8 5h13" /> <path d="M8 12h13" /> <path d="M8 19h13" /> </svg>On this page</p>
+  <ul class="daisy-toc-list">
+<li><a class="daisy-toc-link reference internal" href="#the-pages">The pages</a></li>
+<li><a class="daisy-toc-link reference internal" href="#addresses">Addresses</a></li>
+<li><a class="daisy-toc-link reference internal" href="#recordeditingpage"><code class="docutils literal notranslate"><span class="pre">RecordEditingPage</span></code></a><ul class="daisy-toc-list">
+<li><a class="daisy-toc-link reference internal" href="#who-may-open-a-page">Who may open a page</a></li>
+</ul>
+</li>
+<li><a class="daisy-toc-link reference internal" href="#the-edit-links">The edit links</a></li>
+<li><a class="daisy-toc-link reference internal" href="#edit-details">Edit details</a></li>
+<li><a class="daisy-toc-link reference internal" href="#descriptions">Descriptions</a></li>
+<li><a class="daisy-toc-link reference internal" href="#keywords">Keywords</a></li>
+<li><a class="daisy-toc-link reference internal" href="#key-dates-and-identifiers">Key dates and identifiers</a><ul class="daisy-toc-list">
+<li><a class="daisy-toc-link reference internal" href="#row-sets">Row sets</a></li>
+<li><a class="daisy-toc-link reference internal" href="#date-ordering">Date ordering</a></li>
+</ul>
+</li>
+<li><a class="daisy-toc-link reference internal" href="#delete">Delete</a></li>
+<li><a class="daisy-toc-link reference internal" href="#after-a-save">After a save</a></li>
+<li><a class="daisy-toc-link reference internal" href="#tasks">Tasks</a></li>
+</ul>
+
+</nav></div>
+      </aside>
+
+    <footer class="daisy-area-footer daisy-footer border-t border-base-300 bg-base-100 px-4 py-8 text-sm sm:px-6 lg:px-10">
+      <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div class="flex flex-col gap-1"><p>&copy; 2026, Samuel Jennings</p></div>
+        <div class="flex flex-col gap-1"></div>
+        <div class="flex flex-col gap-2 md:items-end"><p>Theme: <a class="link link-hover" href="https://github.com/SamuelJennings/sphinx-daisyui">sphinx-daisyui</a> 0.2.0.</p></div>
+      </div>
+    </footer>
+  </div>
+    <button type="button" class="daisy-back-to-top btn btn-sm fixed bottom-6 left-1/2 z-30 -translate-x-1/2 gap-1 rounded-full shadow-lg" hidden><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m5 12 7-7 7 7" /> <path d="M12 19V5" /> </svg>Back to top</button><dialog id="daisy-search" class="modal modal-top sm:modal-middle" aria-label="Search the documentation"
+  data-daisy-language-data="../../_static/language_data.js"
+  data-daisy-searchtools="../../_static/searchtools.js"
+  data-daisy-searchindex="../../searchindex.js"
+  data-daisy-prompt="Type to search pages, sections and API names."
+  data-daisy-nothing="Nothing matches %(query)s."
+  data-daisy-unavailable="Search is not available here."
+  data-daisy-page="Page"
+  data-daisy-section="Section"
+  data-daisy-as-you-type="true">
+  <div class="modal-box flex max-h-[min(40rem,85dvh)] max-w-2xl flex-col gap-0 p-0 sm:rounded-box">
+    <form action="../../search.html" method="get" class="flex items-center gap-3 border-b border-base-300 px-4 py-3" role="search">
+      <svg class="size-5 shrink-0 opacity-60" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m21 21-4.34-4.34" /> <circle cx="11" cy="11" r="8" /> </svg>
+      <input type="search" name="q" class="daisy-search-input min-w-0 flex-1 bg-transparent text-base outline-none" placeholder="Search the docs" aria-label="Search" autocomplete="off" spellcheck="false" role="combobox" aria-controls="daisy-search-results" aria-autocomplete="list" aria-expanded="false">
+      <kbd class="kbd kbd-sm hidden sm:inline-flex">Esc</kbd>
+      <span class="sm:hidden"><button type="button" class="btn btn-ghost btn-sm btn-square" aria-label="Close search" data-daisy-search-close=""><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M18 6 6 18" /> <path d="m6 6 12 12" /> </svg></button></span>
+    </form>
+    <div class="min-h-0 flex-1 overflow-y-auto p-2">
+      <p class="daisy-search-status daisy-muted px-3 py-6 text-center text-sm" aria-live="polite">Type to search pages, sections and API names.</p>
+      <ul id="daisy-search-results" class="daisy-search-results menu w-full gap-0.5 p-0" role="listbox"></ul>
+    </div>
+    <div class="daisy-muted hidden items-center gap-4 border-t border-base-300 px-4 py-2 text-xs sm:flex">
+      <span class="flex items-center gap-1"><kbd class="kbd kbd-xs">↑</kbd><kbd class="kbd kbd-xs">↓</kbd> to move</span>
+      <span class="flex items-center gap-1"><kbd class="kbd kbd-xs">↵</kbd> to open</span>
+      <span class="ms-auto">Enter with nothing chosen opens the full results.</span>
+    </div>
+  </div>
+  <form method="dialog" class="modal-backdrop"><button aria-label="Close search">close</button></form>
+</dialog>
+  </body>
+</html>

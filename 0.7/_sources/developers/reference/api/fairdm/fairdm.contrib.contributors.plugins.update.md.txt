@@ -1,0 +1,161 @@
+# {py:mod}`fairdm.contrib.contributors.plugins.update`
+
+```{py:module} fairdm.contrib.contributors.plugins.update
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.update
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`Update <fairdm.contrib.contributors.plugins.update.Update>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.plugins.update.Update
+    :summary:
+    ```
+````
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`contributor_is_editable <fairdm.contrib.contributors.plugins.update.contributor_is_editable>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.plugins.update.contributor_is_editable
+    :summary:
+    ```
+````
+
+### API
+
+````{py:function} contributor_is_editable(request, contributor)
+:canonical: fairdm.contrib.contributors.plugins.update.contributor_is_editable
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.update.contributor_is_editable
+```
+````
+
+`````{py:class} Update(**kwargs)
+:canonical: fairdm.contrib.contributors.plugins.update.Update
+
+Bases: {py:obj}`fairdm.contrib.plugins.Plugin`, {py:obj}`fairdm.views.FairDMUpdateView`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.update.Update
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.update.Update.__init__
+```
+
+````{py:attribute} url_path
+:canonical: fairdm.contrib.contributors.plugins.update.Update.url_path
+:value: >
+   'update'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.update.Update.url_path
+```
+
+````
+
+````{py:attribute} model
+:canonical: fairdm.contrib.contributors.plugins.update.Update.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.update.Update.model
+```
+
+````
+
+````{py:attribute} check
+:canonical: fairdm.contrib.contributors.plugins.update.Update.check
+:value: >
+   'staticmethod(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.update.Update.check
+```
+
+````
+
+````{py:attribute} page_title
+:canonical: fairdm.contrib.contributors.plugins.update.Update.page_title
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.update.Update.page_title
+```
+
+````
+
+````{py:attribute} success_message
+:canonical: fairdm.contrib.contributors.plugins.update.Update.success_message
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.update.Update.success_message
+```
+
+````
+
+````{py:attribute} template_name
+:canonical: fairdm.contrib.contributors.plugins.update.Update.template_name
+:value: >
+   'contributors/plugins/update.html'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.update.Update.template_name
+```
+
+````
+
+````{py:attribute} shipped_forms
+:canonical: fairdm.contrib.contributors.plugins.update.Update.shipped_forms
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.update.Update.shipped_forms
+```
+
+````
+
+````{py:method} get_form_class()
+:canonical: fairdm.contrib.contributors.plugins.update.Update.get_form_class
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.update.Update.get_form_class
+```
+
+````
+
+````{py:method} get_page_title()
+:canonical: fairdm.contrib.contributors.plugins.update.Update.get_page_title
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.update.Update.get_page_title
+```
+
+````
+
+````{py:method} get_success_url()
+:canonical: fairdm.contrib.contributors.plugins.update.Update.get_success_url
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.update.Update.get_success_url
+```
+
+````
+
+````{py:method} get_context_data(**kwargs)
+:canonical: fairdm.contrib.contributors.plugins.update.Update.get_context_data
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.update.Update.get_context_data
+```
+
+````
+
+`````

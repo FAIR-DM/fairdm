@@ -1,0 +1,606 @@
+# {py:mod}`fairdm.contrib.import_export.schema`
+
+```{py:module} fairdm.contrib.import_export.schema
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`Column <fairdm.contrib.import_export.schema.Column>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.schema.Column
+    :summary:
+    ```
+* - {py:obj}`TableSchema <fairdm.contrib.import_export.schema.TableSchema>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.schema.TableSchema
+    :summary:
+    ```
+````
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`build_table_schema <fairdm.contrib.import_export.schema.build_table_schema>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.schema.build_table_schema
+    :summary:
+    ```
+* - {py:obj}`identifier_columns <fairdm.contrib.import_export.schema.identifier_columns>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.schema.identifier_columns
+    :summary:
+    ```
+* - {py:obj}`is_required <fairdm.contrib.import_export.schema.is_required>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.schema.is_required
+    :summary:
+    ```
+* - {py:obj}`kind_of <fairdm.contrib.import_export.schema.kind_of>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.schema.kind_of
+    :summary:
+    ```
+* - {py:obj}`field_column <fairdm.contrib.import_export.schema.field_column>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.schema.field_column
+    :summary:
+    ```
+* - {py:obj}`stored_range <fairdm.contrib.import_export.schema.stored_range>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.schema.stored_range
+    :summary:
+    ```
+* - {py:obj}`concept_choices <fairdm.contrib.import_export.schema.concept_choices>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.schema.concept_choices
+    :summary:
+    ```
+* - {py:obj}`concept_definition <fairdm.contrib.import_export.schema.concept_definition>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.schema.concept_definition
+    :summary:
+    ```
+* - {py:obj}`location_columns <fairdm.contrib.import_export.schema.location_columns>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.schema.location_columns
+    :summary:
+    ```
+* - {py:obj}`example_for <fairdm.contrib.import_export.schema.example_for>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.schema.example_for
+    :summary:
+    ```
+* - {py:obj}`number_example <fairdm.contrib.import_export.schema.number_example>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.schema.number_example
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`KIND_LABELS <fairdm.contrib.import_export.schema.KIND_LABELS>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.schema.KIND_LABELS
+    :summary:
+    ```
+* - {py:obj}`UNIT_IN_LABEL <fairdm.contrib.import_export.schema.UNIT_IN_LABEL>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.schema.UNIT_IN_LABEL
+    :summary:
+    ```
+* - {py:obj}`FRICTIONLESS_TYPES <fairdm.contrib.import_export.schema.FRICTIONLESS_TYPES>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.schema.FRICTIONLESS_TYPES
+    :summary:
+    ```
+* - {py:obj}`PARTIAL_DATE_PATTERN <fairdm.contrib.import_export.schema.PARTIAL_DATE_PATTERN>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.schema.PARTIAL_DATE_PATTERN
+    :summary:
+    ```
+* - {py:obj}`PORTAL_ID_EXAMPLES <fairdm.contrib.import_export.schema.PORTAL_ID_EXAMPLES>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.schema.PORTAL_ID_EXAMPLES
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} KIND_LABELS
+:canonical: fairdm.contrib.import_export.schema.KIND_LABELS
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.KIND_LABELS
+```
+
+````
+
+````{py:data} UNIT_IN_LABEL
+:canonical: fairdm.contrib.import_export.schema.UNIT_IN_LABEL
+:value: >
+   'compile(...)'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.UNIT_IN_LABEL
+```
+
+````
+
+````{py:data} FRICTIONLESS_TYPES
+:canonical: fairdm.contrib.import_export.schema.FRICTIONLESS_TYPES
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.FRICTIONLESS_TYPES
+```
+
+````
+
+````{py:data} PARTIAL_DATE_PATTERN
+:canonical: fairdm.contrib.import_export.schema.PARTIAL_DATE_PATTERN
+:value: >
+   '^\\d{4}(-\\d{2}(-\\d{2})?)?$'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.PARTIAL_DATE_PATTERN
+```
+
+````
+
+````{py:data} PORTAL_ID_EXAMPLES
+:canonical: fairdm.contrib.import_export.schema.PORTAL_ID_EXAMPLES
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.PORTAL_ID_EXAMPLES
+```
+
+````
+
+`````{py:class} Column
+:canonical: fairdm.contrib.import_export.schema.Column
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.Column
+```
+
+````{py:attribute} name
+:canonical: fairdm.contrib.import_export.schema.Column.name
+:type: str
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.Column.name
+```
+
+````
+
+````{py:attribute} label
+:canonical: fairdm.contrib.import_export.schema.Column.label
+:type: str
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.Column.label
+```
+
+````
+
+````{py:attribute} kind
+:canonical: fairdm.contrib.import_export.schema.Column.kind
+:type: str
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.Column.kind
+```
+
+````
+
+````{py:attribute} role
+:canonical: fairdm.contrib.import_export.schema.Column.role
+:type: str
+:value: >
+   'field'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.Column.role
+```
+
+````
+
+````{py:attribute} required
+:canonical: fairdm.contrib.import_export.schema.Column.required
+:type: bool
+:value: >
+   False
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.Column.required
+```
+
+````
+
+````{py:attribute} description
+:canonical: fairdm.contrib.import_export.schema.Column.description
+:type: str
+:value: <Multiline-String>
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.Column.description
+```
+
+````
+
+````{py:attribute} attribute
+:canonical: fairdm.contrib.import_export.schema.Column.attribute
+:type: str | None
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.Column.attribute
+```
+
+````
+
+````{py:attribute} model_field
+:canonical: fairdm.contrib.import_export.schema.Column.model_field
+:type: django.db.models.Field | None
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.Column.model_field
+```
+
+````
+
+````{py:attribute} unit
+:canonical: fairdm.contrib.import_export.schema.Column.unit
+:type: str
+:value: <Multiline-String>
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.Column.unit
+```
+
+````
+
+````{py:attribute} allowed
+:canonical: fairdm.contrib.import_export.schema.Column.allowed
+:type: list[tuple[str, str]]
+:value: >
+   'field(...)'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.Column.allowed
+```
+
+````
+
+````{py:attribute} max_length
+:canonical: fairdm.contrib.import_export.schema.Column.max_length
+:type: int | None
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.Column.max_length
+```
+
+````
+
+````{py:attribute} decimals
+:canonical: fairdm.contrib.import_export.schema.Column.decimals
+:type: int | None
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.Column.decimals
+```
+
+````
+
+````{py:attribute} minimum
+:canonical: fairdm.contrib.import_export.schema.Column.minimum
+:type: float | None
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.Column.minimum
+```
+
+````
+
+````{py:attribute} maximum
+:canonical: fairdm.contrib.import_export.schema.Column.maximum
+:type: float | None
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.Column.maximum
+```
+
+````
+
+````{py:attribute} example
+:canonical: fairdm.contrib.import_export.schema.Column.example
+:type: str
+:value: <Multiline-String>
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.Column.example
+```
+
+````
+
+````{py:attribute} aliases
+:canonical: fairdm.contrib.import_export.schema.Column.aliases
+:type: list[str]
+:value: >
+   'field(...)'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.Column.aliases
+```
+
+````
+
+````{py:attribute} group
+:canonical: fairdm.contrib.import_export.schema.Column.group
+:type: str
+:value: >
+   'own'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.Column.group
+```
+
+````
+
+````{py:method} widget(dataset=None, user=None)
+:canonical: fairdm.contrib.import_export.schema.Column.widget
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.Column.widget
+```
+
+````
+
+````{py:method} as_frictionless() -> dict
+:canonical: fairdm.contrib.import_export.schema.Column.as_frictionless
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.Column.as_frictionless
+```
+
+````
+
+````{py:property} kind_label
+:canonical: fairdm.contrib.import_export.schema.Column.kind_label
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.Column.kind_label
+```
+
+````
+
+````{py:property} importable
+:canonical: fairdm.contrib.import_export.schema.Column.importable
+:type: bool
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.Column.importable
+```
+
+````
+
+````{py:property} shown_aliases
+:canonical: fairdm.contrib.import_export.schema.Column.shown_aliases
+:type: list[str]
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.Column.shown_aliases
+```
+
+````
+
+````{py:property} format_hint
+:canonical: fairdm.contrib.import_export.schema.Column.format_hint
+:type: str
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.Column.format_hint
+```
+
+````
+
+`````
+
+`````{py:class} TableSchema
+:canonical: fairdm.contrib.import_export.schema.TableSchema
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.TableSchema
+```
+
+````{py:attribute} model
+:canonical: fairdm.contrib.import_export.schema.TableSchema.model
+:type: type
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.TableSchema.model
+```
+
+````
+
+````{py:attribute} config
+:canonical: fairdm.contrib.import_export.schema.TableSchema.config
+:type: object
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.TableSchema.config
+```
+
+````
+
+````{py:attribute} columns
+:canonical: fairdm.contrib.import_export.schema.TableSchema.columns
+:type: list[fairdm.contrib.import_export.schema.Column]
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.TableSchema.columns
+```
+
+````
+
+````{py:property} kind
+:canonical: fairdm.contrib.import_export.schema.TableSchema.kind
+:type: str
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.TableSchema.kind
+```
+
+````
+
+````{py:property} slug
+:canonical: fairdm.contrib.import_export.schema.TableSchema.slug
+:type: str
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.TableSchema.slug
+```
+
+````
+
+````{py:property} name
+:canonical: fairdm.contrib.import_export.schema.TableSchema.name
+:type: str
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.TableSchema.name
+```
+
+````
+
+````{py:property} singular
+:canonical: fairdm.contrib.import_export.schema.TableSchema.singular
+:type: str
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.TableSchema.singular
+```
+
+````
+
+````{py:property} importable
+:canonical: fairdm.contrib.import_export.schema.TableSchema.importable
+:type: list[fairdm.contrib.import_export.schema.Column]
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.TableSchema.importable
+```
+
+````
+
+````{py:property} required
+:canonical: fairdm.contrib.import_export.schema.TableSchema.required
+:type: list[fairdm.contrib.import_export.schema.Column]
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.TableSchema.required
+```
+
+````
+
+````{py:property} headings
+:canonical: fairdm.contrib.import_export.schema.TableSchema.headings
+:type: list[str]
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.TableSchema.headings
+```
+
+````
+
+````{py:method} get(name: str) -> fairdm.contrib.import_export.schema.Column | None
+:canonical: fairdm.contrib.import_export.schema.TableSchema.get
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.TableSchema.get
+```
+
+````
+
+````{py:method} as_frictionless() -> dict
+:canonical: fairdm.contrib.import_export.schema.TableSchema.as_frictionless
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.TableSchema.as_frictionless
+```
+
+````
+
+````{py:method} groups() -> list[tuple[str, str, list[fairdm.contrib.import_export.schema.Column]]]
+:canonical: fairdm.contrib.import_export.schema.TableSchema.groups
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.TableSchema.groups
+```
+
+````
+
+`````
+
+````{py:function} build_table_schema(config) -> fairdm.contrib.import_export.schema.TableSchema
+:canonical: fairdm.contrib.import_export.schema.build_table_schema
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.build_table_schema
+```
+````
+
+````{py:function} identifier_columns(model, is_measurement: bool) -> list[fairdm.contrib.import_export.schema.Column]
+:canonical: fairdm.contrib.import_export.schema.identifier_columns
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.identifier_columns
+```
+````
+
+````{py:function} is_required(model_field) -> bool
+:canonical: fairdm.contrib.import_export.schema.is_required
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.is_required
+```
+````
+
+````{py:function} kind_of(model_field) -> str
+:canonical: fairdm.contrib.import_export.schema.kind_of
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.kind_of
+```
+````
+
+````{py:function} field_column(model_field, role='field', group='own', description=None, aliases=()) -> fairdm.contrib.import_export.schema.Column
+:canonical: fairdm.contrib.import_export.schema.field_column
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.field_column
+```
+````
+
+````{py:function} stored_range(model_field) -> tuple[float | None, float | None]
+:canonical: fairdm.contrib.import_export.schema.stored_range
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.stored_range
+```
+````
+
+````{py:function} concept_choices(model_field) -> list[tuple[str, str]]
+:canonical: fairdm.contrib.import_export.schema.concept_choices
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.concept_choices
+```
+````
+
+````{py:function} concept_definition(record) -> str
+:canonical: fairdm.contrib.import_export.schema.concept_definition
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.concept_definition
+```
+````
+
+````{py:function} location_columns(is_measurement: bool, declared) -> list[fairdm.contrib.import_export.schema.Column]
+:canonical: fairdm.contrib.import_export.schema.location_columns
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.location_columns
+```
+````
+
+````{py:function} example_for(column: fairdm.contrib.import_export.schema.Column) -> str
+:canonical: fairdm.contrib.import_export.schema.example_for
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.example_for
+```
+````
+
+````{py:function} number_example(column: fairdm.contrib.import_export.schema.Column) -> str
+:canonical: fairdm.contrib.import_export.schema.number_example
+
+```{autodoc2-docstring} fairdm.contrib.import_export.schema.number_example
+```
+````

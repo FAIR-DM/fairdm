@@ -1,0 +1,158 @@
+# {py:mod}`fairdm.core.sample.forms`
+
+```{py:module} fairdm.core.sample.forms
+```
+
+```{autodoc2-docstring} fairdm.core.sample.forms
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`SampleFormMixin <fairdm.core.sample.forms.SampleFormMixin>`
+  - ```{autodoc2-docstring} fairdm.core.sample.forms.SampleFormMixin
+    :summary:
+    ```
+* - {py:obj}`SampleForm <fairdm.core.sample.forms.SampleForm>`
+  - ```{autodoc2-docstring} fairdm.core.sample.forms.SampleForm
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`logger <fairdm.core.sample.forms.logger>`
+  - ```{autodoc2-docstring} fairdm.core.sample.forms.logger
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} logger
+:canonical: fairdm.core.sample.forms.logger
+:value: >
+   'getLogger(...)'
+
+```{autodoc2-docstring} fairdm.core.sample.forms.logger
+```
+
+````
+
+`````{py:class} SampleFormMixin(*args, **kwargs)
+:canonical: fairdm.core.sample.forms.SampleFormMixin
+
+Bases: {py:obj}`fairdm.utils.location.forms.LocationFormMixin`, {py:obj}`fairdm.core.forms.ManagerOnlyFieldsMixin`
+
+```{autodoc2-docstring} fairdm.core.sample.forms.SampleFormMixin
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.sample.forms.SampleFormMixin.__init__
+```
+
+````{py:attribute} manager_only_fields
+:canonical: fairdm.core.sample.forms.SampleFormMixin.manager_only_fields
+:value: >
+   ('dataset',)
+
+```{autodoc2-docstring} fairdm.core.sample.forms.SampleFormMixin.manager_only_fields
+```
+
+````
+
+`````
+
+``````{py:class} SampleForm(*args, **kwargs)
+:canonical: fairdm.core.sample.forms.SampleForm
+
+Bases: {py:obj}`fairdm.core.sample.forms.SampleFormMixin`, {py:obj}`django.forms.ModelForm`
+
+```{autodoc2-docstring} fairdm.core.sample.forms.SampleForm
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.sample.forms.SampleForm.__init__
+```
+
+````{py:attribute} image
+:canonical: fairdm.core.sample.forms.SampleForm.image
+:value: >
+   'ImageField(...)'
+
+```{autodoc2-docstring} fairdm.core.sample.forms.SampleForm.image
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.core.sample.forms.SampleForm.Meta
+
+```{autodoc2-docstring} fairdm.core.sample.forms.SampleForm.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.core.sample.forms.SampleForm.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.sample.forms.SampleForm.Meta.model
+```
+
+````
+
+````{py:attribute} fields
+:canonical: fairdm.core.sample.forms.SampleForm.Meta.fields
+:value: >
+   ['name', 'dataset', 'local_id', 'status', 'location', 'image', 'tags', 'related']
+
+```{autodoc2-docstring} fairdm.core.sample.forms.SampleForm.Meta.fields
+```
+
+````
+
+````{py:attribute} widgets
+:canonical: fairdm.core.sample.forms.SampleForm.Meta.widgets
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.sample.forms.SampleForm.Meta.widgets
+```
+
+````
+
+````{py:attribute} help_texts
+:canonical: fairdm.core.sample.forms.SampleForm.Meta.help_texts
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.sample.forms.SampleForm.Meta.help_texts
+```
+
+````
+
+`````
+
+````{py:method} clean()
+:canonical: fairdm.core.sample.forms.SampleForm.clean
+
+```{autodoc2-docstring} fairdm.core.sample.forms.SampleForm.clean
+```
+
+````
+
+``````

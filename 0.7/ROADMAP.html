@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta property="og:title" content="Roadmap — FairDM" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="ROADMAP.html" />
+<meta property="og:site_name" content="fairdm" />
+<meta property="og:description" content="Date: 2026-08-12 This document was designed against GOALS.md. See also CONTEXT.md for domain terminology and CONSTITUTION.md for project standards. The first thirteen items are already built. They ..." />
+<meta name="description" content="Date: 2026-08-12 This document was designed against GOALS.md. See also CONTEXT.md for domain terminology and CONSTITUTION.md for project standards. The first thirteen items are already built. They ..." />
+
+    <title>Roadmap — FairDM &#8212; fairdm 0.7.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-daisyui.css?v=aedd34d4" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+    <script src="_static/documentation_options.js?v=d87af0f4"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=f281be69"></script>
+    <script kind="utterances">
+
+    var commentsRunWhenDOMLoaded = cb => {
+    if (document.readyState != 'loading') {
+        cb()
+    } else if (document.addEventListener) {
+        document.addEventListener('DOMContentLoaded', cb)
+    } else {
+        document.attachEvent('onreadystatechange', function() {
+        if (document.readyState == 'complete') cb()
+        })
+    }
+}
+
+var addUtterances = () => {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src = "https://utteranc.es/client.js";
+    script.async = "async";
+
+    script.setAttribute("repo", "FAIR-DM/fairdm");
+    script.setAttribute("issue-term", "pathname");
+    script.setAttribute("theme", "preferred-color-scheme");
+    script.setAttribute("label", "documentation");
+    script.setAttribute("crossorigin", "anonymous");
+
+    sections = document.querySelectorAll("div.section");
+    if (sections !== null) {
+        section = sections[sections.length-1];
+        section.appendChild(script);
+    }
+}
+commentsRunWhenDOMLoaded(addUtterances);
+</script>
+    <script src="_static/design-tabs.js?v=f930bc37"></script>
+    <link rel="icon" href="_static/icon.svg"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Changelog" href="changelog.html" />
+    <link rel="prev" title="ADR 0048 — The site search matches with each list’s own search" href="adr/0048-the-site-search-matches-with-each-lists-own-search.html" /> 
+  <meta name="color-scheme" content="light dark">
+  <script src="_static/scripts/mode.js" data-light-theme="light" data-dark-theme="dark" data-default-mode="auto" data-themes=""></script>
+  <script defer src="_static/scripts/keys.js"></script>
+  <script defer src="_static/scripts/page-address.js"></script>
+  <script defer src="_static/scripts/versions.js"></script>
+  <script defer src="_static/scripts/search.js"></script>
+  <script defer src="_static/scripts/frame.js"></script>
+  <script defer src="_static/scripts/back-to-top.js"></script>
+  <script defer src="_static/scripts/announcement.js"></script>
+  <script defer src="_static/scripts/navigation.js"></script>
+  <script defer src="_static/scripts/theme-menu.js"></script>
+  <script defer src="_static/scripts/page-toc.js"></script>
+  </head><body class="bg-base-100 text-base-content antialiased" data-daisy-root="./" data-daisy-suffix=".html" data-daisy-link-suffix=".html" data-daisy-builder="html" data-daisy-page="ROADMAP">
+  <a href="#main-content" class="btn btn-primary btn-sm absolute -top-20 left-4 z-50 focus:top-2">Skip to content</a>
+  <div class="daisy-layout" style='--daisy-areas-lg: "header header header" "primary main main" "primary footer footer"; --daisy-areas-xl: "header header header" "primary main secondary" "primary footer footer"; --daisy-primary-top: var(--daisy-header-height); --daisy-secondary-top: var(--daisy-header-height);' data-layout="hHh LpR lff" data-header-fixed data-primary-fixed data-secondary-fixed>
+    <input id="daisy-drawer" type="checkbox" class="hidden" aria-hidden="true" tabindex="-1">
+
+    <header class="daisy-area-header daisy-navbar bg-base-100/90 backdrop-blur supports-[backdrop-filter]:bg-base-100/75">
+      <div class="navbar mx-auto min-h-16 max-w-[96rem] gap-2 px-3 sm:px-4">
+        <label for="daisy-drawer" role="button" tabindex="0" data-daisy-drawer-open class="btn btn-ghost btn-square btn-sm lg:hidden" aria-label="Open the navigation"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M4 5h16" /> <path d="M4 12h16" /> <path d="M4 19h16" /> </svg></label>
+        <div class="flex min-w-0 items-center gap-2">
+<a href="index.html" class="daisy-brand flex min-w-0 items-center gap-2.5 rounded-field px-1 py-1 font-semibold hover:opacity-85">
+    <img src="_static/fairdm_light.svg" alt="fairdm" class="daisy-logo-light h-8 w-auto">
+    <img src="_static/fairdm_dark.svg" alt="fairdm" class="daisy-logo-dark h-8 w-auto">
+</a>
+        </div>
+        <div class="hidden min-w-0 flex-1 items-center lg:flex" data-navbar-align="left">
+<nav aria-label="Sections" class="min-w-0">
+  <ul class="flex items-center gap-1"><li class="daisy-dropdown dropdown dropdown-end">
+    <div tabindex="0" role="button" aria-haspopup="menu" class="btn btn-ghost btn-sm font-medium btn-active text-primary" aria-current="true">More<svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m6 9 6 6 6-6" /> </svg></div>
+    <ul tabindex="-1" class="dropdown-content z-40 mt-2 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg menu w-56">
+            <li><a href="developers/index.html">Developers</a></li>
+            <li><a href="administrators/index.html">Administrators</a></li>
+            <li><a href="users/index.html">Users</a></li>
+            <li><a href="explanation/what-fairdm-is-for.html">What FairDM is for</a></li>
+            <li><a href="explanation/fair-data-and-research-data-infrastructure.html">FAIR data and research data infrastructure</a></li>
+            <li><a href="explanation/the-technology-stack.html">The technology stack</a></li>
+            <li><a href="explanation/the-core-data-model.html">The core data model</a></li>
+            <li><a href="explanation/how-sample-and-measurement-types-are-stored.html">How sample and measurement types are stored</a></li>
+            <li><a href="explanation/controlled-vocabularies.html">Controlled vocabularies</a></li>
+            <li><a href="explanation/configuration-over-code.html">Configuration over code</a></li>
+            <li><a href="explanation/why-complete-metadata-matters.html">Why complete metadata matters</a></li>
+            <li><a href="explanation/how-access-to-a-record-is-decided.html">How access to a record is decided</a></li>
+            <li><a href="explanation/why-fairdm-records-contributors.html">Why FairDM records contributors</a></li>
+            <li><a href="explanation/how-contributor-accounts-and-credits-work.html">How contributor accounts and credits work</a></li>
+            <li><a href="explanation/how-a-profile-is-claimed.html">How a profile is claimed</a></li>
+            <li><a href="explanation/how-fairdm-configures-a-portal.html">How FairDM configures a portal</a></li>
+            <li><a href="explanation/who-is-asked-to-agree-to-a-legal-document.html">Who is asked to agree to a legal document</a></li>
+            <li><a href="explanation/how-locations-are-stored-and-protected.html">How locations are stored and protected</a></li>
+            <li><a href="explanation/dataset-publication-dois-and-datacite-metadata.html">Dataset publication, DOIs and DataCite metadata</a></li>
+            <li><a href="reference/glossary.html">Glossary</a></li>
+            <li><a href="reference/contributor-roles.html">Contributor roles</a></li>
+            <li><a href="contributing/index.html">Framework Contributors</a></li>
+            <li><a href="adr/index.html">Architecture Decision Records</a></li>
+            <li><a href="#" class="menu-active" aria-current="true">Roadmap — FairDM</a></li>
+            <li><a href="changelog.html">Changelog</a></li>
+            <li><a href="https://github.com/FAIR-DM/fairdm/blob/main/CHANGELOG.md">Changelog<svg class="size-3.5 opacity-60" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M15 3h6v6" /> <path d="M10 14 21 3" /> <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /> </svg><span class="sr-only">(leads outside the site)</span></a></li></ul>
+  </li>
+  </ul>
+</nav></div>
+        <div class="ms-auto flex items-center gap-1">
+          
+<button type="button" class="daisy-search-open daisy-muted btn btn-sm h-9 gap-2 border-base-300 bg-base-200/70 font-normal shadow-none hover:bg-base-200 md:w-56 md:justify-start" aria-label="Search" aria-haspopup="dialog">
+  <svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m21 21-4.34-4.34" /> <circle cx="11" cy="11" r="8" /> </svg>
+  <span class="hidden md:inline">Search the docs</span>
+  <span class="ms-auto hidden items-center gap-0.5 md:flex"><kbd class="kbd kbd-xs" data-daisy-mod>Ctrl</kbd><kbd class="kbd kbd-xs">K</kbd></span>
+</button>
+          <div class="hidden items-center gap-1 sm:flex" data-daisy-navbar-end><div class="daisy-dropdown dropdown dropdown-end" data-daisy-json-url="https://docs.fairdm.org/switcher.json" data-daisy-version-match="0.7" data-text-preferred="Preferred" data-text-current="Current version">
+    <div tabindex="0" role="button" aria-haspopup="menu" class="btn btn-ghost btn-sm gap-1 font-medium" aria-label="Choose a version">
+      <svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /> <path d="M3 3v5h5" /> <path d="M12 7v5l4 2" /> </svg><span data-daisy-version-label>0.7</span><svg class="size-3.5 opacity-60" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m6 9 6 6 6-6" /> </svg></div>
+    <div tabindex="-1" class="dropdown-content z-40 mt-2 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg w-52">
+      <ul class="menu w-full p-0" data-daisy-version-list></ul></div>
+  </div><div class="daisy-dropdown dropdown dropdown-end" data-daisy-mode-names="Match the system|Light|Dark">
+    <div tabindex="0" role="button" aria-haspopup="menu" class="btn btn-ghost btn-sm btn-square" aria-label="Choose the colour theme">
+    <span data-daisy-mode-icon="auto"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M12 2v2" /> <path d="M14.837 16.385a6 6 0 1 1-7.223-7.222c.624-.147.97.66.715 1.248a4 4 0 0 0 5.26 5.259c.589-.255 1.396.09 1.248.715" /> <path d="M16 12a4 4 0 0 0-4-4" /> <path d="m19 5-1.256 1.256" /> <path d="M20 12h2" /> </svg></span>
+    <span data-daisy-mode-icon="light"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <circle cx="12" cy="12" r="4" /> <path d="M12 2v2" /> <path d="M12 20v2" /> <path d="m4.93 4.93 1.41 1.41" /> <path d="m17.66 17.66 1.41 1.41" /> <path d="M2 12h2" /> <path d="M20 12h2" /> <path d="m6.34 17.66-1.41 1.41" /> <path d="m19.07 4.93-1.41 1.41" /> </svg></span>
+    <span data-daisy-mode-icon="dark"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401" /> </svg></span>
+    <span data-daisy-mode-icon="theme"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z" /> <circle cx="13.5" cy="6.5" r=".5" fill="currentColor" /> <circle cx="17.5" cy="10.5" r=".5" fill="currentColor" /> <circle cx="6.5" cy="12.5" r=".5" fill="currentColor" /> <circle cx="8.5" cy="7.5" r=".5" fill="currentColor" /> </svg></span>
+    <span class="sr-only" data-daisy-mode-current></span></div>
+    <div tabindex="-1" class="dropdown-content z-40 mt-2 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg w-60">
+    <ul class="menu menu-sm w-full p-0">
+      <li><button type="button" data-daisy-set-mode="auto" aria-pressed="false"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M12 2v2" /> <path d="M14.837 16.385a6 6 0 1 1-7.223-7.222c.624-.147.97.66.715 1.248a4 4 0 0 0 5.26 5.259c.589-.255 1.396.09 1.248.715" /> <path d="M16 12a4 4 0 0 0-4-4" /> <path d="m19 5-1.256 1.256" /> <path d="M20 12h2" /> </svg>Match the system</button></li>
+      <li><button type="button" data-daisy-set-mode="light" aria-pressed="false"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <circle cx="12" cy="12" r="4" /> <path d="M12 2v2" /> <path d="M12 20v2" /> <path d="m4.93 4.93 1.41 1.41" /> <path d="m17.66 17.66 1.41 1.41" /> <path d="M2 12h2" /> <path d="M20 12h2" /> <path d="m6.34 17.66-1.41 1.41" /> <path d="m19.07 4.93-1.41 1.41" /> </svg>Light</button></li>
+      <li><button type="button" data-daisy-set-mode="dark" aria-pressed="false"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401" /> </svg>Dark</button></li>
+    </ul></div>
+  </div>
+<ul class="flex items-center" aria-label="Icon links">
+    <li><a href="https://github.com/FAIR-DM/fairdm/" class="btn btn-ghost btn-sm btn-square tooltip tooltip-bottom" data-tip="GitHub" aria-label="GitHub"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></a></li>
+</ul></div>
+        </div>
+      </div>
+    </header>
+
+    <aside class="daisy-area-primary" aria-label="Site navigation">
+      <div class="daisy-primary-inner">
+        <div class="flex items-center gap-2 border-b border-base-300 p-3 lg:hidden">
+          
+<a href="index.html" class="daisy-brand flex min-w-0 items-center gap-2.5 rounded-field px-1 py-1 font-semibold hover:opacity-85">
+    <img src="_static/fairdm_light.svg" alt="fairdm" class="daisy-logo-light h-8 w-auto">
+    <img src="_static/fairdm_dark.svg" alt="fairdm" class="daisy-logo-dark h-8 w-auto">
+</a>
+          <label for="daisy-drawer" role="button" tabindex="0" data-daisy-drawer-close class="btn btn-ghost btn-sm btn-square ms-auto" aria-label="Close the navigation"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M18 6 6 18" /> <path d="m6 6 12 12" /> </svg></label>
+        </div>
+        <div class="flex flex-wrap items-center gap-1 border-b border-base-300 p-3 sm:hidden empty:hidden" data-daisy-navbar-end-slot></div>
+          <nav class="border-b border-base-300 p-3 lg:hidden" aria-label="Sections">
+            <ul class="menu menu-sm w-full p-0">
+                <li><a href="developers/index.html">Developers</a></li>
+                <li><a href="administrators/index.html">Administrators</a></li>
+                <li><a href="users/index.html">Users</a></li>
+                <li><a href="explanation/what-fairdm-is-for.html">What FairDM is for</a></li>
+                <li><a href="explanation/fair-data-and-research-data-infrastructure.html">FAIR data and research data infrastructure</a></li>
+                <li><a href="explanation/the-technology-stack.html">The technology stack</a></li>
+                <li><a href="explanation/the-core-data-model.html">The core data model</a></li>
+                <li><a href="explanation/how-sample-and-measurement-types-are-stored.html">How sample and measurement types are stored</a></li>
+                <li><a href="explanation/controlled-vocabularies.html">Controlled vocabularies</a></li>
+                <li><a href="explanation/configuration-over-code.html">Configuration over code</a></li>
+                <li><a href="explanation/why-complete-metadata-matters.html">Why complete metadata matters</a></li>
+                <li><a href="explanation/how-access-to-a-record-is-decided.html">How access to a record is decided</a></li>
+                <li><a href="explanation/why-fairdm-records-contributors.html">Why FairDM records contributors</a></li>
+                <li><a href="explanation/how-contributor-accounts-and-credits-work.html">How contributor accounts and credits work</a></li>
+                <li><a href="explanation/how-a-profile-is-claimed.html">How a profile is claimed</a></li>
+                <li><a href="explanation/how-fairdm-configures-a-portal.html">How FairDM configures a portal</a></li>
+                <li><a href="explanation/who-is-asked-to-agree-to-a-legal-document.html">Who is asked to agree to a legal document</a></li>
+                <li><a href="explanation/how-locations-are-stored-and-protected.html">How locations are stored and protected</a></li>
+                <li><a href="explanation/dataset-publication-dois-and-datacite-metadata.html">Dataset publication, DOIs and DataCite metadata</a></li>
+                <li><a href="reference/glossary.html">Glossary</a></li>
+                <li><a href="reference/contributor-roles.html">Contributor roles</a></li>
+                <li><a href="contributing/index.html">Framework Contributors</a></li>
+                <li><a href="adr/index.html">Architecture Decision Records</a></li>
+                <li><a href="#" class="menu-active" aria-current="true">Roadmap — FairDM</a></li>
+                <li><a href="changelog.html">Changelog</a></li>
+                <li><a href="https://github.com/FAIR-DM/fairdm/blob/main/CHANGELOG.md">Changelog<svg class="size-3.5 opacity-60" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M15 3h6v6" /> <path d="M10 14 21 3" /> <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /> </svg><span class="sr-only">(leads outside the site)</span></a></li>
+            </ul>
+          </nav>
+        <div class="daisy-sidebar-scroll px-3 py-4 lg:py-8 lg:ps-4 lg:pe-2">
+          
+          
+        </div>
+      </div>
+    </aside>
+    <label for="daisy-drawer" class="daisy-drawer-overlay" aria-label="Close the navigation"></label>
+    <main id="main-content" role="main" class="daisy-area-main min-w-0 px-4 sm:px-6 lg:px-10" tabindex="-1">
+      <div class="mx-auto max-w-[46rem] pt-6 pb-10">
+          <div class="daisy-article-header flex min-h-8 items-center gap-3">
+            <div class="min-w-0 flex-1">
+<nav class="breadcrumbs daisy-breadcrumbs py-0 text-sm" aria-label="Breadcrumb">
+  <ul>
+    <li><a href="index.html" aria-label="Home"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M12 5v16" /> <path d="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z" /> </svg></a></li>
+    <li aria-current="page"><span class="truncate">Roadmap — FairDM</span></li>
+  </ul>
+</nav></div>
+            <div class="flex shrink-0 items-center gap-1">
+              <a href="https://github.com/FAIR-DM/fairdm/edit/main/docs/ROADMAP.md" class="btn btn-ghost btn-sm btn-square tooltip tooltip-left" data-tip="Edit this page" aria-label="Edit this page"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" /> <path d="m15 5 4 4" /> </svg></a>
+            </div>
+          </div>
+          <details class="daisy-toc-mobile collapse collapse-arrow mt-4 rounded-box border border-base-300 bg-base-200/60 xl:hidden">
+            <summary class="collapse-title min-h-0 py-3 text-sm font-semibold">On this page</summary>
+            <nav class="collapse-content text-sm" aria-label="On this page"><ul class="daisy-toc-list">
+<li><a class="daisy-toc-link reference internal" href="#versioning">Versioning</a></li>
+<li><a class="daisy-toc-link reference internal" href="#already-delivered">Already delivered</a><ul class="daisy-toc-list">
+<li><a class="daisy-toc-link reference internal" href="#r1-portal-configuration-in-a-single-call">R1 — Portal configuration in a single call</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r2-model-registry-and-generated-components">R2 — Model registry and generated components</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r3-projects">R3 — Projects</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r4-datasets">R4 — Datasets</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r5-samples">R5 — Samples</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r6-measurements">R6 — Measurements</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r7-the-default-portal-interface">R7 — The default portal interface</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r8-the-plugin-system">R8 — The plugin system</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r9-contributors-and-contributions">R9 — Contributors and contributions</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r10-profile-claiming">R10 — Profile claiming</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r11-the-machine-readable-api">R11 — The machine-readable API</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r12-editing-projects-and-datasets-in-the-portal">R12 — Editing projects and datasets in the portal</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r13-identifier-synchronisation">R13 — Identifier synchronisation</a></li>
+</ul>
+</li>
+<li><a class="daisy-toc-link reference internal" href="#essential-goals-v0-1-0">Essential goals: v0.1.0</a><ul class="daisy-toc-list">
+<li><a class="daisy-toc-link reference internal" href="#r14-access-rules-hold-on-every-surface">R14 — Access rules hold on every surface</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r15-portal-roles-ship-with-the-framework">R15 — Portal roles ship with the framework</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r16-every-core-record-type-can-be-created-and-edited-in-the-portal">R16 — Every core record type can be created and edited in the portal</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r17-records-can-be-found-sorted-and-filtered">R17 — Records can be found, sorted and filtered</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r18-plugins-attach-to-any-registered-model">R18 — Plugins attach to any registered model</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r19-contributions-can-be-managed-on-every-core-record">R19 — Contributions can be managed on every core record</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r20-retire-the-code-that-never-runs">R20 — Retire the code that never runs</a></li>
+</ul>
+</li>
+<li><a class="daisy-toc-link reference internal" href="#expected-goals-v1-0-0">Expected goals: v1.0.0</a><ul class="daisy-toc-list">
+<li><a class="daisy-toc-link reference internal" href="#r21-tabular-data-goes-in-and-comes-back-out">R21 — Tabular data goes in and comes back out</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r22-a-dataset-moves-from-working-to-visible-through-a-checked-process">R22 — A dataset moves from working to visible through a checked process</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r23-datasets-carry-versions">R23 — Datasets carry versions</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r24-dataset-metadata-is-complete-enough-to-hand-to-a-publisher">R24 — Dataset metadata is complete enough to hand to a publisher</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r25-records-are-machine-readable-where-machines-look">R25 — Records are machine-readable where machines look</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r26-a-research-group-can-deploy-the-shipped-stack">R26 — A research group can deploy the shipped stack</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r27-installing-a-schema-package-is-all-a-portal-needs">R27 — Installing a schema package is all a portal needs</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r28-identifiers-stay-meaningful">R28 — Identifiers stay meaningful</a></li>
+</ul>
+</li>
+<li><a class="daisy-toc-link reference internal" href="#aspirational-goals-v2-0">Aspirational goals: v2.0</a><ul class="daisy-toc-list">
+<li><a class="daisy-toc-link reference internal" href="#r29-portals-exchange-data-with-one-another">R29 — Portals exchange data with one another</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r30-a-portal-supports-its-research-community">R30 — A portal supports its research community</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r31-contributors-work-in-their-own-language">R31 — Contributors work in their own language</a></li>
+</ul>
+</li>
+</ul>
+</nav>
+          </details>
+        <article class="daisy-sphinx-content">
+          
+  <section id="roadmap-fairdm">
+<h1>Roadmap — FairDM<a class="headerlink" aria-label="Link to this heading: Roadmap — FairDM" href="#roadmap-fairdm" title="Link to this heading">¶</a></h1>
+<p><strong>Date:</strong> 2026-08-12</p>
+<p>This document was designed against <span class="xref myst">GOALS.md</span>. See also <span class="xref myst">CONTEXT.md</span> for domain terminology and <span class="xref myst">CONSTITUTION.md</span> for project standards.</p>
+<p>The first thirteen items are already built. They are carried here so the sequence reads whole, from an empty repository to where the framework stands today.</p>
+<section id="versioning">
+<h2>Versioning<a class="headerlink" aria-label="Link to this heading: Versioning" href="#versioning" title="Link to this heading">¶</a></h2>
+<p>Releases are gated on how important a goal is, not on how many features have landed.</p>
+<div aria-label="Table" class="daisy-sphinx-scroll" role="region" tabindex="0"><table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Version</p></th>
+<th class="head"><p>What it means</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">0.0.x</span></code></p></td>
+<td><p>Building toward the Essential goals. Pre-viable, expect churn, install from a git pin rather than an index.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">0.1.0</span></code></p></td>
+<td><p>Every Essential goal delivered. The minimum usable release and the first publish.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">0.1.x</span></code> → <code class="docutils literal notranslate"><span class="pre">0.x</span></code></p></td>
+<td><p>The Expected goals, at whatever granularity the work takes. Patch releases are fixes.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">1.0.0</span></code></p></td>
+<td><p>Every Expected goal delivered. The complete, dependable release.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">1.x</span></code></p></td>
+<td><p>Stable line. Fixes and additive features only.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">2.0</span></code></p></td>
+<td><p>The next major, where breaking changes go.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Two rules follow from that table. A goal is not one minor release: some take several, and one release can move two goals at once. Once <code class="docutils literal notranslate"><span class="pre">1.0</span></code> ships, a breaking change never goes out on the <code class="docutils literal notranslate"><span class="pre">1.x</span></code> line and waits for the next major instead.</p>
+<p>Aspirational goals may be developed against v2 or v1 as required.</p>
+</section>
+<section id="already-delivered">
+<h2>Already delivered<a class="headerlink" aria-label="Link to this heading: Already delivered" href="#already-delivered" title="Link to this heading">¶</a></h2>
+<p>The framework these items describe is working code. Each one is carried at the version it was built at, and each carries a verification tag until a later pass confirms the code meets the goal it claims.</p>
+<section id="r1-portal-configuration-in-a-single-call">
+<h3>R1 — Portal configuration in a single call<a class="headerlink" aria-label="Link to this heading: R1 — Portal configuration in a single call" href="#r1-portal-configuration-in-a-single-call" title="Link to this heading">¶</a></h3>
+<p><em>Delivered · advances G7</em></p>
+<p>A portal declares its apps and addons in one call and receives a complete settings baseline. The baseline is production-grade in every environment, and each environment is an override layered over it in a declared order, selected by name and found by whether it exists. FairDM ships an override for development only, and a portal supplies its own for anything else. In production, configuration that would leave the portal unsafe stops it starting rather than surfacing as a runtime failure.</p>
+<p>Serves G7.</p>
+</section>
+<section id="r2-model-registry-and-generated-components">
+<h3>R2 — Model registry and generated components<a class="headerlink" aria-label="Link to this heading: R2 — Model registry and generated components" href="#r2-model-registry-and-generated-components" title="Link to this heading">¶</a></h3>
+<p><em>Delivered · advances G2</em></p>
+<p>Registering a model with a configuration class produces its form, table, filter set, serializer, import and export resource, and admin entry without any of those being written by hand. A portal author describes fields and grouping, and the components follow.</p>
+<p>Serves G2.</p>
+</section>
+<section id="r3-projects">
+<h3>R3 — Projects<a class="headerlink" aria-label="Link to this heading: R3 — Projects" href="#r3-projects" title="Link to this heading">¶</a></h3>
+<p><em>Delivered · advances G1</em></p>
+<p>The outermost container of the core model, with descriptions, dates, identifiers, funding, status and keywords, and a fixed schema that portals consume rather than extend.</p>
+<p>Serves G1.</p>
+</section>
+<section id="r4-datasets">
+<h3>R4 — Datasets<a class="headerlink" aria-label="Link to this heading: R4 — Datasets" href="#r4-datasets" title="Link to this heading">¶</a></h3>
+<p><em>Delivered · advances G1</em></p>
+<p>The unit of citation and distribution, carrying its own descriptions, dates, identifiers, licence, keywords and related literature, with visibility held independently of its project.</p>
+<p>Serves G1.</p>
+</section>
+<section id="r5-samples">
+<h3>R5 — Samples<a class="headerlink" aria-label="Link to this heading: R5 — Samples" href="#r5-samples" title="Link to this heading">¶</a></h3>
+<p><em>Delivered · advances G1</em></p>
+<p>The polymorphic base every sample type inherits from, so a portal defines its own specimen types and the framework treats them uniformly.</p>
+<p>Serves G1.</p>
+</section>
+<section id="r6-measurements">
+<h3>R6 — Measurements<a class="headerlink" aria-label="Link to this heading: R6 — Measurements" href="#r6-measurements" title="Link to this heading">¶</a></h3>
+<p><em>Delivered · advances G1</em></p>
+<p>The polymorphic base for results and observations recorded against a sample, including the case where a measurement belongs to a different dataset than the sample it describes.</p>
+<p>Serves G1.</p>
+</section>
+<section id="r7-the-default-portal-interface">
+<h3>R7 — The default portal interface<a class="headerlink" aria-label="Link to this heading: R7 — The default portal interface" href="#r7-the-default-portal-interface" title="Link to this heading">¶</a></h3>
+<p><em>Delivered · needs verification · advances G5</em></p>
+<p>Every page a portal serves inherits a shared application shell with navigation, menus, icons and component templates already in place, so a new portal has a working interface before anyone writes a template.</p>
+<p>Serves G5.</p>
+</section>
+<section id="r8-the-plugin-system">
+<h3>R8 — The plugin system<a class="headerlink" aria-label="Link to this heading: R8 — The plugin system" href="#r8-the-plugin-system" title="Link to this heading">¶</a></h3>
+<p><em>Delivered · advances G3</em></p>
+<p>Views attach to core records as tabs and panels through a registry, so an addon adds pages to an existing record type without the framework being edited. Addon packages announce their own settings and URLs and are picked up at startup.</p>
+<p>Serves G3.</p>
+</section>
+<section id="r9-contributors-and-contributions">
+<h3>R9 — Contributors and contributions<a class="headerlink" aria-label="Link to this heading: R9 — Contributors and contributions" href="#r9-contributors-and-contributions" title="Link to this heading">¶</a></h3>
+<p><em>Delivered · needs verification · advances G4</em></p>
+<p>People and organisations are one polymorphic family, credited against records through contribution entries that carry roles drawn from a controlled vocabulary. A person is also the portal account, so credit and identity are the same record.</p>
+<p>Serves G4.</p>
+</section>
+<section id="r10-profile-claiming">
+<h3>R10 — Profile claiming<a class="headerlink" aria-label="Link to this heading: R10 — Profile claiming" href="#r10-profile-claiming" title="Link to this heading">¶</a></h3>
+<p><em>Delivered · needs verification · advances G4, G15</em></p>
+<p>A person credited on a record before they ever visited the portal can take ownership of that profile by signing in with an external identity, instead of a duplicate account being created alongside the credit.</p>
+<p>Serves G4 and G15.</p>
+</section>
+<section id="r11-the-machine-readable-api">
+<h3>R11 — The machine-readable API<a class="headerlink" aria-label="Link to this heading: R11 — The machine-readable API" href="#r11-the-machine-readable-api" title="Link to this heading">¶</a></h3>
+<p><em>Delivered · advances G10</em></p>
+<p>Projects, datasets, contributors and every registered sample and measurement type are reachable over a versioned HTTP API with authentication, pagination, filtering, ordering and generated interactive documentation.</p>
+<p>Serves G10.</p>
+</section>
+<section id="r12-editing-projects-and-datasets-in-the-portal">
+<h3>R12 — Editing projects and datasets in the portal<a class="headerlink" aria-label="Link to this heading: R12 — Editing projects and datasets in the portal" href="#r12-editing-projects-and-datasets-in-the-portal" title="Link to this heading">¶</a></h3>
+<p><em>Delivered · needs verification · advances G6</em></p>
+<p>Projects and datasets can be created, read, updated and deleted through the portal itself, without the Django admin and without a portal author writing those views.</p>
+<p>The project half is verified: a project can be listed, created, edited — its own fields, its dates and its identifiers together, its descriptions on their own page — and deleted, each page reachable from the project itself and refused to anyone who may not open it. The dataset half is not yet verified, so the tag stands.</p>
+<p>Serves G6.</p>
+</section>
+<section id="r13-identifier-synchronisation">
+<h3>R13 — Identifier synchronisation<a class="headerlink" aria-label="Link to this heading: R13 — Identifier synchronisation" href="#r13-identifier-synchronisation" title="Link to this heading">¶</a></h3>
+<p><em>Delivered · needs verification · advances G15</em></p>
+<p>An ORCID or ROR identifier recorded against a person or organisation is resolved against the issuing registry in the background, so the local record is populated from the authoritative source rather than retyped.</p>
+<p>Serves G15.</p>
+</section>
+</section>
+<section id="essential-goals-v0-1-0">
+<h2>Essential goals: v0.1.0<a class="headerlink" aria-label="Link to this heading: Essential goals: v0.1.0" href="#essential-goals-v0-1-0" title="Link to this heading">¶</a></h2>
+<p>Everything needed to reach a minimum usable release.</p>
+<section id="r14-access-rules-hold-on-every-surface">
+<h3>R14 — Access rules hold on every surface<a class="headerlink" aria-label="Link to this heading: R14 — Access rules hold on every surface" href="#r14-access-rules-hold-on-every-surface" title="Link to this heading">¶</a></h3>
+<p><em>delivered in <a class="reference external" href="https://github.com/FAIR-DM/fairdm/issues/275">#275</a>, <a class="reference external" href="https://github.com/FAIR-DM/fairdm/issues/279">#279</a> · advances G8, G12</em></p>
+<p>Visibility is decided per record and is enforced in some places and not others. A private dataset is readable by anyone who has its address, and the collection tables that list samples and measurements across the portal show rows belonging to private datasets. Until one rule governs every surface, no portal can hold embargoed data, and every capability built on top of visibility inherits the same hole. This comes first because it is the only item on the roadmap whose absence loses a research group its data.</p>
+<p><strong>Deliverables:</strong></p>
+<ul class="simple">
+<li><p>One access rule per record type, applied by every page, table, feed and API endpoint that can return that record.</p></li>
+<li><p>Sample and measurement access derived from the dataset they belong to, consistently across the portal and the API.</p></li>
+<li><p>Non-disclosure on refusal, so an address does not confirm that a private record exists.</p></li>
+<li><p>A regression test per surface that a private record is not returned to a viewer without rights to it.</p></li>
+<li><p>The documentation for portal administrators states what private means and where it applies.</p></li>
+</ul>
+<p>Serves G8 and G12. Out of scope: roles and their default permissions, which are R15.</p>
+</section>
+<section id="r15-portal-roles-ship-with-the-framework">
+<h3>R15 — Portal roles ship with the framework<a class="headerlink" aria-label="Link to this heading: R15 — Portal roles ship with the framework" href="#r15-portal-roles-ship-with-the-framework" title="Link to this heading">¶</a></h3>
+<p><em>delivered in <a class="reference external" href="https://github.com/FAIR-DM/fairdm/issues/338">#338</a>, <a class="reference external" href="https://github.com/FAIR-DM/fairdm/issues/345">#345</a> · advances G8</em></p>
+<p>The framework arrives with the roles a research portal needs and grants rights at the moments that matter, so running a portal is no longer a bespoke setup. The portal’s team holds a defined set of roles that administrators assign and revoke through the portal (<a class="reference external" href="https://github.com/FAIR-DM/fairdm/issues/338">#338</a>). Someone who creates a record can manage it afterwards, and rights over a project or dataset carry to the records beneath it (<a class="reference external" href="https://github.com/FAIR-DM/fairdm/issues/345">#345</a>).</p>
+<p><strong>Deliverables:</strong></p>
+<ul class="simple">
+<li><p>A defined set of portal roles with the permissions each one holds, installed with the framework rather than assembled per portal.</p></li>
+<li><p>Creating a record grants its creator the rights to manage it.</p></li>
+<li><p>Project and dataset membership grants rights over the records beneath it.</p></li>
+<li><p>Administrators can assign and revoke roles through the portal.</p></li>
+<li><p>Documentation for administrators listing each role and what it can do.</p></li>
+</ul>
+<p>Serves G8. Out of scope: enforcement of visibility, which is R14.</p>
+</section>
+<section id="r16-every-core-record-type-can-be-created-and-edited-in-the-portal">
+<h3>R16 — Every core record type can be created and edited in the portal<a class="headerlink" aria-label="Link to this heading: R16 — Every core record type can be created and edited in the portal" href="#r16-every-core-record-type-can-be-created-and-edited-in-the-portal" title="Link to this heading">¶</a></h3>
+<p><em>delivered in <a class="reference external" href="https://github.com/FAIR-DM/fairdm/issues/315">#315</a> · advances G6, G2</em></p>
+<p>Registering a sample or measurement type produces its components but not its pages. Samples have no create, list or delete pages at all, and a measurement has only a placeholder. A portal author who registers a domain model still cannot let a researcher enter data through the portal, which leaves the Django admin as the only route and defeats the point of registration.</p>
+<p><strong>Deliverables:</strong></p>
+<ul class="simple">
+<li><p>Every registered sample and measurement type gets list, detail, create, edit and delete pages from its registration alone.</p></li>
+<li><p>Those pages are reachable from the record they belong to, so a dataset leads to its samples and a sample to its measurements.</p></li>
+<li><p>Creating a measurement carries its sample and dataset context rather than asking the user to restate it.</p></li>
+<li><p>Access rules from R14 and R15 apply to the generated pages.</p></li>
+<li><p>The developer documentation shows what registration produces and how a portal overrides one page without taking over the rest.</p></li>
+</ul>
+<p>Serves G6 and G2. Out of scope: bulk entry through file import, which is R21.</p>
+</section>
+<section id="r17-records-can-be-found-sorted-and-filtered">
+<h3>R17 — Records can be found, sorted and filtered<a class="headerlink" aria-label="Link to this heading: R17 — Records can be found, sorted and filtered" href="#r17-records-can-be-found-sorted-and-filtered" title="Link to this heading">¶</a></h3>
+<p><em>feature · advances G9</em></p>
+<p>Filtering is generated from a registered model and works. Search is not: it matches a typed phrase against a handful of fields as plain substrings, with no ranking and no index behind it, so it degrades as soon as a portal holds real data. Sorting is inconsistent between one list and the next. A portal whose records cannot be found is a portal nobody uses, and this becomes visible the moment R16 gives every registered type a list of its own.</p>
+<p><strong>Deliverables:</strong></p>
+<ul class="simple">
+<li><p>Search across the core record types that tolerates partial words and returns the closest matches first.</p></li>
+<li><p>Sorting on every list, on the columns a reader would expect to sort by.</p></li>
+<li><p>Filters generated from a registered model’s own fields, on its own list pages.</p></li>
+<li><p>Indexes that keep search and filtering usable as a portal grows, with a stated expectation of what “usable” means.</p></li>
+<li><p>The same search, sort and filter available through the API.</p></li>
+<li><p>Only records the viewer may see are returned, under the rule from R14.</p></li>
+</ul>
+<p>Serves G9. Out of scope: searching across portals, which is R29.</p>
+</section>
+<section id="r18-plugins-attach-to-any-registered-model">
+<h3>R18 — Plugins attach to any registered model<a class="headerlink" aria-label="Link to this heading: R18 — Plugins attach to any registered model" href="#r18-plugins-attach-to-any-registered-model" title="Link to this heading">¶</a></h3>
+<p><em>feature · advances G3</em></p>
+<p>Extension points are fixed in advance rather than derived from what is registered, so a model a portal or an addon defines has nowhere to attach. A record type gains plugin pages only when someone edits a URL configuration by hand, which an addon cannot do.</p>
+<p>Measurements were previously named here as the live example. That was wrong: a measurement is a component of the sample page rather than a record with a page of its own, so it has no attachment point by design. The five plugins registered against it have been removed, and registering a plugin incorrectly now fails at registration rather than doing nothing.</p>
+<p><strong>Deliverables:</strong></p>
+<ul class="simple">
+<li><p>Attachment points follow from a model being registered, including models defined by a portal or an addon.</p></li>
+<li><p>A startup report lists every registered plugin and where it attached, so an addon author can see the result. A registration against a record with no mounted attachment point is reported as such — this cannot be caught at registration, because no URL configuration exists when the decorator runs.</p></li>
+</ul>
+<p>Serves G3. Out of scope: removing the code that this defect left stranded, which is R20.</p>
+</section>
+<section id="r19-contributions-can-be-managed-on-every-core-record">
+<h3>R19 — Contributions can be managed on every core record<a class="headerlink" aria-label="Link to this heading: R19 — Contributions can be managed on every core record" href="#r19-contributions-can-be-managed-on-every-core-record" title="Link to this heading">¶</a></h3>
+<p><em>delivered in <a class="reference external" href="https://github.com/FAIR-DM/fairdm/issues/402">#402</a> · advances G4</em></p>
+<p>Contributions are added, edited and removed on projects, datasets, samples and measurements alike. Before this the pages existed only on projects, which left the dataset, the unit that gets cited, creditable in principle and not in practice.</p>
+<p><strong>Deliverables:</strong></p>
+<ul class="simple">
+<li><p>Contribution management on projects, datasets, samples and measurements alike.</p></li>
+<li><p>Roles offered per record type, drawn from the vocabulary appropriate to that type.</p></li>
+<li><p>Ordering of contributors on a record is under the research team’s control, because it determines how the record is cited.</p></li>
+<li><p>Editing and removing an existing contribution, not only adding one.</p></li>
+<li><p>Access rules from R14 and R15 govern who may change credit on a record.</p></li>
+</ul>
+<p>Serves G4. Out of scope: sending credit to an external publisher, which belongs to a publication addon.</p>
+</section>
+<section id="r20-retire-the-code-that-never-runs">
+<h3>R20 — Retire the code that never runs<a class="headerlink" aria-label="Link to this heading: R20 — Retire the code that never runs" href="#r20-retire-the-code-that-never-runs" title="Link to this heading">¶</a></h3>
+<p><em>feature · advances G3, G18</em></p>
+<p>Several modules are shipped but unreachable: the import and export views, the geographic location helpers that import modules which do not exist, a second component-generation system that nothing calls, a second declarative configuration system with one remaining consumer, and a data manager whose surrounding documentation still describes it as active. Their presence is worse than their absence, because each one reads as a working feature to anyone extending the framework, and one of them has already misled its own tests. The core cannot stay small while it carries a second version of itself.</p>
+<p><strong>Deliverables:</strong></p>
+<ul class="simple">
+<li><p>Each unreachable module is either wired up and covered by tests or deleted.</p></li>
+<li><p>One component-generation path and one configuration path remain, with the alternatives gone.</p></li>
+<li><p>Documentation and docstrings that describe removed or inert behaviour are corrected in the same change.</p></li>
+<li><p>Nothing in the package imports a module that does not exist.</p></li>
+<li><p>Anything deferred rather than removed is recorded as an issue with a reason.</p></li>
+</ul>
+<p>Serves G3 and G18. Out of scope: the import and export feature itself, which is R21 and decides whether those views are worth wiring or replacing.</p>
+</section>
+</section>
+<section id="expected-goals-v1-0-0">
+<h2>Expected goals: v1.0.0<a class="headerlink" aria-label="Link to this heading: Expected goals: v1.0.0" href="#expected-goals-v1-0-0" title="Link to this heading">¶</a></h2>
+<p>The capabilities a complete, dependable version of the framework is expected to have.</p>
+<section id="r21-tabular-data-goes-in-and-comes-back-out">
+<h3>R21 — Tabular data goes in and comes back out<a class="headerlink" aria-label="Link to this heading: R21 — Tabular data goes in and comes back out" href="#r21-tabular-data-goes-in-and-comes-back-out" title="Link to this heading">¶</a></h3>
+<p><em>delivered in <a class="reference external" href="https://github.com/FAIR-DM/fairdm/issues/695">#695</a>, <a class="reference external" href="https://github.com/FAIR-DM/fairdm/issues/696">#696</a> · advances G11</em></p>
+<p>Import and export is written but nobody can reach it. The pages are not routed, one of the templates does not exist, and the work runs in the request rather than in the background. A research group’s existing data arrives as spreadsheets, so this is the capability that decides whether a portal can be populated at all.</p>
+<p><strong>Deliverables:</strong></p>
+<ul class="simple">
+<li><p>Import and export are reachable from the dataset they belong to.</p></li>
+<li><p>An exported file re-imports into the same dataset and produces the same records.</p></li>
+<li><p>Large imports run in the background and report progress and failures per row.</p></li>
+<li><p>A dataset exports as one archive covering its samples, measurements and metadata.</p></li>
+<li><p>Import validates before it writes, and reports what it would reject.</p></li>
+</ul>
+<p>Serves G11. Out of scope: import across several related tables in one pass, which follows once single-table import is dependable.</p>
+</section>
+<section id="r22-a-dataset-moves-from-working-to-visible-through-a-checked-process">
+<h3>R22 — A dataset moves from working to visible through a checked process<a class="headerlink" aria-label="Link to this heading: R22 — A dataset moves from working to visible through a checked process" href="#r22-a-dataset-moves-from-working-to-visible-through-a-checked-process" title="Link to this heading">¶</a></h3>
+<p><em>feature · advances G13</em></p>
+<p>Visibility is a switch anyone with rights can flip. There is no point at which a dataset is checked for completeness before the rest of the portal sees it, which is what a portal administrator is being asked to guarantee.</p>
+<p><strong>Deliverables:</strong></p>
+<ul class="simple">
+<li><p>Defined states for a dataset from working through review to visible, with the transitions between them.</p></li>
+<li><p>Completeness requirements checked at the transition, reported as what is missing.</p></li>
+<li><p>A review step that a nominated role performs, with the outcome recorded against the dataset.</p></li>
+<li><p>The dataset’s history of state changes is visible to the people responsible for it.</p></li>
+</ul>
+<p>Serves G13. Out of scope: submitting to an external publisher, which belongs to an addon.</p>
+</section>
+<section id="r23-datasets-carry-versions">
+<h3>R23 — Datasets carry versions<a class="headerlink" aria-label="Link to this heading: R23 — Datasets carry versions" href="#r23-datasets-carry-versions" title="Link to this heading">¶</a></h3>
+<p><em>multi-feature · advances G19</em></p>
+<p>A dataset that has been cited keeps changing, and nothing records what it looked like when the citation was made. Comparable repositories treat a version as the thing that gets cited, so a reader can retrieve the exact state a paper referred to. Without it, a citation to a dataset stops referring to anything specific.</p>
+<p><strong>Deliverables:</strong></p>
+<ul class="simple">
+<li><p>A published dataset that changes produces a new version rather than overwriting the old one.</p></li>
+<li><p>Earlier versions stay retrievable and are marked as superseded.</p></li>
+<li><p>A dataset’s version history is visible on the record, with what changed between versions.</p></li>
+<li><p>Citation of a dataset resolves to a specific version.</p></li>
+<li><p>Versions are reachable through the API alongside the current state.</p></li>
+</ul>
+<p>Serves G19. Out of scope: minting a separate identifier per version with an external agency, which belongs to a publication addon.</p>
+</section>
+<section id="r24-dataset-metadata-is-complete-enough-to-hand-to-a-publisher">
+<h3>R24 — Dataset metadata is complete enough to hand to a publisher<a class="headerlink" aria-label="Link to this heading: R24 — Dataset metadata is complete enough to hand to a publisher" href="#r24-dataset-metadata-is-complete-enough-to-hand-to-a-publisher" title="Link to this heading">¶</a></h3>
+<p><em>feature · advances G14</em></p>
+<p>The record model carries most of what a publisher needs, but the publication-shaped output of a dataset refers to fields the dataset does not have and omits the identifier entirely, so it renders mostly empty. An addon that submits a dataset for formal publication cannot work until the metadata a dataset exposes is both complete and correct.</p>
+<p><strong>Deliverables:</strong></p>
+<ul class="simple">
+<li><p>A published dataset exposes its metadata in the shape a publisher expects, with every required element populated from real fields.</p></li>
+<li><p>Missing required metadata is reported against the dataset before it reaches an addon.</p></li>
+<li><p>The mapping is covered by tests that fail when a field is renamed or removed.</p></li>
+<li><p>The developer documentation states what an addon can rely on.</p></li>
+</ul>
+<p>Serves G14. Out of scope: minting identifiers or talking to a registration agency.</p>
+</section>
+<section id="r25-records-are-machine-readable-where-machines-look">
+<h3>R25 — Records are machine-readable where machines look<a class="headerlink" aria-label="Link to this heading: R25 — Records are machine-readable where machines look" href="#r25-records-are-machine-readable-where-machines-look" title="Link to this heading">¶</a></h3>
+<p><em>feature · advances G10</em></p>
+<p>The API is the deliberate machine route, but discovery services do not use it. Comparable repositories publish structured metadata in the page itself and offer a listing that a crawler can walk. Without those, a portal’s records stay invisible to dataset search engines however good its API is, and findable is the first thing FAIR asks for.</p>
+<p><strong>Deliverables:</strong></p>
+<ul class="simple">
+<li><p>Structured metadata embedded in project, dataset, sample and measurement pages in the format dataset search engines consume.</p></li>
+<li><p>A crawlable listing of the portal’s public records.</p></li>
+<li><p>Only public records appear in either, under the rule from R14.</p></li>
+<li><p>The documentation for administrators explains what is exposed and how to verify it.</p></li>
+</ul>
+<p>Serves G10. Out of scope: harvesting protocols for portal-to-portal exchange, which is R29.</p>
+</section>
+<section id="r26-a-research-group-can-deploy-the-shipped-stack">
+<h3>R26 — A research group can deploy the shipped stack<a class="headerlink" aria-label="Link to this heading: R26 — A research group can deploy the shipped stack" href="#r26-a-research-group-can-deploy-the-shipped-stack" title="Link to this heading">¶</a></h3>
+<p><em>delivered in <a class="reference external" href="https://github.com/FAIR-DM/fairdm/issues/520">#520</a>, <a class="reference external" href="https://github.com/FAIR-DM/fairdm/issues/601">#601</a>, <a class="reference external" href="https://github.com/FAIR-DM/fairdm/issues/661">#661</a> · advances G16</em></p>
+<p>The deployment story does not run. The container stack builds from a directory that is not in the repository, points at an environment file that is not there, and the production configuration described in the documentation does not exist. A group with no operations staff has nothing to follow.</p>
+<p><strong>Deliverables:</strong></p>
+<ul class="simple">
+<li><p>A container stack in the repository that builds and runs as documented.</p></li>
+<li><p>A production configuration covering the web, database, cache, background worker and storage services.</p></li>
+<li><p>Backups, upgrades and log access documented as routine operations.</p></li>
+<li><p>A first-run path from empty to a portal with an administrator account.</p></li>
+<li><p>The deployment documentation matches what the repository ships, verified by following it.</p></li>
+</ul>
+<p>Serves G16. Out of scope: hosting choices and managed services, which are the deploying group’s decision.</p>
+</section>
+<section id="r27-installing-a-schema-package-is-all-a-portal-needs">
+<h3>R27 — Installing a schema package is all a portal needs<a class="headerlink" aria-label="Link to this heading: R27 — Installing a schema package is all a portal needs" href="#r27-installing-a-schema-package-is-all-a-portal-needs" title="Link to this heading">¶</a></h3>
+<p><em>feature · advances G17, G18</em></p>
+<p>A community can package a domain schema today, but the receiving portal has to name it in configuration for anything to happen, and the contract an addon is written against is described in prose rather than checked. Adoption across communities depends on installation being uneventful.</p>
+<p><strong>Deliverables:</strong></p>
+<ul class="simple">
+<li><p>An installed schema package is discovered without the portal listing it by hand.</p></li>
+<li><p>A stated contract for what an addon may rely on, with a startup check that reports violations.</p></li>
+<li><p>A reference schema package, kept working by the framework’s own tests.</p></li>
+<li><p>Documentation covering authoring, publishing and installing a schema package.</p></li>
+</ul>
+<p>Serves G17 and G18. Out of scope: a registry or index of published schemas.</p>
+</section>
+<section id="r28-identifiers-stay-meaningful">
+<h3>R28 — Identifiers stay meaningful<a class="headerlink" aria-label="Link to this heading: R28 — Identifiers stay meaningful" href="#r28-identifiers-stay-meaningful" title="Link to this heading">¶</a></h3>
+<p><em>resolve · advances G15</em></p>
+<p>Identifiers are recorded against people and organisations and resolved for two schemes. Samples and datasets accept identifiers with no validation, so a mistyped one is stored as readily as a real one, and nothing distinguishes them later.</p>
+<p><strong>Deliverables:</strong></p>
+<ul class="simple">
+<li><p>Identifiers are validated against their scheme when entered, in the portal and the API.</p></li>
+<li><p>Sample and dataset identifiers resolve to their registry from the record page.</p></li>
+<li><p>An invalid or unresolvable identifier is reported to the person who entered it.</p></li>
+</ul>
+<p>Serves G15. Out of scope: minting new identifiers, which requires an agreement with an issuing agency.</p>
+</section>
+</section>
+<section id="aspirational-goals-v2-0">
+<h2>Aspirational goals: v2.0<a class="headerlink" aria-label="Link to this heading: Aspirational goals: v2.0" href="#aspirational-goals-v2-0" title="Link to this heading">¶</a></h2>
+<p>Genuine wants whose absence never makes the framework incomplete.</p>
+<section id="r29-portals-exchange-data-with-one-another">
+<h3>R29 — Portals exchange data with one another<a class="headerlink" aria-label="Link to this heading: R29 — Portals exchange data with one another" href="#r29-portals-exchange-data-with-one-another" title="Link to this heading">¶</a></h3>
+<p><em>multi-feature · advances G20</em></p>
+<p>One portal can find and reuse records held by another, through the harvesting protocols the research data community already runs, rather than by manual export and re-import.</p>
+<p>Serves G20.</p>
+</section>
+<section id="r30-a-portal-supports-its-research-community">
+<h3>R30 — A portal supports its research community<a class="headerlink" aria-label="Link to this heading: R30 — A portal supports its research community" href="#r30-a-portal-supports-its-research-community" title="Link to this heading">¶</a></h3>
+<p><em>multi-feature · advances G21</em></p>
+<p>Discussion, news and collaboration around the data, so a portal is somewhere a research community works rather than only a place its data is stored.</p>
+<p>Serves G21.</p>
+</section>
+<section id="r31-contributors-work-in-their-own-language">
+<h3>R31 — Contributors work in their own language<a class="headerlink" aria-label="Link to this heading: R31 — Contributors work in their own language" href="#r31-contributors-work-in-their-own-language" title="Link to this heading">¶</a></h3>
+<p><em>feature · advances G22</em></p>
+<p>Translation is prepared for throughout the framework and no translation exists: there are no message catalogues, the configured translation path points at a directory that is not there, and there is no way for a visitor to change language. Regional conventions for dates and numbers follow the same gap.</p>
+<p>Serves G22.</p>
+</section>
+</section>
+</section>
+
+
+        </article>
+        
+          <nav class="daisy-prev-next mt-12 grid gap-3 border-t border-base-300 pt-6 sm:grid-cols-2" aria-label="Previous and next page">
+              <a href="adr/0048-the-site-search-matches-with-each-lists-own-search.html" rel="prev" class="group flex items-center gap-3 rounded-box border border-base-300 p-4 transition hover:border-primary/50 hover:bg-base-200 focus-visible:bg-base-200">
+                <svg class="size-4 shrink-0 opacity-60 transition group-hover:-translate-x-0.5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m12 19-7-7 7-7" /> <path d="M19 12H5" /> </svg>
+                <span class="min-w-0"><span class="daisy-prev-next-label block text-xs">Previous</span><span class="block font-medium">ADR 0048 — The site search matches with each list’s own search</span></span>
+              </a>
+              <a href="changelog.html" rel="next" class="group flex items-center justify-end gap-3 rounded-box border border-base-300 p-4 text-end transition hover:border-primary/50 hover:bg-base-200 focus-visible:bg-base-200">
+                <span class="min-w-0"><span class="daisy-prev-next-label block text-xs">Next</span><span class="block font-medium">Changelog</span></span>
+                <svg class="size-4 shrink-0 opacity-60 transition group-hover:translate-x-0.5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M5 12h14" /> <path d="m12 5 7 7-7 7" /> </svg>
+              </a>
+          </nav>
+        
+      </div>
+    </main>
+      <aside class="daisy-area-secondary" aria-label="Page tools">
+        <div class="daisy-secondary daisy-secondary-inner">
+<nav class="daisy-page-toc mb-6" aria-labelledby="daisy-page-toc-label" data-toc-level="2">
+  <p id="daisy-page-toc-label" class="daisy-section-label mb-2 flex items-center gap-2 leading-4"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M3 5h.01" /> <path d="M3 12h.01" /> <path d="M3 19h.01" /> <path d="M8 5h13" /> <path d="M8 12h13" /> <path d="M8 19h13" /> </svg>On this page</p>
+  <ul class="daisy-toc-list">
+<li><a class="daisy-toc-link reference internal" href="#versioning">Versioning</a></li>
+<li><a class="daisy-toc-link reference internal" href="#already-delivered">Already delivered</a><ul class="daisy-toc-list">
+<li><a class="daisy-toc-link reference internal" href="#r1-portal-configuration-in-a-single-call">R1 — Portal configuration in a single call</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r2-model-registry-and-generated-components">R2 — Model registry and generated components</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r3-projects">R3 — Projects</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r4-datasets">R4 — Datasets</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r5-samples">R5 — Samples</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r6-measurements">R6 — Measurements</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r7-the-default-portal-interface">R7 — The default portal interface</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r8-the-plugin-system">R8 — The plugin system</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r9-contributors-and-contributions">R9 — Contributors and contributions</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r10-profile-claiming">R10 — Profile claiming</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r11-the-machine-readable-api">R11 — The machine-readable API</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r12-editing-projects-and-datasets-in-the-portal">R12 — Editing projects and datasets in the portal</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r13-identifier-synchronisation">R13 — Identifier synchronisation</a></li>
+</ul>
+</li>
+<li><a class="daisy-toc-link reference internal" href="#essential-goals-v0-1-0">Essential goals: v0.1.0</a><ul class="daisy-toc-list">
+<li><a class="daisy-toc-link reference internal" href="#r14-access-rules-hold-on-every-surface">R14 — Access rules hold on every surface</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r15-portal-roles-ship-with-the-framework">R15 — Portal roles ship with the framework</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r16-every-core-record-type-can-be-created-and-edited-in-the-portal">R16 — Every core record type can be created and edited in the portal</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r17-records-can-be-found-sorted-and-filtered">R17 — Records can be found, sorted and filtered</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r18-plugins-attach-to-any-registered-model">R18 — Plugins attach to any registered model</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r19-contributions-can-be-managed-on-every-core-record">R19 — Contributions can be managed on every core record</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r20-retire-the-code-that-never-runs">R20 — Retire the code that never runs</a></li>
+</ul>
+</li>
+<li><a class="daisy-toc-link reference internal" href="#expected-goals-v1-0-0">Expected goals: v1.0.0</a><ul class="daisy-toc-list">
+<li><a class="daisy-toc-link reference internal" href="#r21-tabular-data-goes-in-and-comes-back-out">R21 — Tabular data goes in and comes back out</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r22-a-dataset-moves-from-working-to-visible-through-a-checked-process">R22 — A dataset moves from working to visible through a checked process</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r23-datasets-carry-versions">R23 — Datasets carry versions</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r24-dataset-metadata-is-complete-enough-to-hand-to-a-publisher">R24 — Dataset metadata is complete enough to hand to a publisher</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r25-records-are-machine-readable-where-machines-look">R25 — Records are machine-readable where machines look</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r26-a-research-group-can-deploy-the-shipped-stack">R26 — A research group can deploy the shipped stack</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r27-installing-a-schema-package-is-all-a-portal-needs">R27 — Installing a schema package is all a portal needs</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r28-identifiers-stay-meaningful">R28 — Identifiers stay meaningful</a></li>
+</ul>
+</li>
+<li><a class="daisy-toc-link reference internal" href="#aspirational-goals-v2-0">Aspirational goals: v2.0</a><ul class="daisy-toc-list">
+<li><a class="daisy-toc-link reference internal" href="#r29-portals-exchange-data-with-one-another">R29 — Portals exchange data with one another</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r30-a-portal-supports-its-research-community">R30 — A portal supports its research community</a></li>
+<li><a class="daisy-toc-link reference internal" href="#r31-contributors-work-in-their-own-language">R31 — Contributors work in their own language</a></li>
+</ul>
+</li>
+</ul>
+
+</nav></div>
+      </aside>
+
+    <footer class="daisy-area-footer daisy-footer border-t border-base-300 bg-base-100 px-4 py-8 text-sm sm:px-6 lg:px-10">
+      <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div class="flex flex-col gap-1"><p>&copy; 2026, Samuel Jennings</p></div>
+        <div class="flex flex-col gap-1"></div>
+        <div class="flex flex-col gap-2 md:items-end"><p>Theme: <a class="link link-hover" href="https://github.com/SamuelJennings/sphinx-daisyui">sphinx-daisyui</a> 0.2.0.</p></div>
+      </div>
+    </footer>
+  </div>
+    <button type="button" class="daisy-back-to-top btn btn-sm fixed bottom-6 left-1/2 z-30 -translate-x-1/2 gap-1 rounded-full shadow-lg" hidden><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m5 12 7-7 7 7" /> <path d="M12 19V5" /> </svg>Back to top</button><dialog id="daisy-search" class="modal modal-top sm:modal-middle" aria-label="Search the documentation"
+  data-daisy-language-data="_static/language_data.js"
+  data-daisy-searchtools="_static/searchtools.js"
+  data-daisy-searchindex="searchindex.js"
+  data-daisy-prompt="Type to search pages, sections and API names."
+  data-daisy-nothing="Nothing matches %(query)s."
+  data-daisy-unavailable="Search is not available here."
+  data-daisy-page="Page"
+  data-daisy-section="Section"
+  data-daisy-as-you-type="true">
+  <div class="modal-box flex max-h-[min(40rem,85dvh)] max-w-2xl flex-col gap-0 p-0 sm:rounded-box">
+    <form action="search.html" method="get" class="flex items-center gap-3 border-b border-base-300 px-4 py-3" role="search">
+      <svg class="size-5 shrink-0 opacity-60" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m21 21-4.34-4.34" /> <circle cx="11" cy="11" r="8" /> </svg>
+      <input type="search" name="q" class="daisy-search-input min-w-0 flex-1 bg-transparent text-base outline-none" placeholder="Search the docs" aria-label="Search" autocomplete="off" spellcheck="false" role="combobox" aria-controls="daisy-search-results" aria-autocomplete="list" aria-expanded="false">
+      <kbd class="kbd kbd-sm hidden sm:inline-flex">Esc</kbd>
+      <span class="sm:hidden"><button type="button" class="btn btn-ghost btn-sm btn-square" aria-label="Close search" data-daisy-search-close=""><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M18 6 6 18" /> <path d="m6 6 12 12" /> </svg></button></span>
+    </form>
+    <div class="min-h-0 flex-1 overflow-y-auto p-2">
+      <p class="daisy-search-status daisy-muted px-3 py-6 text-center text-sm" aria-live="polite">Type to search pages, sections and API names.</p>
+      <ul id="daisy-search-results" class="daisy-search-results menu w-full gap-0.5 p-0" role="listbox"></ul>
+    </div>
+    <div class="daisy-muted hidden items-center gap-4 border-t border-base-300 px-4 py-2 text-xs sm:flex">
+      <span class="flex items-center gap-1"><kbd class="kbd kbd-xs">↑</kbd><kbd class="kbd kbd-xs">↓</kbd> to move</span>
+      <span class="flex items-center gap-1"><kbd class="kbd kbd-xs">↵</kbd> to open</span>
+      <span class="ms-auto">Enter with nothing chosen opens the full results.</span>
+    </div>
+  </div>
+  <form method="dialog" class="modal-backdrop"><button aria-label="Close search">close</button></form>
+</dialog>
+  </body>
+</html>

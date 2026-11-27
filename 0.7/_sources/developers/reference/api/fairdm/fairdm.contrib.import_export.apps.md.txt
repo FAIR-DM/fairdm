@@ -1,0 +1,119 @@
+# {py:mod}`fairdm.contrib.import_export.apps`
+
+```{py:module} fairdm.contrib.import_export.apps
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.apps
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`FairDMImportExportConfig <fairdm.contrib.import_export.apps.FairDMImportExportConfig>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.apps.FairDMImportExportConfig
+    :summary:
+    ```
+````
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`seed_discard_task <fairdm.contrib.import_export.apps.seed_discard_task>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.apps.seed_discard_task
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`DISCARD_TASK <fairdm.contrib.import_export.apps.DISCARD_TASK>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.apps.DISCARD_TASK
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} DISCARD_TASK
+:canonical: fairdm.contrib.import_export.apps.DISCARD_TASK
+:value: >
+   'fairdm.contrib.import_export.tasks.discard_stale_jobs'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.apps.DISCARD_TASK
+```
+
+````
+
+````{py:function} seed_discard_task(**kwargs)
+:canonical: fairdm.contrib.import_export.apps.seed_discard_task
+
+```{autodoc2-docstring} fairdm.contrib.import_export.apps.seed_discard_task
+```
+````
+
+`````{py:class} FairDMImportExportConfig(app_name, app_module)
+:canonical: fairdm.contrib.import_export.apps.FairDMImportExportConfig
+
+Bases: {py:obj}`django.apps.AppConfig`
+
+```{autodoc2-docstring} fairdm.contrib.import_export.apps.FairDMImportExportConfig
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.apps.FairDMImportExportConfig.__init__
+```
+
+````{py:attribute} name
+:canonical: fairdm.contrib.import_export.apps.FairDMImportExportConfig.name
+:value: >
+   'fairdm.contrib.import_export'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.apps.FairDMImportExportConfig.name
+```
+
+````
+
+````{py:attribute} label
+:canonical: fairdm.contrib.import_export.apps.FairDMImportExportConfig.label
+:value: >
+   'fairdm_import_export'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.apps.FairDMImportExportConfig.label
+```
+
+````
+
+````{py:attribute} verbose_name
+:canonical: fairdm.contrib.import_export.apps.FairDMImportExportConfig.verbose_name
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.apps.FairDMImportExportConfig.verbose_name
+```
+
+````
+
+````{py:method} ready()
+:canonical: fairdm.contrib.import_export.apps.FairDMImportExportConfig.ready
+
+```{autodoc2-docstring} fairdm.contrib.import_export.apps.FairDMImportExportConfig.ready
+```
+
+````
+
+`````

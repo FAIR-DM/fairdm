@@ -1,0 +1,529 @@
+# {py:mod}`fairdm.core.plugins`
+
+```{py:module} fairdm.core.plugins
+```
+
+```{autodoc2-docstring} fairdm.core.plugins
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`OverviewPlugin <fairdm.core.plugins.OverviewPlugin>`
+  - ```{autodoc2-docstring} fairdm.core.plugins.OverviewPlugin
+    :summary:
+    ```
+* - {py:obj}`CitationFile <fairdm.core.plugins.CitationFile>`
+  - ```{autodoc2-docstring} fairdm.core.plugins.CitationFile
+    :summary:
+    ```
+* - {py:obj}`RecordOverviewPlugin <fairdm.core.plugins.RecordOverviewPlugin>`
+  - ```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin
+    :summary:
+    ```
+* - {py:obj}`SamplePoints <fairdm.core.plugins.SamplePoints>`
+  - ```{autodoc2-docstring} fairdm.core.plugins.SamplePoints
+    :summary:
+    ```
+* - {py:obj}`TypedOverviewPlugin <fairdm.core.plugins.TypedOverviewPlugin>`
+  - ```{autodoc2-docstring} fairdm.core.plugins.TypedOverviewPlugin
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} OverviewPlugin(**kwargs)
+:canonical: fairdm.core.plugins.OverviewPlugin
+
+Bases: {py:obj}`fairdm.contrib.plugins.Plugin`, {py:obj}`fairdm.views.FairDMTemplateView`
+
+```{autodoc2-docstring} fairdm.core.plugins.OverviewPlugin
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.plugins.OverviewPlugin.__init__
+```
+
+````{py:attribute} page_lead
+:canonical: fairdm.core.plugins.OverviewPlugin.page_lead
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.plugins.OverviewPlugin.page_lead
+```
+
+````
+
+````{py:attribute} page_icon
+:canonical: fairdm.core.plugins.OverviewPlugin.page_icon
+:value: >
+   'overview'
+
+```{autodoc2-docstring} fairdm.core.plugins.OverviewPlugin.page_icon
+```
+
+````
+
+````{py:attribute} menu
+:canonical: fairdm.core.plugins.OverviewPlugin.menu
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.plugins.OverviewPlugin.menu
+```
+
+````
+
+````{py:method} get_page_title()
+:canonical: fairdm.core.plugins.OverviewPlugin.get_page_title
+
+```{autodoc2-docstring} fairdm.core.plugins.OverviewPlugin.get_page_title
+```
+
+````
+
+`````
+
+`````{py:class} CitationFile(**kwargs)
+:canonical: fairdm.core.plugins.CitationFile
+
+Bases: {py:obj}`fairdm.contrib.plugins.Plugin`, {py:obj}`django.views.View`
+
+```{autodoc2-docstring} fairdm.core.plugins.CitationFile
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.plugins.CitationFile.__init__
+```
+
+````{py:attribute} name
+:canonical: fairdm.core.plugins.CitationFile.name
+:value: >
+   'citation'
+
+```{autodoc2-docstring} fairdm.core.plugins.CitationFile.name
+```
+
+````
+
+````{py:attribute} url_path
+:canonical: fairdm.core.plugins.CitationFile.url_path
+:value: >
+   'cite/<str:format>'
+
+```{autodoc2-docstring} fairdm.core.plugins.CitationFile.url_path
+```
+
+````
+
+````{py:method} setup(request, *args, **kwargs)
+:canonical: fairdm.core.plugins.CitationFile.setup
+
+```{autodoc2-docstring} fairdm.core.plugins.CitationFile.setup
+```
+
+````
+
+````{py:method} has_permission()
+:canonical: fairdm.core.plugins.CitationFile.has_permission
+
+```{autodoc2-docstring} fairdm.core.plugins.CitationFile.has_permission
+```
+
+````
+
+````{py:method} handle_no_permission()
+:canonical: fairdm.core.plugins.CitationFile.handle_no_permission
+
+```{autodoc2-docstring} fairdm.core.plugins.CitationFile.handle_no_permission
+```
+
+````
+
+````{py:method} get(request, *args, **kwargs)
+:canonical: fairdm.core.plugins.CitationFile.get
+
+```{autodoc2-docstring} fairdm.core.plugins.CitationFile.get
+```
+
+````
+
+`````
+
+`````{py:class} RecordOverviewPlugin(**kwargs)
+:canonical: fairdm.core.plugins.RecordOverviewPlugin
+
+Bases: {py:obj}`fairdm.core.plugins.OverviewPlugin`
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.__init__
+```
+
+````{py:attribute} people_named
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.people_named
+:value: >
+   6
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.people_named
+```
+
+````
+
+````{py:attribute} people_faces
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.people_faces
+:value: >
+   10
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.people_faces
+```
+
+````
+
+````{py:attribute} resolvable_identifier_types
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.resolvable_identifier_types
+:value: >
+   ()
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.resolvable_identifier_types
+```
+
+````
+
+````{py:attribute} extra_views
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.extra_views
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.extra_views
+```
+
+````
+
+````{py:method} get_context_data(**kwargs)
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.get_context_data
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.get_context_data
+```
+
+````
+
+````{py:method} get_contributions() -> list[fairdm.contrib.contributors.models.Contribution]
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.get_contributions
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.get_contributions
+```
+
+````
+
+````{py:method} get_role_uris(contribution) -> set[str]
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.get_role_uris
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.get_role_uris
+```
+
+````
+
+````{py:method} get_contributors_with_role(entries, role, *, cited_only=False) -> list[fairdm.contrib.contributors.models.Contributor]
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.get_contributors_with_role
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.get_contributors_with_role
+```
+
+````
+
+````{py:method} get_credits() -> list[dict[str, typing.Any]]
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.get_credits
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.get_credits
+```
+
+````
+
+````{py:method} get_people(entries=None) -> dict[str, typing.Any]
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.get_people
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.get_people
+```
+
+````
+
+````{py:method} get_identifiers() -> list[dict[str, typing.Any]]
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.get_identifiers
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.get_identifiers
+```
+
+````
+
+````{py:method} get_primary_identifier(identifiers) -> dict[str, typing.Any] | None
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.get_primary_identifier
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.get_primary_identifier
+```
+
+````
+
+````{py:method} get_publisher() -> str
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.get_publisher
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.get_publisher
+```
+
+````
+
+````{py:method} format_cited_names(names) -> str
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.format_cited_names
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.format_cited_names
+```
+
+````
+
+````{py:method} get_citation(*, authors, year, title, link, publisher=None) -> str
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.get_citation
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.get_citation
+```
+
+````
+
+````{py:method} build_citation(*, authors, year, title, link, publisher=None, types=('misc', 'GEN')) -> fairdm.core.citation.Citation
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.build_citation
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.build_citation
+```
+
+````
+
+````{py:method} get_citation_formats(citation, text) -> list[dict[str, typing.Any]]
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.get_citation_formats
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.get_citation_formats
+```
+
+````
+
+````{py:method} get_citation_address(key) -> str | None
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.get_citation_address
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.get_citation_address
+```
+
+````
+
+````{py:method} get_cited_details(citation, text) -> dict[str, typing.Any]
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.get_cited_details
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.get_cited_details
+```
+
+````
+
+````{py:method} get_timeline(steps, dates, descriptions, entries) -> list[dict[str, typing.Any]]
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.get_timeline
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.get_timeline
+```
+
+````
+
+````{py:method} get_license_entry(licence, note=None) -> dict[str, typing.Any]
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.get_license_entry
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.get_license_entry
+```
+
+````
+
+````{py:method} get_type_mix(samples, measurements) -> dict[str, typing.Any] | None
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.get_type_mix
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.get_type_mix
+```
+
+````
+
+````{py:method} get_sample_points(samples) -> dict[str, typing.Any]
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.get_sample_points
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.get_sample_points
+```
+
+````
+
+````{py:method} get_sample_map(samples, coverage, points_url, *, count_datasets=False) -> dict[str, typing.Any] | None
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.get_sample_map
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.get_sample_map
+```
+
+````
+
+````{py:method} get_growth_chart(samples, measurements) -> dict[str, typing.Any] | None
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.get_growth_chart
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.get_growth_chart
+```
+
+````
+
+`````
+
+`````{py:class} SamplePoints(**kwargs)
+:canonical: fairdm.core.plugins.SamplePoints
+
+Bases: {py:obj}`fairdm.contrib.plugins.Plugin`
+
+```{autodoc2-docstring} fairdm.core.plugins.SamplePoints
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.plugins.SamplePoints.__init__
+```
+
+````{py:attribute} name
+:canonical: fairdm.core.plugins.SamplePoints.name
+:value: >
+   'sample-points'
+
+```{autodoc2-docstring} fairdm.core.plugins.SamplePoints.name
+```
+
+````
+
+````{py:attribute} url_path
+:canonical: fairdm.core.plugins.SamplePoints.url_path
+:value: >
+   'sample-points'
+
+```{autodoc2-docstring} fairdm.core.plugins.SamplePoints.url_path
+```
+
+````
+
+````{py:attribute} owner
+:canonical: fairdm.core.plugins.SamplePoints.owner
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.plugins.SamplePoints.owner
+```
+
+````
+
+````{py:method} has_permission() -> bool
+:canonical: fairdm.core.plugins.SamplePoints.has_permission
+
+```{autodoc2-docstring} fairdm.core.plugins.SamplePoints.has_permission
+```
+
+````
+
+````{py:method} handle_no_permission()
+:canonical: fairdm.core.plugins.SamplePoints.handle_no_permission
+
+```{autodoc2-docstring} fairdm.core.plugins.SamplePoints.handle_no_permission
+```
+
+````
+
+````{py:method} get(request, *args, **kwargs)
+:canonical: fairdm.core.plugins.SamplePoints.get
+
+```{autodoc2-docstring} fairdm.core.plugins.SamplePoints.get
+```
+
+````
+
+`````
+
+`````{py:class} TypedOverviewPlugin(**kwargs)
+:canonical: fairdm.core.plugins.TypedOverviewPlugin
+
+Bases: {py:obj}`fairdm.core.plugins.RecordOverviewPlugin`
+
+```{autodoc2-docstring} fairdm.core.plugins.TypedOverviewPlugin
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.plugins.TypedOverviewPlugin.__init__
+```
+
+````{py:attribute} base_model
+:canonical: fairdm.core.plugins.TypedOverviewPlugin.base_model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.plugins.TypedOverviewPlugin.base_model
+```
+
+````
+
+````{py:attribute} fallback_template
+:canonical: fairdm.core.plugins.TypedOverviewPlugin.fallback_template
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.plugins.TypedOverviewPlugin.fallback_template
+```
+
+````
+
+````{py:method} check(request, obj)
+:canonical: fairdm.core.plugins.TypedOverviewPlugin.check
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.core.plugins.TypedOverviewPlugin.check
+```
+
+````
+
+````{py:method} handle_no_permission()
+:canonical: fairdm.core.plugins.TypedOverviewPlugin.handle_no_permission
+
+```{autodoc2-docstring} fairdm.core.plugins.TypedOverviewPlugin.handle_no_permission
+```
+
+````
+
+````{py:method} get_template_names()
+:canonical: fairdm.core.plugins.TypedOverviewPlugin.get_template_names
+
+```{autodoc2-docstring} fairdm.core.plugins.TypedOverviewPlugin.get_template_names
+```
+
+````
+
+````{py:method} get_type_info() -> dict[str, typing.Any] | None
+:canonical: fairdm.core.plugins.TypedOverviewPlugin.get_type_info
+
+```{autodoc2-docstring} fairdm.core.plugins.TypedOverviewPlugin.get_type_info
+```
+
+````
+
+`````

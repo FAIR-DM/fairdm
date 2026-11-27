@@ -1,0 +1,245 @@
+# {py:mod}`fairdm.contrib.import_export.views`
+
+```{py:module} fairdm.contrib.import_export.views
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.views
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`DatasetPublishConfirm <fairdm.contrib.import_export.views.DatasetPublishConfirm>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.views.DatasetPublishConfirm
+    :summary:
+    ```
+* - {py:obj}`DatasetPackageDownloadView <fairdm.contrib.import_export.views.DatasetPackageDownloadView>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.views.DatasetPackageDownloadView
+    :summary:
+    ```
+* - {py:obj}`MetadataDownloadView <fairdm.contrib.import_export.views.MetadataDownloadView>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.views.MetadataDownloadView
+    :summary:
+    ```
+* - {py:obj}`TableSchemaView <fairdm.contrib.import_export.views.TableSchemaView>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.views.TableSchemaView
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} DatasetPublishConfirm(**kwargs)
+:canonical: fairdm.contrib.import_export.views.DatasetPublishConfirm
+
+Bases: {py:obj}`django.views.generic.FormView`
+
+```{autodoc2-docstring} fairdm.contrib.import_export.views.DatasetPublishConfirm
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.views.DatasetPublishConfirm.__init__
+```
+
+````{py:attribute} name
+:canonical: fairdm.contrib.import_export.views.DatasetPublishConfirm.name
+:value: >
+   'get-published'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.views.DatasetPublishConfirm.name
+```
+
+````
+
+````{py:attribute} title
+:canonical: fairdm.contrib.import_export.views.DatasetPublishConfirm.title
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.views.DatasetPublishConfirm.title
+```
+
+````
+
+````{py:attribute} heading_config
+:canonical: fairdm.contrib.import_export.views.DatasetPublishConfirm.heading_config
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.views.DatasetPublishConfirm.heading_config
+```
+
+````
+
+````{py:attribute} sections
+:canonical: fairdm.contrib.import_export.views.DatasetPublishConfirm.sections
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.views.DatasetPublishConfirm.sections
+```
+
+````
+
+````{py:attribute} form_class
+:canonical: fairdm.contrib.import_export.views.DatasetPublishConfirm.form_class
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.views.DatasetPublishConfirm.form_class
+```
+
+````
+
+````{py:attribute} form_config
+:canonical: fairdm.contrib.import_export.views.DatasetPublishConfirm.form_config
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.views.DatasetPublishConfirm.form_config
+```
+
+````
+
+````{py:method} check(request, instance, **kwargs)
+:canonical: fairdm.contrib.import_export.views.DatasetPublishConfirm.check
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.contrib.import_export.views.DatasetPublishConfirm.check
+```
+
+````
+
+````{py:method} get_context_data(**kwargs)
+:canonical: fairdm.contrib.import_export.views.DatasetPublishConfirm.get_context_data
+
+```{autodoc2-docstring} fairdm.contrib.import_export.views.DatasetPublishConfirm.get_context_data
+```
+
+````
+
+`````
+
+`````{py:class} DatasetPackageDownloadView(**kwargs)
+:canonical: fairdm.contrib.import_export.views.DatasetPackageDownloadView
+
+Bases: {py:obj}`django.views.generic.detail.SingleObjectMixin`, {py:obj}`django_downloadview.VirtualDownloadView`
+
+```{autodoc2-docstring} fairdm.contrib.import_export.views.DatasetPackageDownloadView
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.views.DatasetPackageDownloadView.__init__
+```
+
+````{py:attribute} model
+:canonical: fairdm.contrib.import_export.views.DatasetPackageDownloadView.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.views.DatasetPackageDownloadView.model
+```
+
+````
+
+````{py:method} get_file()
+:canonical: fairdm.contrib.import_export.views.DatasetPackageDownloadView.get_file
+
+```{autodoc2-docstring} fairdm.contrib.import_export.views.DatasetPackageDownloadView.get_file
+```
+
+````
+
+````{py:method} get_basename()
+:canonical: fairdm.contrib.import_export.views.DatasetPackageDownloadView.get_basename
+
+```{autodoc2-docstring} fairdm.contrib.import_export.views.DatasetPackageDownloadView.get_basename
+```
+
+````
+
+````{py:method} get_content_type(file)
+:canonical: fairdm.contrib.import_export.views.DatasetPackageDownloadView.get_content_type
+
+```{autodoc2-docstring} fairdm.contrib.import_export.views.DatasetPackageDownloadView.get_content_type
+```
+
+````
+
+`````
+
+`````{py:class} MetadataDownloadView(**kwargs)
+:canonical: fairdm.contrib.import_export.views.MetadataDownloadView
+
+Bases: {py:obj}`django_downloadview.VirtualDownloadView`
+
+```{autodoc2-docstring} fairdm.contrib.import_export.views.MetadataDownloadView
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.views.MetadataDownloadView.__init__
+```
+
+````{py:attribute} template_name
+:canonical: fairdm.contrib.import_export.views.MetadataDownloadView.template_name
+:value: >
+   'publishing/datacite44.xml'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.views.MetadataDownloadView.template_name
+```
+
+````
+
+````{py:method} get_file()
+:canonical: fairdm.contrib.import_export.views.MetadataDownloadView.get_file
+
+```{autodoc2-docstring} fairdm.contrib.import_export.views.MetadataDownloadView.get_file
+```
+
+````
+
+````{py:method} get_basename()
+:canonical: fairdm.contrib.import_export.views.MetadataDownloadView.get_basename
+
+```{autodoc2-docstring} fairdm.contrib.import_export.views.MetadataDownloadView.get_basename
+```
+
+````
+
+`````
+
+`````{py:class} TableSchemaView(**kwargs)
+:canonical: fairdm.contrib.import_export.views.TableSchemaView
+
+Bases: {py:obj}`django.views.generic.View`
+
+```{autodoc2-docstring} fairdm.contrib.import_export.views.TableSchemaView
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.views.TableSchemaView.__init__
+```
+
+````{py:method} get(request, name)
+:canonical: fairdm.contrib.import_export.views.TableSchemaView.get
+
+```{autodoc2-docstring} fairdm.contrib.import_export.views.TableSchemaView.get
+```
+
+````
+
+`````

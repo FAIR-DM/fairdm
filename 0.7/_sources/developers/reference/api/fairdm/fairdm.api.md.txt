@@ -1,0 +1,28 @@
+# {py:mod}`fairdm.api`
+
+```{py:module} fairdm.api
+```
+
+```{autodoc2-docstring} fairdm.api
+:allowtitles:
+```
+
+## Submodules
+
+```{toctree}
+:titlesonly:
+:maxdepth: 1
+
+fairdm.api.schema
+fairdm.api.router
+fairdm.api.throttling
+fairdm.api.viewsets
+fairdm.api.pagination
+fairdm.api.filters
+fairdm.api.permissions
+fairdm.api.settings
+fairdm.api.serializers
+fairdm.api.urls
+fairdm.api.apps
+fairdm.api.checks
+```

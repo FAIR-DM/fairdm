@@ -1,0 +1,148 @@
+# {py:mod}`fairdm.contrib.contributors.views.organization`
+
+```{py:module} fairdm.contrib.contributors.views.organization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.organization
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`OrganizationListView <fairdm.contrib.contributors.views.organization.OrganizationListView>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.views.organization.OrganizationListView
+    :summary:
+    ```
+* - {py:obj}`OrganizationCreateView <fairdm.contrib.contributors.views.organization.OrganizationCreateView>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.views.organization.OrganizationCreateView
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} OrganizationListView(**kwargs)
+:canonical: fairdm.contrib.contributors.views.organization.OrganizationListView
+
+Bases: {py:obj}`fairdm.views.FairDMListView`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.organization.OrganizationListView
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.organization.OrganizationListView.__init__
+```
+
+````{py:attribute} model
+:canonical: fairdm.contrib.contributors.views.organization.OrganizationListView.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.organization.OrganizationListView.model
+```
+
+````
+
+````{py:attribute} filterset_class
+:canonical: fairdm.contrib.contributors.views.organization.OrganizationListView.filterset_class
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.organization.OrganizationListView.filterset_class
+```
+
+````
+
+````{py:attribute} title
+:canonical: fairdm.contrib.contributors.views.organization.OrganizationListView.title
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.organization.OrganizationListView.title
+```
+
+````
+
+````{py:attribute} list_item_template
+:canonical: fairdm.contrib.contributors.views.organization.OrganizationListView.list_item_template
+:value: >
+   'contributors/contributor_card.html'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.organization.OrganizationListView.list_item_template
+```
+
+````
+
+````{py:attribute} grid
+:canonical: fairdm.contrib.contributors.views.organization.OrganizationListView.grid
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.organization.OrganizationListView.grid
+```
+
+````
+
+````{py:attribute} toolbar_filters
+:canonical: fairdm.contrib.contributors.views.organization.OrganizationListView.toolbar_filters
+:value: >
+   ['q', 'country']
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.organization.OrganizationListView.toolbar_filters
+```
+
+````
+
+`````
+
+`````{py:class} OrganizationCreateView(**kwargs)
+:canonical: fairdm.contrib.contributors.views.organization.OrganizationCreateView
+
+Bases: {py:obj}`fairdm.views.FairDMCreateView`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.organization.OrganizationCreateView
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.organization.OrganizationCreateView.__init__
+```
+
+````{py:attribute} heading_config
+:canonical: fairdm.contrib.contributors.views.organization.OrganizationCreateView.heading_config
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.organization.OrganizationCreateView.heading_config
+```
+
+````
+
+````{py:attribute} form_class
+:canonical: fairdm.contrib.contributors.views.organization.OrganizationCreateView.form_class
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.organization.OrganizationCreateView.form_class
+```
+
+````
+
+````{py:method} form_valid(form)
+:canonical: fairdm.contrib.contributors.views.organization.OrganizationCreateView.form_valid
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.organization.OrganizationCreateView.form_valid
+```
+
+````
+
+`````

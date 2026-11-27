@@ -1,0 +1,125 @@
+# {py:mod}`fairdm.contrib.contributors.plugins.shared`
+
+```{py:module} fairdm.contrib.contributors.plugins.shared
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`ContributionPage <fairdm.contrib.contributors.plugins.shared.ContributionPage>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionPage
+    :summary:
+    ```
+````
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`level_choices <fairdm.contrib.contributors.plugins.shared.level_choices>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.level_choices
+    :summary:
+    ```
+````
+
+### API
+
+````{py:function} level_choices(record, floor=None)
+:canonical: fairdm.contrib.contributors.plugins.shared.level_choices
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.level_choices
+```
+````
+
+`````{py:class} ContributionPage(**kwargs)
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionPage
+
+Bases: {py:obj}`fairdm.contrib.plugins.Plugin`, {py:obj}`fairdm.views.FairDMTemplateView`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionPage
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionPage.__init__
+```
+
+````{py:attribute} manager_only
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionPage.manager_only
+:value: >
+   False
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionPage.manager_only
+```
+
+````
+
+````{py:method} access()
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionPage.access
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionPage.access
+```
+
+````
+
+````{py:property} overview
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionPage.overview
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionPage.overview
+```
+
+````
+
+````{py:method} dispatch(request, *args, **kwargs)
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionPage.dispatch
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionPage.dispatch
+```
+
+````
+
+````{py:property} list_url
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionPage.list_url
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionPage.list_url
+```
+
+````
+
+````{py:method} get_contribution()
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionPage.get_contribution
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionPage.get_contribution
+```
+
+````
+
+````{py:method} can_see_levels()
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionPage.can_see_levels
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionPage.can_see_levels
+```
+
+````
+
+````{py:method} get_context_data(**kwargs)
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionPage.get_context_data
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionPage.get_context_data
+```
+
+````
+
+`````

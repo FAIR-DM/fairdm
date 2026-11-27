@@ -1,0 +1,254 @@
+# {py:mod}`fairdm.contrib.contributors.forms.organization`
+
+```{py:module} fairdm.contrib.contributors.forms.organization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.organization
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`OrganizationCreateForm <fairdm.contrib.contributors.forms.organization.OrganizationCreateForm>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.forms.organization.OrganizationCreateForm
+    :summary:
+    ```
+* - {py:obj}`OrganizationProfileForm <fairdm.contrib.contributors.forms.organization.OrganizationProfileForm>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.forms.organization.OrganizationProfileForm
+    :summary:
+    ```
+````
+
+### API
+
+``````{py:class} OrganizationCreateForm(*args, **kwargs)
+:canonical: fairdm.contrib.contributors.forms.organization.OrganizationCreateForm
+
+Bases: {py:obj}`fairdm.forms.ModelForm`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.organization.OrganizationCreateForm
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.organization.OrganizationCreateForm.__init__
+```
+
+````{py:attribute} from_ror
+:canonical: fairdm.contrib.contributors.forms.organization.OrganizationCreateForm.from_ror
+:value: >
+   'RorChoiceField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.organization.OrganizationCreateForm.from_ror
+```
+
+````
+
+````{py:attribute} country
+:canonical: fairdm.contrib.contributors.forms.organization.OrganizationCreateForm.country
+:value: >
+   'ChoiceField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.organization.OrganizationCreateForm.country
+```
+
+````
+
+````{py:attribute} location
+:canonical: fairdm.contrib.contributors.forms.organization.OrganizationCreateForm.location
+:value: >
+   'LocationField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.organization.OrganizationCreateForm.location
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.contrib.contributors.forms.organization.OrganizationCreateForm.Meta
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.organization.OrganizationCreateForm.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.contrib.contributors.forms.organization.OrganizationCreateForm.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.organization.OrganizationCreateForm.Meta.model
+```
+
+````
+
+````{py:attribute} fields
+:canonical: fairdm.contrib.contributors.forms.organization.OrganizationCreateForm.Meta.fields
+:value: >
+   ['from_ror', 'name', 'location', 'country']
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.organization.OrganizationCreateForm.Meta.fields
+```
+
+````
+
+````{py:attribute} labels
+:canonical: fairdm.contrib.contributors.forms.organization.OrganizationCreateForm.Meta.labels
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.organization.OrganizationCreateForm.Meta.labels
+```
+
+````
+
+````{py:attribute} help_texts
+:canonical: fairdm.contrib.contributors.forms.organization.OrganizationCreateForm.Meta.help_texts
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.organization.OrganizationCreateForm.Meta.help_texts
+```
+
+````
+
+`````
+
+````{py:method} clean_location()
+:canonical: fairdm.contrib.contributors.forms.organization.OrganizationCreateForm.clean_location
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.organization.OrganizationCreateForm.clean_location
+```
+
+````
+
+````{py:method} clean_name()
+:canonical: fairdm.contrib.contributors.forms.organization.OrganizationCreateForm.clean_name
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.organization.OrganizationCreateForm.clean_name
+```
+
+````
+
+````{py:method} clean_country()
+:canonical: fairdm.contrib.contributors.forms.organization.OrganizationCreateForm.clean_country
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.organization.OrganizationCreateForm.clean_country
+```
+
+````
+
+````{py:method} clean_from_ror()
+:canonical: fairdm.contrib.contributors.forms.organization.OrganizationCreateForm.clean_from_ror
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.organization.OrganizationCreateForm.clean_from_ror
+```
+
+````
+
+````{py:method} save(commit: bool = True)
+:canonical: fairdm.contrib.contributors.forms.organization.OrganizationCreateForm.save
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.organization.OrganizationCreateForm.save
+```
+
+````
+
+``````
+
+``````{py:class} OrganizationProfileForm(*args, **kwargs)
+:canonical: fairdm.contrib.contributors.forms.organization.OrganizationProfileForm
+
+Bases: {py:obj}`fairdm.forms.ModelForm`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.organization.OrganizationProfileForm
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.organization.OrganizationProfileForm.__init__
+```
+
+````{py:attribute} country
+:canonical: fairdm.contrib.contributors.forms.organization.OrganizationProfileForm.country
+:value: >
+   'ChoiceField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.organization.OrganizationProfileForm.country
+```
+
+````
+
+````{py:attribute} location
+:canonical: fairdm.contrib.contributors.forms.organization.OrganizationProfileForm.location
+:value: >
+   'LocationField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.organization.OrganizationProfileForm.location
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.contrib.contributors.forms.organization.OrganizationProfileForm.Meta
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.organization.OrganizationProfileForm.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.contrib.contributors.forms.organization.OrganizationProfileForm.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.organization.OrganizationProfileForm.Meta.model
+```
+
+````
+
+````{py:attribute} fields
+:canonical: fairdm.contrib.contributors.forms.organization.OrganizationProfileForm.Meta.fields
+:value: >
+   ['image', 'name', 'country', 'location', 'profile']
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.organization.OrganizationProfileForm.Meta.fields
+```
+
+````
+
+````{py:attribute} labels
+:canonical: fairdm.contrib.contributors.forms.organization.OrganizationProfileForm.Meta.labels
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.organization.OrganizationProfileForm.Meta.labels
+```
+
+````
+
+````{py:attribute} help_texts
+:canonical: fairdm.contrib.contributors.forms.organization.OrganizationProfileForm.Meta.help_texts
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.organization.OrganizationProfileForm.Meta.help_texts
+```
+
+````
+
+`````
+
+````{py:method} clean_location()
+:canonical: fairdm.contrib.contributors.forms.organization.OrganizationProfileForm.clean_location
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.organization.OrganizationProfileForm.clean_location
+```
+
+````
+
+``````

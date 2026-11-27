@@ -1,0 +1,264 @@
+# {py:mod}`fairdm.contrib.import_export.reader`
+
+```{py:module} fairdm.contrib.import_export.reader
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.reader
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`FileReader <fairdm.contrib.import_export.reader.FileReader>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.reader.FileReader
+    :summary:
+    ```
+````
+
+### API
+
+````{py:exception} FileProblem(message, code)
+:canonical: fairdm.contrib.import_export.reader.FileProblem
+
+Bases: {py:obj}`Exception`
+
+```{autodoc2-docstring} fairdm.contrib.import_export.reader.FileProblem
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.reader.FileProblem.__init__
+```
+
+````
+
+`````{py:class} FileReader
+:canonical: fairdm.contrib.import_export.reader.FileReader
+
+```{autodoc2-docstring} fairdm.contrib.import_export.reader.FileReader
+```
+
+````{py:attribute} FORMATS
+:canonical: fairdm.contrib.import_export.reader.FileReader.FORMATS
+:value: >
+   ('csv', 'tsv', 'xlsx', 'ods')
+
+```{autodoc2-docstring} fairdm.contrib.import_export.reader.FileReader.FORMATS
+```
+
+````
+
+````{py:attribute} MAX_BYTES
+:canonical: fairdm.contrib.import_export.reader.FileReader.MAX_BYTES
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.reader.FileReader.MAX_BYTES
+```
+
+````
+
+````{py:attribute} MAX_ROWS
+:canonical: fairdm.contrib.import_export.reader.FileReader.MAX_ROWS
+:value: >
+   50000
+
+```{autodoc2-docstring} fairdm.contrib.import_export.reader.FileReader.MAX_ROWS
+```
+
+````
+
+````{py:attribute} MAX_COLUMNS
+:canonical: fairdm.contrib.import_export.reader.FileReader.MAX_COLUMNS
+:value: >
+   1024
+
+```{autodoc2-docstring} fairdm.contrib.import_export.reader.FileReader.MAX_COLUMNS
+```
+
+````
+
+````{py:attribute} MAX_UNCOMPRESSED
+:canonical: fairdm.contrib.import_export.reader.FileReader.MAX_UNCOMPRESSED
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.reader.FileReader.MAX_UNCOMPRESSED
+```
+
+````
+
+````{py:attribute} MAX_UNCOMPRESSED_ODS
+:canonical: fairdm.contrib.import_export.reader.FileReader.MAX_UNCOMPRESSED_ODS
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.reader.FileReader.MAX_UNCOMPRESSED_ODS
+```
+
+````
+
+````{py:attribute} MAX_REPEAT
+:canonical: fairdm.contrib.import_export.reader.FileReader.MAX_REPEAT
+:value: >
+   1024
+
+```{autodoc2-docstring} fairdm.contrib.import_export.reader.FileReader.MAX_REPEAT
+```
+
+````
+
+````{py:attribute} SHEET_ENTRIES
+:canonical: fairdm.contrib.import_export.reader.FileReader.SHEET_ENTRIES
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.reader.FileReader.SHEET_ENTRIES
+```
+
+````
+
+````{py:attribute} ENCODINGS
+:canonical: fairdm.contrib.import_export.reader.FileReader.ENCODINGS
+:value: >
+   ('utf-8-sig', 'cp1252', 'latin-1')
+
+```{autodoc2-docstring} fairdm.contrib.import_export.reader.FileReader.ENCODINGS
+```
+
+````
+
+````{py:method} file_format(name)
+:canonical: fairdm.contrib.import_export.reader.FileReader.file_format
+:classmethod:
+
+```{autodoc2-docstring} fairdm.contrib.import_export.reader.FileReader.file_format
+```
+
+````
+
+````{py:method} blank(cell)
+:canonical: fairdm.contrib.import_export.reader.FileReader.blank
+:classmethod:
+
+```{autodoc2-docstring} fairdm.contrib.import_export.reader.FileReader.blank
+```
+
+````
+
+````{py:method} decode(raw)
+:canonical: fairdm.contrib.import_export.reader.FileReader.decode
+:classmethod:
+
+```{autodoc2-docstring} fairdm.contrib.import_export.reader.FileReader.decode
+```
+
+````
+
+````{py:method} too_many_rows()
+:canonical: fairdm.contrib.import_export.reader.FileReader.too_many_rows
+:classmethod:
+
+```{autodoc2-docstring} fairdm.contrib.import_export.reader.FileReader.too_many_rows
+```
+
+````
+
+````{py:method} limited(rows)
+:canonical: fairdm.contrib.import_export.reader.FileReader.limited
+:classmethod:
+
+```{autodoc2-docstring} fairdm.contrib.import_export.reader.FileReader.limited
+```
+
+````
+
+````{py:method} trimmed(row)
+:canonical: fairdm.contrib.import_export.reader.FileReader.trimmed
+:classmethod:
+
+```{autodoc2-docstring} fairdm.contrib.import_export.reader.FileReader.trimmed
+```
+
+````
+
+````{py:method} check_unpacked(raw, fmt)
+:canonical: fairdm.contrib.import_export.reader.FileReader.check_unpacked
+:classmethod:
+
+```{autodoc2-docstring} fairdm.contrib.import_export.reader.FileReader.check_unpacked
+```
+
+````
+
+````{py:method} read_csv(raw, fmt)
+:canonical: fairdm.contrib.import_export.reader.FileReader.read_csv
+:classmethod:
+
+```{autodoc2-docstring} fairdm.contrib.import_export.reader.FileReader.read_csv
+```
+
+````
+
+````{py:method} read_xlsx(raw)
+:canonical: fairdm.contrib.import_export.reader.FileReader.read_xlsx
+:classmethod:
+
+```{autodoc2-docstring} fairdm.contrib.import_export.reader.FileReader.read_xlsx
+```
+
+````
+
+````{py:method} read_ods(raw)
+:canonical: fairdm.contrib.import_export.reader.FileReader.read_ods
+:classmethod:
+
+```{autodoc2-docstring} fairdm.contrib.import_export.reader.FileReader.read_ods
+```
+
+````
+
+````{py:method} ods_rows(table_rows)
+:canonical: fairdm.contrib.import_export.reader.FileReader.ods_rows
+:classmethod:
+
+```{autodoc2-docstring} fairdm.contrib.import_export.reader.FileReader.ods_rows
+```
+
+````
+
+````{py:method} ods_cells(table_row)
+:canonical: fairdm.contrib.import_export.reader.FileReader.ods_cells
+:classmethod:
+
+```{autodoc2-docstring} fairdm.contrib.import_export.reader.FileReader.ods_cells
+```
+
+````
+
+````{py:method} read_grid(raw, fmt)
+:canonical: fairdm.contrib.import_export.reader.FileReader.read_grid
+:classmethod:
+
+```{autodoc2-docstring} fairdm.contrib.import_export.reader.FileReader.read_grid
+```
+
+````
+
+````{py:method} parse(raw, fmt)
+:canonical: fairdm.contrib.import_export.reader.FileReader.parse
+:classmethod:
+
+```{autodoc2-docstring} fairdm.contrib.import_export.reader.FileReader.parse
+```
+
+````
+
+`````

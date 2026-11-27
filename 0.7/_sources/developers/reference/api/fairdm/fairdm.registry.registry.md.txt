@@ -1,0 +1,154 @@
+# {py:mod}`fairdm.registry.registry`
+
+```{py:module} fairdm.registry.registry
+```
+
+```{autodoc2-docstring} fairdm.registry.registry
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`FairDMRegistry <fairdm.registry.registry.FairDMRegistry>`
+  - ```{autodoc2-docstring} fairdm.registry.registry.FairDMRegistry
+    :summary:
+    ```
+````
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`register <fairdm.registry.registry.register>`
+  - ```{autodoc2-docstring} fairdm.registry.registry.register
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`registry <fairdm.registry.registry.registry>`
+  - ```{autodoc2-docstring} fairdm.registry.registry.registry
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} FairDMRegistry()
+:canonical: fairdm.registry.registry.FairDMRegistry
+
+```{autodoc2-docstring} fairdm.registry.registry.FairDMRegistry
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.registry.registry.FairDMRegistry.__init__
+```
+
+````{py:method} get_for_model(model_reference: type[django.db.models.Model] | str) -> fairdm.registry.config.ModelConfiguration
+:canonical: fairdm.registry.registry.FairDMRegistry.get_for_model
+
+```{autodoc2-docstring} fairdm.registry.registry.FairDMRegistry.get_for_model
+```
+
+````
+
+````{py:method} is_registered(model_reference: type[django.db.models.Model] | str) -> bool
+:canonical: fairdm.registry.registry.FairDMRegistry.is_registered
+
+```{autodoc2-docstring} fairdm.registry.registry.FairDMRegistry.is_registered
+```
+
+````
+
+````{py:property} samples
+:canonical: fairdm.registry.registry.FairDMRegistry.samples
+:type: list[type[fairdm.core.sample.models.Sample]]
+
+```{autodoc2-docstring} fairdm.registry.registry.FairDMRegistry.samples
+```
+
+````
+
+````{py:property} measurements
+:canonical: fairdm.registry.registry.FairDMRegistry.measurements
+:type: list[type[fairdm.core.measurement.models.Measurement]]
+
+```{autodoc2-docstring} fairdm.registry.registry.FairDMRegistry.measurements
+```
+
+````
+
+````{py:property} models
+:canonical: fairdm.registry.registry.FairDMRegistry.models
+:type: list[type[django.db.models.Model]]
+
+```{autodoc2-docstring} fairdm.registry.registry.FairDMRegistry.models
+```
+
+````
+
+````{py:method} get_all_configs() -> list[fairdm.registry.config.ModelConfiguration]
+:canonical: fairdm.registry.registry.FairDMRegistry.get_all_configs
+
+```{autodoc2-docstring} fairdm.registry.registry.FairDMRegistry.get_all_configs
+```
+
+````
+
+````{py:method} register(model_class: type[django.db.models.Model], config: fairdm.registry.config.ModelConfiguration | None = None) -> None
+:canonical: fairdm.registry.registry.FairDMRegistry.register
+
+```{autodoc2-docstring} fairdm.registry.registry.FairDMRegistry.register
+```
+
+````
+
+````{py:method} register_admin(model_class: type[django.db.models.Model], config_instance: fairdm.registry.config.ModelConfiguration) -> None
+:canonical: fairdm.registry.registry.FairDMRegistry.register_admin
+
+```{autodoc2-docstring} fairdm.registry.registry.FairDMRegistry.register_admin
+```
+
+````
+
+````{py:method} get_config(model_class: type[django.db.models.Model], config: fairdm.registry.config.ModelConfiguration | type[fairdm.registry.config.ModelConfiguration] | None = None) -> fairdm.registry.config.ModelConfiguration
+:canonical: fairdm.registry.registry.FairDMRegistry.get_config
+
+```{autodoc2-docstring} fairdm.registry.registry.FairDMRegistry.get_config
+```
+
+````
+
+`````
+
+````{py:data} registry
+:canonical: fairdm.registry.registry.registry
+:value: >
+   'FairDMRegistry(...)'
+
+```{autodoc2-docstring} fairdm.registry.registry.registry
+```
+
+````
+
+````{py:function} register(config_cls: type) -> type
+:canonical: fairdm.registry.registry.register
+
+```{autodoc2-docstring} fairdm.registry.registry.register
+```
+````

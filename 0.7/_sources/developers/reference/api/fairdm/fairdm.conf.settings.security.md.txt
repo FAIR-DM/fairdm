@@ -1,0 +1,286 @@
+# {py:mod}`fairdm.conf.settings.security`
+
+```{py:module} fairdm.conf.settings.security
+```
+
+```{autodoc2-docstring} fairdm.conf.settings.security
+:allowtitles:
+```
+
+## Module Contents
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`env <fairdm.conf.settings.security.env>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.security.env
+    :summary:
+    ```
+* - {py:obj}`SECRET_KEY <fairdm.conf.settings.security.SECRET_KEY>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.security.SECRET_KEY
+    :summary:
+    ```
+* - {py:obj}`ALLOWED_HOSTS <fairdm.conf.settings.security.ALLOWED_HOSTS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.security.ALLOWED_HOSTS
+    :summary:
+    ```
+* - {py:obj}`CSRF_TRUSTED_ORIGINS <fairdm.conf.settings.security.CSRF_TRUSTED_ORIGINS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.security.CSRF_TRUSTED_ORIGINS
+    :summary:
+    ```
+* - {py:obj}`DEBUG <fairdm.conf.settings.security.DEBUG>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.security.DEBUG
+    :summary:
+    ```
+* - {py:obj}`SESSION_COOKIE_HTTPONLY <fairdm.conf.settings.security.SESSION_COOKIE_HTTPONLY>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.security.SESSION_COOKIE_HTTPONLY
+    :summary:
+    ```
+* - {py:obj}`CSRF_COOKIE_HTTPONLY <fairdm.conf.settings.security.CSRF_COOKIE_HTTPONLY>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.security.CSRF_COOKIE_HTTPONLY
+    :summary:
+    ```
+* - {py:obj}`SECURE_BROWSER_XSS_FILTER <fairdm.conf.settings.security.SECURE_BROWSER_XSS_FILTER>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.security.SECURE_BROWSER_XSS_FILTER
+    :summary:
+    ```
+* - {py:obj}`X_FRAME_OPTIONS <fairdm.conf.settings.security.X_FRAME_OPTIONS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.security.X_FRAME_OPTIONS
+    :summary:
+    ```
+* - {py:obj}`SECURE_SSL_REDIRECT <fairdm.conf.settings.security.SECURE_SSL_REDIRECT>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.security.SECURE_SSL_REDIRECT
+    :summary:
+    ```
+* - {py:obj}`SECURE_PROXY_SSL_HEADER <fairdm.conf.settings.security.SECURE_PROXY_SSL_HEADER>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.security.SECURE_PROXY_SSL_HEADER
+    :summary:
+    ```
+* - {py:obj}`SESSION_COOKIE_SECURE <fairdm.conf.settings.security.SESSION_COOKIE_SECURE>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.security.SESSION_COOKIE_SECURE
+    :summary:
+    ```
+* - {py:obj}`SESSION_COOKIE_NAME <fairdm.conf.settings.security.SESSION_COOKIE_NAME>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.security.SESSION_COOKIE_NAME
+    :summary:
+    ```
+* - {py:obj}`CSRF_COOKIE_SECURE <fairdm.conf.settings.security.CSRF_COOKIE_SECURE>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.security.CSRF_COOKIE_SECURE
+    :summary:
+    ```
+* - {py:obj}`CSRF_COOKIE_NAME <fairdm.conf.settings.security.CSRF_COOKIE_NAME>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.security.CSRF_COOKIE_NAME
+    :summary:
+    ```
+* - {py:obj}`SECURE_HSTS_PRELOAD <fairdm.conf.settings.security.SECURE_HSTS_PRELOAD>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.security.SECURE_HSTS_PRELOAD
+    :summary:
+    ```
+* - {py:obj}`SECURE_HSTS_SECONDS <fairdm.conf.settings.security.SECURE_HSTS_SECONDS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.security.SECURE_HSTS_SECONDS
+    :summary:
+    ```
+* - {py:obj}`SECURE_HSTS_INCLUDE_SUBDOMAINS <fairdm.conf.settings.security.SECURE_HSTS_INCLUDE_SUBDOMAINS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.security.SECURE_HSTS_INCLUDE_SUBDOMAINS
+    :summary:
+    ```
+* - {py:obj}`SECURE_CONTENT_TYPE_NOSNIFF <fairdm.conf.settings.security.SECURE_CONTENT_TYPE_NOSNIFF>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.security.SECURE_CONTENT_TYPE_NOSNIFF
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} env
+:canonical: fairdm.conf.settings.security.env
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.security.env
+```
+
+````
+
+````{py:data} SECRET_KEY
+:canonical: fairdm.conf.settings.security.SECRET_KEY
+:value: >
+   'env(...)'
+
+```{autodoc2-docstring} fairdm.conf.settings.security.SECRET_KEY
+```
+
+````
+
+````{py:data} ALLOWED_HOSTS
+:canonical: fairdm.conf.settings.security.ALLOWED_HOSTS
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.security.ALLOWED_HOSTS
+```
+
+````
+
+````{py:data} CSRF_TRUSTED_ORIGINS
+:canonical: fairdm.conf.settings.security.CSRF_TRUSTED_ORIGINS
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.security.CSRF_TRUSTED_ORIGINS
+```
+
+````
+
+````{py:data} DEBUG
+:canonical: fairdm.conf.settings.security.DEBUG
+:value: >
+   'bool(...)'
+
+```{autodoc2-docstring} fairdm.conf.settings.security.DEBUG
+```
+
+````
+
+````{py:data} SESSION_COOKIE_HTTPONLY
+:canonical: fairdm.conf.settings.security.SESSION_COOKIE_HTTPONLY
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.conf.settings.security.SESSION_COOKIE_HTTPONLY
+```
+
+````
+
+````{py:data} CSRF_COOKIE_HTTPONLY
+:canonical: fairdm.conf.settings.security.CSRF_COOKIE_HTTPONLY
+:value: >
+   False
+
+```{autodoc2-docstring} fairdm.conf.settings.security.CSRF_COOKIE_HTTPONLY
+```
+
+````
+
+````{py:data} SECURE_BROWSER_XSS_FILTER
+:canonical: fairdm.conf.settings.security.SECURE_BROWSER_XSS_FILTER
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.conf.settings.security.SECURE_BROWSER_XSS_FILTER
+```
+
+````
+
+````{py:data} X_FRAME_OPTIONS
+:canonical: fairdm.conf.settings.security.X_FRAME_OPTIONS
+:value: >
+   'DENY'
+
+```{autodoc2-docstring} fairdm.conf.settings.security.X_FRAME_OPTIONS
+```
+
+````
+
+````{py:data} SECURE_SSL_REDIRECT
+:canonical: fairdm.conf.settings.security.SECURE_SSL_REDIRECT
+:value: >
+   'bool(...)'
+
+```{autodoc2-docstring} fairdm.conf.settings.security.SECURE_SSL_REDIRECT
+```
+
+````
+
+````{py:data} SECURE_PROXY_SSL_HEADER
+:canonical: fairdm.conf.settings.security.SECURE_PROXY_SSL_HEADER
+:value: >
+   ('HTTP_X_FORWARDED_PROTO', 'https')
+
+```{autodoc2-docstring} fairdm.conf.settings.security.SECURE_PROXY_SSL_HEADER
+```
+
+````
+
+````{py:data} SESSION_COOKIE_SECURE
+:canonical: fairdm.conf.settings.security.SESSION_COOKIE_SECURE
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.conf.settings.security.SESSION_COOKIE_SECURE
+```
+
+````
+
+````{py:data} SESSION_COOKIE_NAME
+:canonical: fairdm.conf.settings.security.SESSION_COOKIE_NAME
+:value: >
+   '__Secure-sessionid'
+
+```{autodoc2-docstring} fairdm.conf.settings.security.SESSION_COOKIE_NAME
+```
+
+````
+
+````{py:data} CSRF_COOKIE_SECURE
+:canonical: fairdm.conf.settings.security.CSRF_COOKIE_SECURE
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.conf.settings.security.CSRF_COOKIE_SECURE
+```
+
+````
+
+````{py:data} CSRF_COOKIE_NAME
+:canonical: fairdm.conf.settings.security.CSRF_COOKIE_NAME
+:value: >
+   '__Secure-csrftoken'
+
+```{autodoc2-docstring} fairdm.conf.settings.security.CSRF_COOKIE_NAME
+```
+
+````
+
+````{py:data} SECURE_HSTS_PRELOAD
+:canonical: fairdm.conf.settings.security.SECURE_HSTS_PRELOAD
+:value: >
+   'bool(...)'
+
+```{autodoc2-docstring} fairdm.conf.settings.security.SECURE_HSTS_PRELOAD
+```
+
+````
+
+````{py:data} SECURE_HSTS_SECONDS
+:canonical: fairdm.conf.settings.security.SECURE_HSTS_SECONDS
+:value: >
+   60
+
+```{autodoc2-docstring} fairdm.conf.settings.security.SECURE_HSTS_SECONDS
+```
+
+````
+
+````{py:data} SECURE_HSTS_INCLUDE_SUBDOMAINS
+:canonical: fairdm.conf.settings.security.SECURE_HSTS_INCLUDE_SUBDOMAINS
+:value: >
+   'bool(...)'
+
+```{autodoc2-docstring} fairdm.conf.settings.security.SECURE_HSTS_INCLUDE_SUBDOMAINS
+```
+
+````
+
+````{py:data} SECURE_CONTENT_TYPE_NOSNIFF
+:canonical: fairdm.conf.settings.security.SECURE_CONTENT_TYPE_NOSNIFF
+:value: >
+   'bool(...)'
+
+```{autodoc2-docstring} fairdm.conf.settings.security.SECURE_CONTENT_TYPE_NOSNIFF
+```
+
+````

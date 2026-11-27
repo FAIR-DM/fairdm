@@ -1,0 +1,264 @@
+# {py:mod}`fairdm.contrib.import_export.runner`
+
+```{py:module} fairdm.contrib.import_export.runner
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.runner
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`ImportRun <fairdm.contrib.import_export.runner.ImportRun>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.runner.ImportRun
+    :summary:
+    ```
+````
+
+### API
+
+````{py:exception} DatasetChanged(rows)
+:canonical: fairdm.contrib.import_export.runner.DatasetChanged
+
+Bases: {py:obj}`Exception`
+
+```{autodoc2-docstring} fairdm.contrib.import_export.runner.DatasetChanged
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.runner.DatasetChanged.__init__
+```
+
+````
+
+`````{py:class} ImportRun(job)
+:canonical: fairdm.contrib.import_export.runner.ImportRun
+
+```{autodoc2-docstring} fairdm.contrib.import_export.runner.ImportRun
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.runner.ImportRun.__init__
+```
+
+````{py:attribute} CHUNK
+:canonical: fairdm.contrib.import_export.runner.ImportRun.CHUNK
+:value: >
+   1000
+
+```{autodoc2-docstring} fairdm.contrib.import_export.runner.ImportRun.CHUNK
+```
+
+````
+
+````{py:attribute} FRESH_CHUNK
+:canonical: fairdm.contrib.import_export.runner.ImportRun.FRESH_CHUNK
+:value: >
+   500
+
+```{autodoc2-docstring} fairdm.contrib.import_export.runner.ImportRun.FRESH_CHUNK
+```
+
+````
+
+````{py:attribute} PROGRESS_EVERY
+:canonical: fairdm.contrib.import_export.runner.ImportRun.PROGRESS_EVERY
+:value: >
+   10
+
+```{autodoc2-docstring} fairdm.contrib.import_export.runner.ImportRun.PROGRESS_EVERY
+```
+
+````
+
+````{py:attribute} PROGRESS_SECONDS
+:canonical: fairdm.contrib.import_export.runner.ImportRun.PROGRESS_SECONDS
+:value: >
+   3600
+
+```{autodoc2-docstring} fairdm.contrib.import_export.runner.ImportRun.PROGRESS_SECONDS
+```
+
+````
+
+````{py:attribute} UNTRACKED
+:canonical: fairdm.contrib.import_export.runner.ImportRun.UNTRACKED
+:value: >
+   ('modified',)
+
+```{autodoc2-docstring} fairdm.contrib.import_export.runner.ImportRun.UNTRACKED
+```
+
+````
+
+````{py:property} progress_key
+:canonical: fairdm.contrib.import_export.runner.ImportRun.progress_key
+
+```{autodoc2-docstring} fairdm.contrib.import_export.runner.ImportRun.progress_key
+```
+
+````
+
+````{py:method} progress()
+:canonical: fairdm.contrib.import_export.runner.ImportRun.progress
+
+```{autodoc2-docstring} fairdm.contrib.import_export.runner.ImportRun.progress
+```
+
+````
+
+````{py:method} write_progress(done)
+:canonical: fairdm.contrib.import_export.runner.ImportRun.write_progress
+
+```{autodoc2-docstring} fairdm.contrib.import_export.runner.ImportRun.write_progress
+```
+
+````
+
+````{py:method} read_file()
+:canonical: fairdm.contrib.import_export.runner.ImportRun.read_file
+
+```{autodoc2-docstring} fairdm.contrib.import_export.runner.ImportRun.read_file
+```
+
+````
+
+````{py:method} run(dry_run, user)
+:canonical: fairdm.contrib.import_export.runner.ImportRun.run
+
+```{autodoc2-docstring} fairdm.contrib.import_export.runner.ImportRun.run
+```
+
+````
+
+````{py:method} row_of(number, line, row_result, resource)
+:canonical: fairdm.contrib.import_export.runner.ImportRun.row_of
+
+```{autodoc2-docstring} fairdm.contrib.import_export.runner.ImportRun.row_of
+```
+
+````
+
+````{py:method} describe_valid(row, row_result, resource)
+:canonical: fairdm.contrib.import_export.runner.ImportRun.describe_valid
+
+```{autodoc2-docstring} fairdm.contrib.import_export.runner.ImportRun.describe_valid
+```
+
+````
+
+````{py:method} field_problems(error)
+:canonical: fairdm.contrib.import_export.runner.ImportRun.field_problems
+
+```{autodoc2-docstring} fairdm.contrib.import_export.runner.ImportRun.field_problems
+```
+
+````
+
+````{py:method} error_problem(error)
+:canonical: fairdm.contrib.import_export.runner.ImportRun.error_problem
+
+```{autodoc2-docstring} fairdm.contrib.import_export.runner.ImportRun.error_problem
+```
+
+````
+
+````{py:method} mark_duplicates(rows, result, resource, data)
+:canonical: fairdm.contrib.import_export.runner.ImportRun.mark_duplicates
+
+```{autodoc2-docstring} fairdm.contrib.import_export.runner.ImportRun.mark_duplicates
+```
+
+````
+
+````{py:method} store(rows, error='')
+:canonical: fairdm.contrib.import_export.runner.ImportRun.store
+
+```{autodoc2-docstring} fairdm.contrib.import_export.runner.ImportRun.store
+```
+
+````
+
+````{py:method} check()
+:canonical: fairdm.contrib.import_export.runner.ImportRun.check
+
+```{autodoc2-docstring} fairdm.contrib.import_export.runner.ImportRun.check
+```
+
+````
+
+````{py:method} perform(user)
+:canonical: fairdm.contrib.import_export.runner.ImportRun.perform
+
+```{autodoc2-docstring} fairdm.contrib.import_export.runner.ImportRun.perform
+```
+
+````
+
+````{py:method} confirm(rows)
+:canonical: fairdm.contrib.import_export.runner.ImportRun.confirm
+
+```{autodoc2-docstring} fairdm.contrib.import_export.runner.ImportRun.confirm
+```
+
+````
+
+````{py:method} record_outcomes(written)
+:canonical: fairdm.contrib.import_export.runner.ImportRun.record_outcomes
+
+```{autodoc2-docstring} fairdm.contrib.import_export.runner.ImportRun.record_outcomes
+```
+
+````
+
+````{py:method} before_of(original, record)
+:canonical: fairdm.contrib.import_export.runner.ImportRun.before_of
+
+```{autodoc2-docstring} fairdm.contrib.import_export.runner.ImportRun.before_of
+```
+
+````
+
+````{py:method} delete_file()
+:canonical: fairdm.contrib.import_export.runner.ImportRun.delete_file
+
+```{autodoc2-docstring} fairdm.contrib.import_export.runner.ImportRun.delete_file
+```
+
+````
+
+````{py:method} clear_changes()
+:canonical: fairdm.contrib.import_export.runner.ImportRun.clear_changes
+
+```{autodoc2-docstring} fairdm.contrib.import_export.runner.ImportRun.clear_changes
+```
+
+````
+
+````{py:method} fail(message)
+:canonical: fairdm.contrib.import_export.runner.ImportRun.fail
+
+```{autodoc2-docstring} fairdm.contrib.import_export.runner.ImportRun.fail
+```
+
+````
+
+````{py:method} stop(message)
+:canonical: fairdm.contrib.import_export.runner.ImportRun.stop
+
+```{autodoc2-docstring} fairdm.contrib.import_export.runner.ImportRun.stop
+```
+
+````
+
+`````

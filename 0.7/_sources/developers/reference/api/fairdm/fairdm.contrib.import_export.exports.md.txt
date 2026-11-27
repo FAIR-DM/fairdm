@@ -1,0 +1,303 @@
+# {py:mod}`fairdm.contrib.import_export.exports`
+
+```{py:module} fairdm.contrib.import_export.exports
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.exports
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`ExportFormat <fairdm.contrib.import_export.exports.ExportFormat>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.exports.ExportFormat
+    :summary:
+    ```
+* - {py:obj}`TableExport <fairdm.contrib.import_export.exports.TableExport>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.exports.TableExport
+    :summary:
+    ```
+````
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`format_for <fairdm.contrib.import_export.exports.format_for>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.exports.format_for
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`SHEET_NAME_LIMIT <fairdm.contrib.import_export.exports.SHEET_NAME_LIMIT>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.exports.SHEET_NAME_LIMIT
+    :summary:
+    ```
+* - {py:obj}`FORBIDDEN_IN_SHEET_NAME <fairdm.contrib.import_export.exports.FORBIDDEN_IN_SHEET_NAME>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.exports.FORBIDDEN_IN_SHEET_NAME
+    :summary:
+    ```
+* - {py:obj}`SAMPLE_COLUMNS <fairdm.contrib.import_export.exports.SAMPLE_COLUMNS>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.exports.SAMPLE_COLUMNS
+    :summary:
+    ```
+* - {py:obj}`BYTE_ORDER_MARK <fairdm.contrib.import_export.exports.BYTE_ORDER_MARK>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.exports.BYTE_ORDER_MARK
+    :summary:
+    ```
+* - {py:obj}`MIN_VALIDATED_ROWS <fairdm.contrib.import_export.exports.MIN_VALIDATED_ROWS>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.exports.MIN_VALIDATED_ROWS
+    :summary:
+    ```
+* - {py:obj}`SPARE_VALIDATED_ROWS <fairdm.contrib.import_export.exports.SPARE_VALIDATED_ROWS>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.exports.SPARE_VALIDATED_ROWS
+    :summary:
+    ```
+* - {py:obj}`EXPORT_FORMATS <fairdm.contrib.import_export.exports.EXPORT_FORMATS>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.exports.EXPORT_FORMATS
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} SHEET_NAME_LIMIT
+:canonical: fairdm.contrib.import_export.exports.SHEET_NAME_LIMIT
+:value: >
+   31
+
+```{autodoc2-docstring} fairdm.contrib.import_export.exports.SHEET_NAME_LIMIT
+```
+
+````
+
+````{py:data} FORBIDDEN_IN_SHEET_NAME
+:canonical: fairdm.contrib.import_export.exports.FORBIDDEN_IN_SHEET_NAME
+:value: >
+   'compile(...)'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.exports.FORBIDDEN_IN_SHEET_NAME
+```
+
+````
+
+````{py:data} SAMPLE_COLUMNS
+:canonical: fairdm.contrib.import_export.exports.SAMPLE_COLUMNS
+:value: >
+   ('sample_name', 'sample')
+
+```{autodoc2-docstring} fairdm.contrib.import_export.exports.SAMPLE_COLUMNS
+```
+
+````
+
+````{py:data} BYTE_ORDER_MARK
+:canonical: fairdm.contrib.import_export.exports.BYTE_ORDER_MARK
+:value: >
+   '\ufeff'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.exports.BYTE_ORDER_MARK
+```
+
+````
+
+````{py:data} MIN_VALIDATED_ROWS
+:canonical: fairdm.contrib.import_export.exports.MIN_VALIDATED_ROWS
+:value: >
+   5000
+
+```{autodoc2-docstring} fairdm.contrib.import_export.exports.MIN_VALIDATED_ROWS
+```
+
+````
+
+````{py:data} SPARE_VALIDATED_ROWS
+:canonical: fairdm.contrib.import_export.exports.SPARE_VALIDATED_ROWS
+:value: >
+   1000
+
+```{autodoc2-docstring} fairdm.contrib.import_export.exports.SPARE_VALIDATED_ROWS
+```
+
+````
+
+`````{py:class} ExportFormat
+:canonical: fairdm.contrib.import_export.exports.ExportFormat
+
+```{autodoc2-docstring} fairdm.contrib.import_export.exports.ExportFormat
+```
+
+````{py:attribute} key
+:canonical: fairdm.contrib.import_export.exports.ExportFormat.key
+:type: str
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.exports.ExportFormat.key
+```
+
+````
+
+````{py:attribute} label
+:canonical: fairdm.contrib.import_export.exports.ExportFormat.label
+:type: str
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.exports.ExportFormat.label
+```
+
+````
+
+````{py:attribute} hint
+:canonical: fairdm.contrib.import_export.exports.ExportFormat.hint
+:type: str
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.exports.ExportFormat.hint
+```
+
+````
+
+````{py:attribute} content_type
+:canonical: fairdm.contrib.import_export.exports.ExportFormat.content_type
+:type: str
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.exports.ExportFormat.content_type
+```
+
+````
+
+````{py:attribute} extension
+:canonical: fairdm.contrib.import_export.exports.ExportFormat.extension
+:type: str
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.exports.ExportFormat.extension
+```
+
+````
+
+`````
+
+````{py:data} EXPORT_FORMATS
+:canonical: fairdm.contrib.import_export.exports.EXPORT_FORMATS
+:type: tuple[fairdm.contrib.import_export.exports.ExportFormat, ...]
+:value: >
+   ()
+
+```{autodoc2-docstring} fairdm.contrib.import_export.exports.EXPORT_FORMATS
+```
+
+````
+
+````{py:function} format_for(key: str) -> fairdm.contrib.import_export.exports.ExportFormat | None
+:canonical: fairdm.contrib.import_export.exports.format_for
+
+```{autodoc2-docstring} fairdm.contrib.import_export.exports.format_for
+```
+````
+
+`````{py:class} TableExport(schema)
+:canonical: fairdm.contrib.import_export.exports.TableExport
+
+```{autodoc2-docstring} fairdm.contrib.import_export.exports.TableExport
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.exports.TableExport.__init__
+```
+
+````{py:method} rows(queryset)
+:canonical: fairdm.contrib.import_export.exports.TableExport.rows
+
+```{autodoc2-docstring} fairdm.contrib.import_export.exports.TableExport.rows
+```
+
+````
+
+````{py:method} response(queryset, key, filename_stem)
+:canonical: fairdm.contrib.import_export.exports.TableExport.response
+
+```{autodoc2-docstring} fairdm.contrib.import_export.exports.TableExport.response
+```
+
+````
+
+````{py:method} workbook(rows=())
+:canonical: fairdm.contrib.import_export.exports.TableExport.workbook
+
+```{autodoc2-docstring} fairdm.contrib.import_export.exports.TableExport.workbook
+```
+
+````
+
+````{py:method} sheet_title(name, taken)
+:canonical: fairdm.contrib.import_export.exports.TableExport.sheet_title
+
+```{autodoc2-docstring} fairdm.contrib.import_export.exports.TableExport.sheet_title
+```
+
+````
+
+````{py:method} write_text(sheet, row, column, value)
+:canonical: fairdm.contrib.import_export.exports.TableExport.write_text
+
+```{autodoc2-docstring} fairdm.contrib.import_export.exports.TableExport.write_text
+```
+
+````
+
+````{py:method} write_data(sheet, rows)
+:canonical: fairdm.contrib.import_export.exports.TableExport.write_data
+
+```{autodoc2-docstring} fairdm.contrib.import_export.exports.TableExport.write_data
+```
+
+````
+
+````{py:method} note_for(column)
+:canonical: fairdm.contrib.import_export.exports.TableExport.note_for
+
+```{autodoc2-docstring} fairdm.contrib.import_export.exports.TableExport.note_for
+```
+
+````
+
+````{py:method} write_allowed(sheet, data, count)
+:canonical: fairdm.contrib.import_export.exports.TableExport.write_allowed
+
+```{autodoc2-docstring} fairdm.contrib.import_export.exports.TableExport.write_allowed
+```
+
+````
+
+````{py:method} write_guide(sheet)
+:canonical: fairdm.contrib.import_export.exports.TableExport.write_guide
+
+```{autodoc2-docstring} fairdm.contrib.import_export.exports.TableExport.write_guide
+```
+
+````
+
+`````

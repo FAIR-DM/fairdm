@@ -1,0 +1,70 @@
+# {py:mod}`fairdm.api.router`
+
+```{py:module} fairdm.api.router
+```
+
+```{autodoc2-docstring} fairdm.api.router
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`FairDMAPIRouter <fairdm.api.router.FairDMAPIRouter>`
+  - ```{autodoc2-docstring} fairdm.api.router.FairDMAPIRouter
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`fairdm_api_router <fairdm.api.router.fairdm_api_router>`
+  - ```{autodoc2-docstring} fairdm.api.router.fairdm_api_router
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} FairDMAPIRouter(*args, **kwargs)
+:canonical: fairdm.api.router.FairDMAPIRouter
+
+Bases: {py:obj}`rest_framework.routers.DefaultRouter`
+
+```{autodoc2-docstring} fairdm.api.router.FairDMAPIRouter
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.router.FairDMAPIRouter.__init__
+```
+
+````{py:method} register_types() -> None
+:canonical: fairdm.api.router.FairDMAPIRouter.register_types
+
+```{autodoc2-docstring} fairdm.api.router.FairDMAPIRouter.register_types
+```
+
+````
+
+`````
+
+````{py:data} fairdm_api_router
+:canonical: fairdm.api.router.fairdm_api_router
+:value: >
+   'FairDMAPIRouter(...)'
+
+```{autodoc2-docstring} fairdm.api.router.fairdm_api_router
+```
+
+````

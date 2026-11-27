@@ -1,0 +1,1384 @@
+# {py:mod}`fairdm.contrib.autocomplete.views`
+
+```{py:module} fairdm.contrib.autocomplete.views
+```
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`LimitedAutocompleteMixin <fairdm.contrib.autocomplete.views.LimitedAutocompleteMixin>`
+  - ```{autodoc2-docstring} fairdm.contrib.autocomplete.views.LimitedAutocompleteMixin
+    :summary:
+    ```
+* - {py:obj}`RecordAutocompleteView <fairdm.contrib.autocomplete.views.RecordAutocompleteView>`
+  - ```{autodoc2-docstring} fairdm.contrib.autocomplete.views.RecordAutocompleteView
+    :summary:
+    ```
+* - {py:obj}`DatasetAutocompleteView <fairdm.contrib.autocomplete.views.DatasetAutocompleteView>`
+  - ```{autodoc2-docstring} fairdm.contrib.autocomplete.views.DatasetAutocompleteView
+    :summary:
+    ```
+* - {py:obj}`ProjectAutocompleteView <fairdm.contrib.autocomplete.views.ProjectAutocompleteView>`
+  - ```{autodoc2-docstring} fairdm.contrib.autocomplete.views.ProjectAutocompleteView
+    :summary:
+    ```
+* - {py:obj}`DatasetRecordsAutocompleteView <fairdm.contrib.autocomplete.views.DatasetRecordsAutocompleteView>`
+  - ```{autodoc2-docstring} fairdm.contrib.autocomplete.views.DatasetRecordsAutocompleteView
+    :summary:
+    ```
+* - {py:obj}`SampleAutocompleteView <fairdm.contrib.autocomplete.views.SampleAutocompleteView>`
+  - ```{autodoc2-docstring} fairdm.contrib.autocomplete.views.SampleAutocompleteView
+    :summary:
+    ```
+* - {py:obj}`MeasurementAutocompleteView <fairdm.contrib.autocomplete.views.MeasurementAutocompleteView>`
+  - ```{autodoc2-docstring} fairdm.contrib.autocomplete.views.MeasurementAutocompleteView
+    :summary:
+    ```
+* - {py:obj}`ContributorAutocompleteView <fairdm.contrib.autocomplete.views.ContributorAutocompleteView>`
+  - ```{autodoc2-docstring} fairdm.contrib.autocomplete.views.ContributorAutocompleteView
+    :summary:
+    ```
+* - {py:obj}`PersonAutocompleteView <fairdm.contrib.autocomplete.views.PersonAutocompleteView>`
+  - ```{autodoc2-docstring} fairdm.contrib.autocomplete.views.PersonAutocompleteView
+    :summary:
+    ```
+* - {py:obj}`OrganizationAutocompleteView <fairdm.contrib.autocomplete.views.OrganizationAutocompleteView>`
+  - ```{autodoc2-docstring} fairdm.contrib.autocomplete.views.OrganizationAutocompleteView
+    :summary:
+    ```
+* - {py:obj}`PublicationAutocompleteView <fairdm.contrib.autocomplete.views.PublicationAutocompleteView>`
+  - ```{autodoc2-docstring} fairdm.contrib.autocomplete.views.PublicationAutocompleteView
+    :summary:
+    ```
+* - {py:obj}`TagAutocompleteView <fairdm.contrib.autocomplete.views.TagAutocompleteView>`
+  - ```{autodoc2-docstring} fairdm.contrib.autocomplete.views.TagAutocompleteView
+    :summary:
+    ```
+* - {py:obj}`RorAutocompleteView <fairdm.contrib.autocomplete.views.RorAutocompleteView>`
+  - ```{autodoc2-docstring} fairdm.contrib.autocomplete.views.RorAutocompleteView
+    :summary:
+    ```
+````
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`scoped_view <fairdm.contrib.autocomplete.views.scoped_view>`
+  - ```{autodoc2-docstring} fairdm.contrib.autocomplete.views.scoped_view
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`logger <fairdm.contrib.autocomplete.views.logger>`
+  - ```{autodoc2-docstring} fairdm.contrib.autocomplete.views.logger
+    :summary:
+    ```
+* - {py:obj}`SCOPES <fairdm.contrib.autocomplete.views.SCOPES>`
+  - ```{autodoc2-docstring} fairdm.contrib.autocomplete.views.SCOPES
+    :summary:
+    ```
+* - {py:obj}`PROFILE <fairdm.contrib.autocomplete.views.PROFILE>`
+  - ```{autodoc2-docstring} fairdm.contrib.autocomplete.views.PROFILE
+    :summary:
+    ```
+* - {py:obj}`TAG_SCOPES <fairdm.contrib.autocomplete.views.TAG_SCOPES>`
+  - ```{autodoc2-docstring} fairdm.contrib.autocomplete.views.TAG_SCOPES
+    :summary:
+    ```
+* - {py:obj}`DATASET_RECORD_FIELDS <fairdm.contrib.autocomplete.views.DATASET_RECORD_FIELDS>`
+  - ```{autodoc2-docstring} fairdm.contrib.autocomplete.views.DATASET_RECORD_FIELDS
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} logger
+:canonical: fairdm.contrib.autocomplete.views.logger
+:value: >
+   'getLogger(...)'
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.logger
+```
+
+````
+
+````{py:data} SCOPES
+:canonical: fairdm.contrib.autocomplete.views.SCOPES
+:value: >
+   ('public', 'view', 'edit')
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.SCOPES
+```
+
+````
+
+````{py:data} PROFILE
+:canonical: fairdm.contrib.autocomplete.views.PROFILE
+:value: >
+   'profile'
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.PROFILE
+```
+
+````
+
+````{py:data} TAG_SCOPES
+:canonical: fairdm.contrib.autocomplete.views.TAG_SCOPES
+:value: >
+   ('public', 'view')
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.TAG_SCOPES
+```
+
+````
+
+````{py:function} scoped_view(view_class, scope)
+:canonical: fairdm.contrib.autocomplete.views.scoped_view
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.scoped_view
+```
+````
+
+`````{py:class} LimitedAutocompleteMixin
+:canonical: fairdm.contrib.autocomplete.views.LimitedAutocompleteMixin
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.LimitedAutocompleteMixin
+```
+
+````{py:attribute} skip_authorization
+:canonical: fairdm.contrib.autocomplete.views.LimitedAutocompleteMixin.skip_authorization
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.LimitedAutocompleteMixin.skip_authorization
+```
+
+````
+
+````{py:attribute} allow_anonymous
+:canonical: fairdm.contrib.autocomplete.views.LimitedAutocompleteMixin.allow_anonymous
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.LimitedAutocompleteMixin.allow_anonymous
+```
+
+````
+
+````{py:attribute} page_size
+:canonical: fairdm.contrib.autocomplete.views.LimitedAutocompleteMixin.page_size
+:value: >
+   20
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.LimitedAutocompleteMixin.page_size
+```
+
+````
+
+````{py:attribute} max_pages
+:canonical: fairdm.contrib.autocomplete.views.LimitedAutocompleteMixin.max_pages
+:value: >
+   25
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.LimitedAutocompleteMixin.max_pages
+```
+
+````
+
+````{py:attribute} max_query_length
+:canonical: fairdm.contrib.autocomplete.views.LimitedAutocompleteMixin.max_query_length
+:value: >
+   100
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.LimitedAutocompleteMixin.max_query_length
+```
+
+````
+
+````{py:attribute} allowed_filter_fields
+:canonical: fairdm.contrib.autocomplete.views.LimitedAutocompleteMixin.allowed_filter_fields
+:type: list[str]
+:value: >
+   []
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.LimitedAutocompleteMixin.allowed_filter_fields
+```
+
+````
+
+````{py:attribute} allowed_ordering_fields
+:canonical: fairdm.contrib.autocomplete.views.LimitedAutocompleteMixin.allowed_ordering_fields
+:type: list[str]
+:value: >
+   []
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.LimitedAutocompleteMixin.allowed_ordering_fields
+```
+
+````
+
+````{py:attribute} throttle_classes
+:canonical: fairdm.contrib.autocomplete.views.LimitedAutocompleteMixin.throttle_classes
+:value: >
+   ()
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.LimitedAutocompleteMixin.throttle_classes
+```
+
+````
+
+````{py:method} dispatch(request, *args, **kwargs)
+:canonical: fairdm.contrib.autocomplete.views.LimitedAutocompleteMixin.dispatch
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.LimitedAutocompleteMixin.dispatch
+```
+
+````
+
+````{py:method} setup(request, *args, **kwargs)
+:canonical: fairdm.contrib.autocomplete.views.LimitedAutocompleteMixin.setup
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.LimitedAutocompleteMixin.setup
+```
+
+````
+
+````{py:method} paginate_queryset(queryset)
+:canonical: fairdm.contrib.autocomplete.views.LimitedAutocompleteMixin.paginate_queryset
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.LimitedAutocompleteMixin.paginate_queryset
+```
+
+````
+
+````{py:method} get(request, *args, **kwargs)
+:canonical: fairdm.contrib.autocomplete.views.LimitedAutocompleteMixin.get
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.LimitedAutocompleteMixin.get
+```
+
+````
+
+`````
+
+`````{py:class} RecordAutocompleteView(**kwargs)
+:canonical: fairdm.contrib.autocomplete.views.RecordAutocompleteView
+
+Bases: {py:obj}`fairdm.contrib.autocomplete.views.LimitedAutocompleteMixin`, {py:obj}`django_tomselect.autocompletes.AutocompleteModelView`
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.RecordAutocompleteView
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.RecordAutocompleteView.__init__
+```
+
+````{py:attribute} scope
+:canonical: fairdm.contrib.autocomplete.views.RecordAutocompleteView.scope
+:value: >
+   'view'
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.RecordAutocompleteView.scope
+```
+
+````
+
+````{py:attribute} exact_lookups
+:canonical: fairdm.contrib.autocomplete.views.RecordAutocompleteView.exact_lookups
+:type: list[str]
+:value: >
+   []
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.RecordAutocompleteView.exact_lookups
+```
+
+````
+
+````{py:attribute} noun_plural
+:canonical: fairdm.contrib.autocomplete.views.RecordAutocompleteView.noun_plural
+:value: <Multiline-String>
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.RecordAutocompleteView.noun_plural
+```
+
+````
+
+````{py:attribute} prefer_param
+:canonical: fairdm.contrib.autocomplete.views.RecordAutocompleteView.prefer_param
+:value: >
+   'prefer'
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.RecordAutocompleteView.prefer_param
+```
+
+````
+
+````{py:attribute} preferred_heading
+:canonical: fairdm.contrib.autocomplete.views.RecordAutocompleteView.preferred_heading
+:value: <Multiline-String>
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.RecordAutocompleteView.preferred_heading
+```
+
+````
+
+````{py:method} for_scope(scope)
+:canonical: fairdm.contrib.autocomplete.views.RecordAutocompleteView.for_scope
+:classmethod:
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.RecordAutocompleteView.for_scope
+```
+
+````
+
+````{py:method} base_queryset()
+:canonical: fairdm.contrib.autocomplete.views.RecordAutocompleteView.base_queryset
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.RecordAutocompleteView.base_queryset
+```
+
+````
+
+````{py:method} public_q()
+:canonical: fairdm.contrib.autocomplete.views.RecordAutocompleteView.public_q
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.RecordAutocompleteView.public_q
+```
+
+````
+
+````{py:method} offered(user, *, owner=None, type=None, depends_on=None)
+:canonical: fairdm.contrib.autocomplete.views.RecordAutocompleteView.offered
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.RecordAutocompleteView.offered
+```
+
+````
+
+````{py:method} credited_to(user, owner)
+:canonical: fairdm.contrib.autocomplete.views.RecordAutocompleteView.credited_to
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.RecordAutocompleteView.credited_to
+```
+
+````
+
+````{py:method} requested_owner()
+:canonical: fairdm.contrib.autocomplete.views.RecordAutocompleteView.requested_owner
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.RecordAutocompleteView.requested_owner
+```
+
+````
+
+````{py:method} preference()
+:canonical: fairdm.contrib.autocomplete.views.RecordAutocompleteView.preference
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.RecordAutocompleteView.preference
+```
+
+````
+
+````{py:method} get_queryset()
+:canonical: fairdm.contrib.autocomplete.views.RecordAutocompleteView.get_queryset
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.RecordAutocompleteView.get_queryset
+```
+
+````
+
+````{py:method} exact_q(query)
+:canonical: fairdm.contrib.autocomplete.views.RecordAutocompleteView.exact_q
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.RecordAutocompleteView.exact_q
+```
+
+````
+
+````{py:method} search(queryset, query)
+:canonical: fairdm.contrib.autocomplete.views.RecordAutocompleteView.search
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.RecordAutocompleteView.search
+```
+
+````
+
+````{py:method} get_value_fields()
+:canonical: fairdm.contrib.autocomplete.views.RecordAutocompleteView.get_value_fields
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.RecordAutocompleteView.get_value_fields
+```
+
+````
+
+````{py:method} group_names()
+:canonical: fairdm.contrib.autocomplete.views.RecordAutocompleteView.group_names
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.RecordAutocompleteView.group_names
+```
+
+````
+
+````{py:method} hook_prepare_results(results)
+:canonical: fairdm.contrib.autocomplete.views.RecordAutocompleteView.hook_prepare_results
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.RecordAutocompleteView.hook_prepare_results
+```
+
+````
+
+````{py:method} describe(result)
+:canonical: fairdm.contrib.autocomplete.views.RecordAutocompleteView.describe
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.RecordAutocompleteView.describe
+```
+
+````
+
+`````
+
+`````{py:class} DatasetAutocompleteView(**kwargs)
+:canonical: fairdm.contrib.autocomplete.views.DatasetAutocompleteView
+
+Bases: {py:obj}`fairdm.contrib.autocomplete.views.RecordAutocompleteView`
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.DatasetAutocompleteView
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.DatasetAutocompleteView.__init__
+```
+
+````{py:attribute} model
+:canonical: fairdm.contrib.autocomplete.views.DatasetAutocompleteView.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.DatasetAutocompleteView.model
+```
+
+````
+
+````{py:attribute} noun_plural
+:canonical: fairdm.contrib.autocomplete.views.DatasetAutocompleteView.noun_plural
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.DatasetAutocompleteView.noun_plural
+```
+
+````
+
+````{py:attribute} search_lookups
+:canonical: fairdm.contrib.autocomplete.views.DatasetAutocompleteView.search_lookups
+:value: >
+   ['name__icontains']
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.DatasetAutocompleteView.search_lookups
+```
+
+````
+
+````{py:attribute} exact_lookups
+:canonical: fairdm.contrib.autocomplete.views.DatasetAutocompleteView.exact_lookups
+:value: >
+   ['uuid__iexact']
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.DatasetAutocompleteView.exact_lookups
+```
+
+````
+
+````{py:attribute} value_fields
+:canonical: fairdm.contrib.autocomplete.views.DatasetAutocompleteView.value_fields
+:value: >
+   ['visibility', 'project__name', 'project__visibility']
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.DatasetAutocompleteView.value_fields
+```
+
+````
+
+````{py:method} base_queryset()
+:canonical: fairdm.contrib.autocomplete.views.DatasetAutocompleteView.base_queryset
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.DatasetAutocompleteView.base_queryset
+```
+
+````
+
+````{py:method} public_q()
+:canonical: fairdm.contrib.autocomplete.views.DatasetAutocompleteView.public_q
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.DatasetAutocompleteView.public_q
+```
+
+````
+
+````{py:method} describe(result)
+:canonical: fairdm.contrib.autocomplete.views.DatasetAutocompleteView.describe
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.DatasetAutocompleteView.describe
+```
+
+````
+
+`````
+
+`````{py:class} ProjectAutocompleteView(**kwargs)
+:canonical: fairdm.contrib.autocomplete.views.ProjectAutocompleteView
+
+Bases: {py:obj}`fairdm.contrib.autocomplete.views.RecordAutocompleteView`
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.ProjectAutocompleteView
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.ProjectAutocompleteView.__init__
+```
+
+````{py:attribute} model
+:canonical: fairdm.contrib.autocomplete.views.ProjectAutocompleteView.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.ProjectAutocompleteView.model
+```
+
+````
+
+````{py:attribute} noun_plural
+:canonical: fairdm.contrib.autocomplete.views.ProjectAutocompleteView.noun_plural
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.ProjectAutocompleteView.noun_plural
+```
+
+````
+
+````{py:attribute} search_lookups
+:canonical: fairdm.contrib.autocomplete.views.ProjectAutocompleteView.search_lookups
+:value: >
+   ['name__icontains']
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.ProjectAutocompleteView.search_lookups
+```
+
+````
+
+````{py:attribute} exact_lookups
+:canonical: fairdm.contrib.autocomplete.views.ProjectAutocompleteView.exact_lookups
+:value: >
+   ['uuid__iexact']
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.ProjectAutocompleteView.exact_lookups
+```
+
+````
+
+````{py:attribute} value_fields
+:canonical: fairdm.contrib.autocomplete.views.ProjectAutocompleteView.value_fields
+:value: >
+   ['visibility', 'status']
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.ProjectAutocompleteView.value_fields
+```
+
+````
+
+````{py:method} describe(result)
+:canonical: fairdm.contrib.autocomplete.views.ProjectAutocompleteView.describe
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.ProjectAutocompleteView.describe
+```
+
+````
+
+`````
+
+````{py:data} DATASET_RECORD_FIELDS
+:canonical: fairdm.contrib.autocomplete.views.DATASET_RECORD_FIELDS
+:value: >
+   ['local_id', 'dataset__name', 'polymorphic_ctype']
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.DATASET_RECORD_FIELDS
+```
+
+````
+
+`````{py:class} DatasetRecordsAutocompleteView(**kwargs)
+:canonical: fairdm.contrib.autocomplete.views.DatasetRecordsAutocompleteView
+
+Bases: {py:obj}`fairdm.contrib.autocomplete.views.RecordAutocompleteView`
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.DatasetRecordsAutocompleteView
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.DatasetRecordsAutocompleteView.__init__
+```
+
+````{py:attribute} allowed_filter_fields
+:canonical: fairdm.contrib.autocomplete.views.DatasetRecordsAutocompleteView.allowed_filter_fields
+:value: >
+   ['dataset', 'polymorphic_ctype']
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.DatasetRecordsAutocompleteView.allowed_filter_fields
+```
+
+````
+
+````{py:attribute} preferred_heading
+:canonical: fairdm.contrib.autocomplete.views.DatasetRecordsAutocompleteView.preferred_heading
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.DatasetRecordsAutocompleteView.preferred_heading
+```
+
+````
+
+````{py:method} public_q()
+:canonical: fairdm.contrib.autocomplete.views.DatasetRecordsAutocompleteView.public_q
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.DatasetRecordsAutocompleteView.public_q
+```
+
+````
+
+````{py:method} get_value_fields()
+:canonical: fairdm.contrib.autocomplete.views.DatasetRecordsAutocompleteView.get_value_fields
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.DatasetRecordsAutocompleteView.get_value_fields
+```
+
+````
+
+````{py:method} describe(result)
+:canonical: fairdm.contrib.autocomplete.views.DatasetRecordsAutocompleteView.describe
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.DatasetRecordsAutocompleteView.describe
+```
+
+````
+
+`````
+
+`````{py:class} SampleAutocompleteView(**kwargs)
+:canonical: fairdm.contrib.autocomplete.views.SampleAutocompleteView
+
+Bases: {py:obj}`fairdm.contrib.autocomplete.views.DatasetRecordsAutocompleteView`
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.SampleAutocompleteView
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.SampleAutocompleteView.__init__
+```
+
+````{py:attribute} model
+:canonical: fairdm.contrib.autocomplete.views.SampleAutocompleteView.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.SampleAutocompleteView.model
+```
+
+````
+
+````{py:attribute} noun_plural
+:canonical: fairdm.contrib.autocomplete.views.SampleAutocompleteView.noun_plural
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.SampleAutocompleteView.noun_plural
+```
+
+````
+
+````{py:attribute} search_lookups
+:canonical: fairdm.contrib.autocomplete.views.SampleAutocompleteView.search_lookups
+:value: >
+   ['name__icontains', 'local_id__icontains']
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.SampleAutocompleteView.search_lookups
+```
+
+````
+
+````{py:attribute} exact_lookups
+:canonical: fairdm.contrib.autocomplete.views.SampleAutocompleteView.exact_lookups
+:value: >
+   ['local_id__iexact', 'uuid__iexact']
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.SampleAutocompleteView.exact_lookups
+```
+
+````
+
+````{py:attribute} value_fields
+:canonical: fairdm.contrib.autocomplete.views.SampleAutocompleteView.value_fields
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.SampleAutocompleteView.value_fields
+```
+
+````
+
+````{py:method} exact_q(query)
+:canonical: fairdm.contrib.autocomplete.views.SampleAutocompleteView.exact_q
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.SampleAutocompleteView.exact_q
+```
+
+````
+
+````{py:method} search(queryset, query)
+:canonical: fairdm.contrib.autocomplete.views.SampleAutocompleteView.search
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.SampleAutocompleteView.search
+```
+
+````
+
+`````
+
+`````{py:class} MeasurementAutocompleteView(**kwargs)
+:canonical: fairdm.contrib.autocomplete.views.MeasurementAutocompleteView
+
+Bases: {py:obj}`fairdm.contrib.autocomplete.views.DatasetRecordsAutocompleteView`
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.MeasurementAutocompleteView
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.MeasurementAutocompleteView.__init__
+```
+
+````{py:attribute} model
+:canonical: fairdm.contrib.autocomplete.views.MeasurementAutocompleteView.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.MeasurementAutocompleteView.model
+```
+
+````
+
+````{py:attribute} noun_plural
+:canonical: fairdm.contrib.autocomplete.views.MeasurementAutocompleteView.noun_plural
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.MeasurementAutocompleteView.noun_plural
+```
+
+````
+
+````{py:attribute} search_lookups
+:canonical: fairdm.contrib.autocomplete.views.MeasurementAutocompleteView.search_lookups
+:value: >
+   ['name__icontains', 'local_id__icontains']
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.MeasurementAutocompleteView.search_lookups
+```
+
+````
+
+````{py:attribute} exact_lookups
+:canonical: fairdm.contrib.autocomplete.views.MeasurementAutocompleteView.exact_lookups
+:value: >
+   ['local_id__iexact', 'uuid__iexact']
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.MeasurementAutocompleteView.exact_lookups
+```
+
+````
+
+````{py:attribute} value_fields
+:canonical: fairdm.contrib.autocomplete.views.MeasurementAutocompleteView.value_fields
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.MeasurementAutocompleteView.value_fields
+```
+
+````
+
+`````
+
+`````{py:class} ContributorAutocompleteView(**kwargs)
+:canonical: fairdm.contrib.autocomplete.views.ContributorAutocompleteView
+
+Bases: {py:obj}`fairdm.contrib.autocomplete.views.LimitedAutocompleteMixin`, {py:obj}`django_tomselect.autocompletes.AutocompleteModelView`
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.ContributorAutocompleteView
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.ContributorAutocompleteView.__init__
+```
+
+````{py:attribute} identifier_type
+:canonical: fairdm.contrib.autocomplete.views.ContributorAutocompleteView.identifier_type
+:value: <Multiline-String>
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.ContributorAutocompleteView.identifier_type
+```
+
+````
+
+````{py:attribute} near_heading
+:canonical: fairdm.contrib.autocomplete.views.ContributorAutocompleteView.near_heading
+:value: <Multiline-String>
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.ContributorAutocompleteView.near_heading
+```
+
+````
+
+````{py:attribute} far_heading
+:canonical: fairdm.contrib.autocomplete.views.ContributorAutocompleteView.far_heading
+:value: <Multiline-String>
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.ContributorAutocompleteView.far_heading
+```
+
+````
+
+````{py:method} for_scope(scope)
+:canonical: fairdm.contrib.autocomplete.views.ContributorAutocompleteView.for_scope
+:classmethod:
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.ContributorAutocompleteView.for_scope
+```
+
+````
+
+````{py:method} base_queryset()
+:canonical: fairdm.contrib.autocomplete.views.ContributorAutocompleteView.base_queryset
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.ContributorAutocompleteView.base_queryset
+```
+
+````
+
+````{py:method} offered(user, *, depends_on=None)
+:canonical: fairdm.contrib.autocomplete.views.ContributorAutocompleteView.offered
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.ContributorAutocompleteView.offered
+```
+
+````
+
+````{py:method} nearby(user)
+:canonical: fairdm.contrib.autocomplete.views.ContributorAutocompleteView.nearby
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.ContributorAutocompleteView.nearby
+```
+
+````
+
+````{py:method} exact_q(query)
+:canonical: fairdm.contrib.autocomplete.views.ContributorAutocompleteView.exact_q
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.ContributorAutocompleteView.exact_q
+```
+
+````
+
+````{py:method} get_queryset()
+:canonical: fairdm.contrib.autocomplete.views.ContributorAutocompleteView.get_queryset
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.ContributorAutocompleteView.get_queryset
+```
+
+````
+
+````{py:method} get_value_fields()
+:canonical: fairdm.contrib.autocomplete.views.ContributorAutocompleteView.get_value_fields
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.ContributorAutocompleteView.get_value_fields
+```
+
+````
+
+````{py:method} loaded(ids)
+:canonical: fairdm.contrib.autocomplete.views.ContributorAutocompleteView.loaded
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.ContributorAutocompleteView.loaded
+```
+
+````
+
+````{py:method} describe(result, contributor)
+:canonical: fairdm.contrib.autocomplete.views.ContributorAutocompleteView.describe
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.ContributorAutocompleteView.describe
+```
+
+````
+
+````{py:method} hook_prepare_results(results)
+:canonical: fairdm.contrib.autocomplete.views.ContributorAutocompleteView.hook_prepare_results
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.ContributorAutocompleteView.hook_prepare_results
+```
+
+````
+
+`````
+
+`````{py:class} PersonAutocompleteView(**kwargs)
+:canonical: fairdm.contrib.autocomplete.views.PersonAutocompleteView
+
+Bases: {py:obj}`fairdm.contrib.autocomplete.views.ContributorAutocompleteView`
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.PersonAutocompleteView
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.PersonAutocompleteView.__init__
+```
+
+````{py:attribute} model
+:canonical: fairdm.contrib.autocomplete.views.PersonAutocompleteView.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.PersonAutocompleteView.model
+```
+
+````
+
+````{py:attribute} identifier_type
+:canonical: fairdm.contrib.autocomplete.views.PersonAutocompleteView.identifier_type
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.PersonAutocompleteView.identifier_type
+```
+
+````
+
+````{py:attribute} search_lookups
+:canonical: fairdm.contrib.autocomplete.views.PersonAutocompleteView.search_lookups
+:value: >
+   ['name__icontains', 'alternative_names__icontains']
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.PersonAutocompleteView.search_lookups
+```
+
+````
+
+````{py:attribute} value_fields
+:canonical: fairdm.contrib.autocomplete.views.PersonAutocompleteView.value_fields
+:value: >
+   []
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.PersonAutocompleteView.value_fields
+```
+
+````
+
+````{py:attribute} near_heading
+:canonical: fairdm.contrib.autocomplete.views.PersonAutocompleteView.near_heading
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.PersonAutocompleteView.near_heading
+```
+
+````
+
+````{py:attribute} far_heading
+:canonical: fairdm.contrib.autocomplete.views.PersonAutocompleteView.far_heading
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.PersonAutocompleteView.far_heading
+```
+
+````
+
+````{py:method} offered(user, *, depends_on=None)
+:canonical: fairdm.contrib.autocomplete.views.PersonAutocompleteView.offered
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.PersonAutocompleteView.offered
+```
+
+````
+
+````{py:method} nearby(user)
+:canonical: fairdm.contrib.autocomplete.views.PersonAutocompleteView.nearby
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.PersonAutocompleteView.nearby
+```
+
+````
+
+````{py:method} openable_credits(user)
+:canonical: fairdm.contrib.autocomplete.views.PersonAutocompleteView.openable_credits
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.PersonAutocompleteView.openable_credits
+```
+
+````
+
+````{py:method} loaded(ids)
+:canonical: fairdm.contrib.autocomplete.views.PersonAutocompleteView.loaded
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.PersonAutocompleteView.loaded
+```
+
+````
+
+````{py:method} describe(result, person)
+:canonical: fairdm.contrib.autocomplete.views.PersonAutocompleteView.describe
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.PersonAutocompleteView.describe
+```
+
+````
+
+`````
+
+`````{py:class} OrganizationAutocompleteView(**kwargs)
+:canonical: fairdm.contrib.autocomplete.views.OrganizationAutocompleteView
+
+Bases: {py:obj}`fairdm.contrib.autocomplete.views.ContributorAutocompleteView`
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.OrganizationAutocompleteView
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.OrganizationAutocompleteView.__init__
+```
+
+````{py:attribute} model
+:canonical: fairdm.contrib.autocomplete.views.OrganizationAutocompleteView.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.OrganizationAutocompleteView.model
+```
+
+````
+
+````{py:attribute} identifier_type
+:canonical: fairdm.contrib.autocomplete.views.OrganizationAutocompleteView.identifier_type
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.OrganizationAutocompleteView.identifier_type
+```
+
+````
+
+````{py:attribute} search_lookups
+:canonical: fairdm.contrib.autocomplete.views.OrganizationAutocompleteView.search_lookups
+:value: >
+   ['name__icontains', 'alternative_names__icontains']
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.OrganizationAutocompleteView.search_lookups
+```
+
+````
+
+````{py:attribute} value_fields
+:canonical: fairdm.contrib.autocomplete.views.OrganizationAutocompleteView.value_fields
+:value: >
+   []
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.OrganizationAutocompleteView.value_fields
+```
+
+````
+
+````{py:attribute} near_heading
+:canonical: fairdm.contrib.autocomplete.views.OrganizationAutocompleteView.near_heading
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.OrganizationAutocompleteView.near_heading
+```
+
+````
+
+````{py:attribute} far_heading
+:canonical: fairdm.contrib.autocomplete.views.OrganizationAutocompleteView.far_heading
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.OrganizationAutocompleteView.far_heading
+```
+
+````
+
+````{py:method} nearby(user)
+:canonical: fairdm.contrib.autocomplete.views.OrganizationAutocompleteView.nearby
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.OrganizationAutocompleteView.nearby
+```
+
+````
+
+````{py:method} describe(result, organization)
+:canonical: fairdm.contrib.autocomplete.views.OrganizationAutocompleteView.describe
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.OrganizationAutocompleteView.describe
+```
+
+````
+
+`````
+
+`````{py:class} PublicationAutocompleteView(**kwargs)
+:canonical: fairdm.contrib.autocomplete.views.PublicationAutocompleteView
+
+Bases: {py:obj}`fairdm.contrib.autocomplete.views.LimitedAutocompleteMixin`, {py:obj}`django_tomselect.autocompletes.AutocompleteModelView`
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.PublicationAutocompleteView
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.PublicationAutocompleteView.__init__
+```
+
+````{py:attribute} model
+:canonical: fairdm.contrib.autocomplete.views.PublicationAutocompleteView.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.PublicationAutocompleteView.model
+```
+
+````
+
+````{py:attribute} search_lookups
+:canonical: fairdm.contrib.autocomplete.views.PublicationAutocompleteView.search_lookups
+:value: >
+   ['title__icontains', 'item_names__name__family__icontains', 'item_names__name__literal__icontains']
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.PublicationAutocompleteView.search_lookups
+```
+
+````
+
+````{py:attribute} value_fields
+:canonical: fairdm.contrib.autocomplete.views.PublicationAutocompleteView.value_fields
+:value: >
+   ['title']
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.PublicationAutocompleteView.value_fields
+```
+
+````
+
+````{py:method} for_scope(scope)
+:canonical: fairdm.contrib.autocomplete.views.PublicationAutocompleteView.for_scope
+:classmethod:
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.PublicationAutocompleteView.for_scope
+```
+
+````
+
+````{py:method} bare_doi(text)
+:canonical: fairdm.contrib.autocomplete.views.PublicationAutocompleteView.bare_doi
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.PublicationAutocompleteView.bare_doi
+```
+
+````
+
+````{py:method} get_queryset()
+:canonical: fairdm.contrib.autocomplete.views.PublicationAutocompleteView.get_queryset
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.PublicationAutocompleteView.get_queryset
+```
+
+````
+
+````{py:method} hook_prepare_results(results)
+:canonical: fairdm.contrib.autocomplete.views.PublicationAutocompleteView.hook_prepare_results
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.PublicationAutocompleteView.hook_prepare_results
+```
+
+````
+
+`````
+
+`````{py:class} TagAutocompleteView(**kwargs)
+:canonical: fairdm.contrib.autocomplete.views.TagAutocompleteView
+
+Bases: {py:obj}`fairdm.contrib.autocomplete.views.LimitedAutocompleteMixin`, {py:obj}`django_tomselect.autocompletes.AutocompleteModelView`
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.TagAutocompleteView
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.TagAutocompleteView.__init__
+```
+
+````{py:attribute} model
+:canonical: fairdm.contrib.autocomplete.views.TagAutocompleteView.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.TagAutocompleteView.model
+```
+
+````
+
+````{py:attribute} search_lookups
+:canonical: fairdm.contrib.autocomplete.views.TagAutocompleteView.search_lookups
+:value: >
+   ['name__icontains']
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.TagAutocompleteView.search_lookups
+```
+
+````
+
+````{py:attribute} value_fields
+:canonical: fairdm.contrib.autocomplete.views.TagAutocompleteView.value_fields
+:value: >
+   ['name']
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.TagAutocompleteView.value_fields
+```
+
+````
+
+````{py:attribute} scope
+:canonical: fairdm.contrib.autocomplete.views.TagAutocompleteView.scope
+:value: >
+   'view'
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.TagAutocompleteView.scope
+```
+
+````
+
+````{py:method} for_scope(scope)
+:canonical: fairdm.contrib.autocomplete.views.TagAutocompleteView.for_scope
+:classmethod:
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.TagAutocompleteView.for_scope
+```
+
+````
+
+````{py:method} offered(user, *, depends_on=None)
+:canonical: fairdm.contrib.autocomplete.views.TagAutocompleteView.offered
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.TagAutocompleteView.offered
+```
+
+````
+
+````{py:method} get_queryset()
+:canonical: fairdm.contrib.autocomplete.views.TagAutocompleteView.get_queryset
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.TagAutocompleteView.get_queryset
+```
+
+````
+
+`````
+
+`````{py:class} RorAutocompleteView(**kwargs)
+:canonical: fairdm.contrib.autocomplete.views.RorAutocompleteView
+
+Bases: {py:obj}`fairdm.contrib.autocomplete.views.LimitedAutocompleteMixin`, {py:obj}`django_tomselect.autocompletes.AutocompleteIterablesView`
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.RorAutocompleteView
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.RorAutocompleteView.__init__
+```
+
+````{py:method} for_scope(scope)
+:canonical: fairdm.contrib.autocomplete.views.RorAutocompleteView.for_scope
+:classmethod:
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.RorAutocompleteView.for_scope
+```
+
+````
+
+````{py:method} get_iterable()
+:canonical: fairdm.contrib.autocomplete.views.RorAutocompleteView.get_iterable
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.RorAutocompleteView.get_iterable
+```
+
+````
+
+````{py:method} get(request, *args, **kwargs)
+:canonical: fairdm.contrib.autocomplete.views.RorAutocompleteView.get
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.RorAutocompleteView.get
+```
+
+````
+
+````{py:method} refusal(status)
+:canonical: fairdm.contrib.autocomplete.views.RorAutocompleteView.refusal
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.views.RorAutocompleteView.refusal
+```
+
+````
+
+`````

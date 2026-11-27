@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta property="og:title" content="Records import" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="developers/reference/records-import.html" />
+<meta property="og:site_name" content="fairdm" />
+<meta property="og:description" content="A person with the edit level on a dataset imports a file of one registered sample or measurement type into it. This page describes what the import stores and how the options form is built. The colu..." />
+<meta name="description" content="A person with the edit level on a dataset imports a file of one registered sample or measurement type into it. This page describes what the import stores and how the options form is built. The colu..." />
+
+    <title>Records import &#8212; fairdm 0.7.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/sphinx-daisyui.css?v=aedd34d4" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <script src="../../_static/documentation_options.js?v=d87af0f4"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script kind="utterances">
+
+    var commentsRunWhenDOMLoaded = cb => {
+    if (document.readyState != 'loading') {
+        cb()
+    } else if (document.addEventListener) {
+        document.addEventListener('DOMContentLoaded', cb)
+    } else {
+        document.attachEvent('onreadystatechange', function() {
+        if (document.readyState == 'complete') cb()
+        })
+    }
+}
+
+var addUtterances = () => {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src = "https://utteranc.es/client.js";
+    script.async = "async";
+
+    script.setAttribute("repo", "FAIR-DM/fairdm");
+    script.setAttribute("issue-term", "pathname");
+    script.setAttribute("theme", "preferred-color-scheme");
+    script.setAttribute("label", "documentation");
+    script.setAttribute("crossorigin", "anonymous");
+
+    sections = document.querySelectorAll("div.section");
+    if (sections !== null) {
+        section = sections[sections.length-1];
+        section.appendChild(script);
+    }
+}
+commentsRunWhenDOMLoaded(addUtterances);
+</script>
+    <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+    <link rel="icon" href="../../_static/icon.svg"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="REST API" href="rest-api.html" />
+    <link rel="prev" title="Records export" href="records-export.html" /> 
+  <meta name="color-scheme" content="light dark">
+  <script src="../../_static/scripts/mode.js" data-light-theme="light" data-dark-theme="dark" data-default-mode="auto" data-themes=""></script>
+  <script defer src="../../_static/scripts/keys.js"></script>
+  <script defer src="../../_static/scripts/page-address.js"></script>
+  <script defer src="../../_static/scripts/versions.js"></script>
+  <script defer src="../../_static/scripts/search.js"></script>
+  <script defer src="../../_static/scripts/frame.js"></script>
+  <script defer src="../../_static/scripts/back-to-top.js"></script>
+  <script defer src="../../_static/scripts/announcement.js"></script>
+  <script defer src="../../_static/scripts/navigation.js"></script>
+  <script defer src="../../_static/scripts/theme-menu.js"></script>
+  <script defer src="../../_static/scripts/page-toc.js"></script>
+  </head><body class="bg-base-100 text-base-content antialiased" data-daisy-root="../../" data-daisy-suffix=".html" data-daisy-link-suffix=".html" data-daisy-builder="html" data-daisy-page="developers/reference/records-import">
+  <a href="#main-content" class="btn btn-primary btn-sm absolute -top-20 left-4 z-50 focus:top-2">Skip to content</a>
+  <div class="daisy-layout" style='--daisy-areas-lg: "header header header" "primary main main" "primary footer footer"; --daisy-areas-xl: "header header header" "primary main secondary" "primary footer footer"; --daisy-primary-top: var(--daisy-header-height); --daisy-secondary-top: var(--daisy-header-height);' data-layout="hHh LpR lff" data-header-fixed data-primary-fixed data-secondary-fixed>
+    <input id="daisy-drawer" type="checkbox" class="hidden" aria-hidden="true" tabindex="-1">
+
+    <header class="daisy-area-header daisy-navbar bg-base-100/90 backdrop-blur supports-[backdrop-filter]:bg-base-100/75">
+      <div class="navbar mx-auto min-h-16 max-w-[96rem] gap-2 px-3 sm:px-4">
+        <label for="daisy-drawer" role="button" tabindex="0" data-daisy-drawer-open class="btn btn-ghost btn-square btn-sm lg:hidden" aria-label="Open the navigation"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M4 5h16" /> <path d="M4 12h16" /> <path d="M4 19h16" /> </svg></label>
+        <div class="flex min-w-0 items-center gap-2">
+<a href="../../index.html" class="daisy-brand flex min-w-0 items-center gap-2.5 rounded-field px-1 py-1 font-semibold hover:opacity-85">
+    <img src="../../_static/fairdm_light.svg" alt="fairdm" class="daisy-logo-light h-8 w-auto">
+    <img src="../../_static/fairdm_dark.svg" alt="fairdm" class="daisy-logo-dark h-8 w-auto">
+</a>
+        </div>
+        <div class="hidden min-w-0 flex-1 items-center lg:flex" data-navbar-align="left">
+<nav aria-label="Sections" class="min-w-0">
+  <ul class="flex items-center gap-1"><li class="daisy-dropdown dropdown dropdown-end">
+    <div tabindex="0" role="button" aria-haspopup="menu" class="btn btn-ghost btn-sm font-medium btn-active text-primary" aria-current="true">More<svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m6 9 6 6 6-6" /> </svg></div>
+    <ul tabindex="-1" class="dropdown-content z-40 mt-2 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg menu w-56">
+            <li><a href="../index.html" class="menu-active" aria-current="true">Developers</a></li>
+            <li><a href="../../administrators/index.html">Administrators</a></li>
+            <li><a href="../../users/index.html">Users</a></li>
+            <li><a href="../../explanation/what-fairdm-is-for.html">What FairDM is for</a></li>
+            <li><a href="../../explanation/fair-data-and-research-data-infrastructure.html">FAIR data and research data infrastructure</a></li>
+            <li><a href="../../explanation/the-technology-stack.html">The technology stack</a></li>
+            <li><a href="../../explanation/the-core-data-model.html">The core data model</a></li>
+            <li><a href="../../explanation/how-sample-and-measurement-types-are-stored.html">How sample and measurement types are stored</a></li>
+            <li><a href="../../explanation/controlled-vocabularies.html">Controlled vocabularies</a></li>
+            <li><a href="../../explanation/configuration-over-code.html">Configuration over code</a></li>
+            <li><a href="../../explanation/why-complete-metadata-matters.html">Why complete metadata matters</a></li>
+            <li><a href="../../explanation/how-access-to-a-record-is-decided.html">How access to a record is decided</a></li>
+            <li><a href="../../explanation/why-fairdm-records-contributors.html">Why FairDM records contributors</a></li>
+            <li><a href="../../explanation/how-contributor-accounts-and-credits-work.html">How contributor accounts and credits work</a></li>
+            <li><a href="../../explanation/how-a-profile-is-claimed.html">How a profile is claimed</a></li>
+            <li><a href="../../explanation/how-fairdm-configures-a-portal.html">How FairDM configures a portal</a></li>
+            <li><a href="../../explanation/who-is-asked-to-agree-to-a-legal-document.html">Who is asked to agree to a legal document</a></li>
+            <li><a href="../../explanation/how-locations-are-stored-and-protected.html">How locations are stored and protected</a></li>
+            <li><a href="../../explanation/dataset-publication-dois-and-datacite-metadata.html">Dataset publication, DOIs and DataCite metadata</a></li>
+            <li><a href="../../reference/glossary.html">Glossary</a></li>
+            <li><a href="../../reference/contributor-roles.html">Contributor roles</a></li>
+            <li><a href="../../contributing/index.html">Framework Contributors</a></li>
+            <li><a href="../../adr/index.html">Architecture Decision Records</a></li>
+            <li><a href="../../ROADMAP.html">Roadmap — FairDM</a></li>
+            <li><a href="../../changelog.html">Changelog</a></li>
+            <li><a href="https://github.com/FAIR-DM/fairdm/blob/main/CHANGELOG.md">Changelog<svg class="size-3.5 opacity-60" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M15 3h6v6" /> <path d="M10 14 21 3" /> <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /> </svg><span class="sr-only">(leads outside the site)</span></a></li></ul>
+  </li>
+  </ul>
+</nav></div>
+        <div class="ms-auto flex items-center gap-1">
+          
+<button type="button" class="daisy-search-open daisy-muted btn btn-sm h-9 gap-2 border-base-300 bg-base-200/70 font-normal shadow-none hover:bg-base-200 md:w-56 md:justify-start" aria-label="Search" aria-haspopup="dialog">
+  <svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m21 21-4.34-4.34" /> <circle cx="11" cy="11" r="8" /> </svg>
+  <span class="hidden md:inline">Search the docs</span>
+  <span class="ms-auto hidden items-center gap-0.5 md:flex"><kbd class="kbd kbd-xs" data-daisy-mod>Ctrl</kbd><kbd class="kbd kbd-xs">K</kbd></span>
+</button>
+          <div class="hidden items-center gap-1 sm:flex" data-daisy-navbar-end><div class="daisy-dropdown dropdown dropdown-end" data-daisy-json-url="https://docs.fairdm.org/switcher.json" data-daisy-version-match="0.7" data-text-preferred="Preferred" data-text-current="Current version">
+    <div tabindex="0" role="button" aria-haspopup="menu" class="btn btn-ghost btn-sm gap-1 font-medium" aria-label="Choose a version">
+      <svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /> <path d="M3 3v5h5" /> <path d="M12 7v5l4 2" /> </svg><span data-daisy-version-label>0.7</span><svg class="size-3.5 opacity-60" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m6 9 6 6 6-6" /> </svg></div>
+    <div tabindex="-1" class="dropdown-content z-40 mt-2 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg w-52">
+      <ul class="menu w-full p-0" data-daisy-version-list></ul></div>
+  </div><div class="daisy-dropdown dropdown dropdown-end" data-daisy-mode-names="Match the system|Light|Dark">
+    <div tabindex="0" role="button" aria-haspopup="menu" class="btn btn-ghost btn-sm btn-square" aria-label="Choose the colour theme">
+    <span data-daisy-mode-icon="auto"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M12 2v2" /> <path d="M14.837 16.385a6 6 0 1 1-7.223-7.222c.624-.147.97.66.715 1.248a4 4 0 0 0 5.26 5.259c.589-.255 1.396.09 1.248.715" /> <path d="M16 12a4 4 0 0 0-4-4" /> <path d="m19 5-1.256 1.256" /> <path d="M20 12h2" /> </svg></span>
+    <span data-daisy-mode-icon="light"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <circle cx="12" cy="12" r="4" /> <path d="M12 2v2" /> <path d="M12 20v2" /> <path d="m4.93 4.93 1.41 1.41" /> <path d="m17.66 17.66 1.41 1.41" /> <path d="M2 12h2" /> <path d="M20 12h2" /> <path d="m6.34 17.66-1.41 1.41" /> <path d="m19.07 4.93-1.41 1.41" /> </svg></span>
+    <span data-daisy-mode-icon="dark"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401" /> </svg></span>
+    <span data-daisy-mode-icon="theme"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z" /> <circle cx="13.5" cy="6.5" r=".5" fill="currentColor" /> <circle cx="17.5" cy="10.5" r=".5" fill="currentColor" /> <circle cx="6.5" cy="12.5" r=".5" fill="currentColor" /> <circle cx="8.5" cy="7.5" r=".5" fill="currentColor" /> </svg></span>
+    <span class="sr-only" data-daisy-mode-current></span></div>
+    <div tabindex="-1" class="dropdown-content z-40 mt-2 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg w-60">
+    <ul class="menu menu-sm w-full p-0">
+      <li><button type="button" data-daisy-set-mode="auto" aria-pressed="false"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M12 2v2" /> <path d="M14.837 16.385a6 6 0 1 1-7.223-7.222c.624-.147.97.66.715 1.248a4 4 0 0 0 5.26 5.259c.589-.255 1.396.09 1.248.715" /> <path d="M16 12a4 4 0 0 0-4-4" /> <path d="m19 5-1.256 1.256" /> <path d="M20 12h2" /> </svg>Match the system</button></li>
+      <li><button type="button" data-daisy-set-mode="light" aria-pressed="false"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <circle cx="12" cy="12" r="4" /> <path d="M12 2v2" /> <path d="M12 20v2" /> <path d="m4.93 4.93 1.41 1.41" /> <path d="m17.66 17.66 1.41 1.41" /> <path d="M2 12h2" /> <path d="M20 12h2" /> <path d="m6.34 17.66-1.41 1.41" /> <path d="m19.07 4.93-1.41 1.41" /> </svg>Light</button></li>
+      <li><button type="button" data-daisy-set-mode="dark" aria-pressed="false"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401" /> </svg>Dark</button></li>
+    </ul></div>
+  </div>
+<ul class="flex items-center" aria-label="Icon links">
+    <li><a href="https://github.com/FAIR-DM/fairdm/" class="btn btn-ghost btn-sm btn-square tooltip tooltip-bottom" data-tip="GitHub" aria-label="GitHub"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></a></li>
+</ul></div>
+        </div>
+      </div>
+    </header>
+
+    <aside class="daisy-area-primary" aria-label="Site navigation">
+      <div class="daisy-primary-inner">
+        <div class="flex items-center gap-2 border-b border-base-300 p-3 lg:hidden">
+          
+<a href="../../index.html" class="daisy-brand flex min-w-0 items-center gap-2.5 rounded-field px-1 py-1 font-semibold hover:opacity-85">
+    <img src="../../_static/fairdm_light.svg" alt="fairdm" class="daisy-logo-light h-8 w-auto">
+    <img src="../../_static/fairdm_dark.svg" alt="fairdm" class="daisy-logo-dark h-8 w-auto">
+</a>
+          <label for="daisy-drawer" role="button" tabindex="0" data-daisy-drawer-close class="btn btn-ghost btn-sm btn-square ms-auto" aria-label="Close the navigation"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M18 6 6 18" /> <path d="m6 6 12 12" /> </svg></label>
+        </div>
+        <div class="flex flex-wrap items-center gap-1 border-b border-base-300 p-3 sm:hidden empty:hidden" data-daisy-navbar-end-slot></div>
+          <nav class="border-b border-base-300 p-3 lg:hidden" aria-label="Sections">
+            <ul class="menu menu-sm w-full p-0">
+                <li><a href="../index.html" class="menu-active" aria-current="true">Developers</a></li>
+                <li><a href="../../administrators/index.html">Administrators</a></li>
+                <li><a href="../../users/index.html">Users</a></li>
+                <li><a href="../../explanation/what-fairdm-is-for.html">What FairDM is for</a></li>
+                <li><a href="../../explanation/fair-data-and-research-data-infrastructure.html">FAIR data and research data infrastructure</a></li>
+                <li><a href="../../explanation/the-technology-stack.html">The technology stack</a></li>
+                <li><a href="../../explanation/the-core-data-model.html">The core data model</a></li>
+                <li><a href="../../explanation/how-sample-and-measurement-types-are-stored.html">How sample and measurement types are stored</a></li>
+                <li><a href="../../explanation/controlled-vocabularies.html">Controlled vocabularies</a></li>
+                <li><a href="../../explanation/configuration-over-code.html">Configuration over code</a></li>
+                <li><a href="../../explanation/why-complete-metadata-matters.html">Why complete metadata matters</a></li>
+                <li><a href="../../explanation/how-access-to-a-record-is-decided.html">How access to a record is decided</a></li>
+                <li><a href="../../explanation/why-fairdm-records-contributors.html">Why FairDM records contributors</a></li>
+                <li><a href="../../explanation/how-contributor-accounts-and-credits-work.html">How contributor accounts and credits work</a></li>
+                <li><a href="../../explanation/how-a-profile-is-claimed.html">How a profile is claimed</a></li>
+                <li><a href="../../explanation/how-fairdm-configures-a-portal.html">How FairDM configures a portal</a></li>
+                <li><a href="../../explanation/who-is-asked-to-agree-to-a-legal-document.html">Who is asked to agree to a legal document</a></li>
+                <li><a href="../../explanation/how-locations-are-stored-and-protected.html">How locations are stored and protected</a></li>
+                <li><a href="../../explanation/dataset-publication-dois-and-datacite-metadata.html">Dataset publication, DOIs and DataCite metadata</a></li>
+                <li><a href="../../reference/glossary.html">Glossary</a></li>
+                <li><a href="../../reference/contributor-roles.html">Contributor roles</a></li>
+                <li><a href="../../contributing/index.html">Framework Contributors</a></li>
+                <li><a href="../../adr/index.html">Architecture Decision Records</a></li>
+                <li><a href="../../ROADMAP.html">Roadmap — FairDM</a></li>
+                <li><a href="../../changelog.html">Changelog</a></li>
+                <li><a href="https://github.com/FAIR-DM/fairdm/blob/main/CHANGELOG.md">Changelog<svg class="size-3.5 opacity-60" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M15 3h6v6" /> <path d="M10 14 21 3" /> <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /> </svg><span class="sr-only">(leads outside the site)</span></a></li>
+            </ul>
+          </nav>
+        <div class="daisy-sidebar-scroll px-3 py-4 lg:py-8 lg:ps-4 lg:pe-2">
+          
+<nav class="daisy-nav" aria-label="Documentation"><ul class="daisy-nav-list">
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../tutorial.html">Build your first sample and measurement types</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/add-a-factory-for-a-portal-model.html">How to add a factory for a portal model</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/add-a-filter-to-a-sample-type.html">How to add a filter to a sample type</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/add-a-measurement-type.html">How to add a measurement type</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/add-a-record-field-to-a-form.html">How to add a record field to a form</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/add-a-sample-type.html">How to add a sample type</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/add-a-section-to-the-home-page.html">How to add a section to the home page</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/add-a-start-step-to-a-container.html">How to add a start step to a container</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/add-a-transform-for-another-format.html">How to add a transform for another format</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/add-a-viewset-to-the-api-router.html">How to add a viewset to the API router</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/add-an-action-to-an-overview-page.html">How to add an action to an overview page</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/add-an-environment-override-module.html">How to add an environment override module</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/add-pages-to-a-plugin.html">How to add pages to a plugin</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/add-queryset-methods-to-a-measurement-type.html">How to add queryset methods to a measurement type</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/add-search-and-sort-to-a-list-view.html">How to add search and sort to a list view</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/allow-only-some-sites-to-call-the-api.html">How to allow only some sites to call the API</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/back-up-a-portal.html">How to back up a portal</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/change-a-types-api-address.html">How to change a type’s API address</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/change-how-the-team-page-looks.html">How to change how the team page looks</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/change-the-api-rate-limits.html">How to change the API rate limits</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/change-the-entrance-layout.html">How to change the entrance layout</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/change-the-entrance-pane.html">How to change the entrance pane</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/change-the-portal-theme.html">How to change the portal theme</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/change-what-a-home-page-section-shows.html">How to change what a home page section shows</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/change-what-the-edit-details-page-offers.html">How to change what the edit details page offers</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/change-who-can-open-the-control-room.html">How to change who can open the control room</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/choose-the-fields-the-api-returns.html">How to choose the fields the API returns</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/configure-the-agreement-check.html">How to configure the agreement check</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/count-api-callers-behind-a-proxy.html">How to count API callers behind a proxy</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/create-a-ghost-person.html">How to create a ghost person</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/create-a-plugin.html">How to create a plugin</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/create-an-addon.html">How to create an addon</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/credit-a-person-on-a-record.html">How to credit a person on a record</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/customise-a-generated-component.html">How to customise a generated component</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/customise-a-sample-form.html">How to customise a sample form</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/customise-the-admin-for-a-measurement-type.html">How to customise the admin for a measurement type</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/customise-the-api-documentation.html">How to customise the API documentation</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/customise-the-profile-form.html">How to customise the profile form</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/define-a-portal-role-of-your-own.html">How to define a portal role of your own</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/deploy-a-portal-in-a-container.html">How to deploy a portal in a container</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/develop-a-portal-on-the-development-image.html">How to develop a portal on the development image</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/extend-an-overview-page.html">How to extend an overview page</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/extend-the-profile-claiming-flow.html">How to extend the profile-claiming flow</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/filter-a-list-by-a-record.html">How to filter a list by a record</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/filter-projects-by-vocabulary-keywords.html">How to filter projects by vocabulary keywords</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/find-records-by-where-they-are.html">How to find records by where they are</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/give-a-registered-type-a-location.html">How to give a sample or measurement a location</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/give-a-sample-or-measurement-type-its-own-overview-page.html">How to give a sample or measurement type its own overview page</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/grant-object-permissions-on-polymorphic-models.html">How to grant object permissions on a polymorphic model</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/import-and-export-locations.html">How to import and export locations</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/import-people-from-orcid.html">How to import people from a list of ORCID iDs</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/link-to-a-legal-document.html">How to link to a legal document</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/load-development-data-for-the-overview-pages.html">How to load development data for the overview pages</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/loop-over-the-registered-types.html">How to loop over the registered types</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/narrow-a-record-field-by-another-field.html">How to narrow a record field by another field</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/override-a-fairdm-setting.html">How to override a FairDM setting</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/place-an-organization-on-a-map.html">How to place an organization on a map</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/record-sample-relationships.html">How to record sample relationships</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/register-a-sample-or-measurement-type.html">How to register a sample or measurement type</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/register-an-import-definition.html">How to register an import definition</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/render-markdown-in-a-template.html">How to render markdown in a template</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/restore-a-portal-from-a-backup.html">How to restore a portal from a backup</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/restrict-a-plugin-to-some-users.html">How to restrict a plugin to some users</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/restrict-a-record-field-to-one-sample-type.html">How to restrict a record field to one sample type</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/restrict-api-tokens-to-some-people.html">How to restrict API tokens to some people</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/run-a-background-worker-in-a-container.html">How to run a background worker in a container</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/search-a-registered-type-by-more-than-its-name.html">How to search a registered type by more than its name</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/show-part-of-a-page-to-a-records-team.html">How to show part of a page to a record’s team</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/sign-in-as-each-portal-role-while-developing.html">How to sign in as each portal role while developing</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/sync-a-profile-from-orcid-or-ror-without-celery.html">How to sync a profile from ORCID or ROR without Celery</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/test-a-portal-with-fairdm-factories.html">How to test a portal with FairDM factories</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/upgrade-a-portal-to-django-literature-0-3.html">How to upgrade a portal to django-literature 0.3</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/upgrade-a-portal-to-django-partial-dates.html">How to upgrade a portal to django-partial-dates</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/upgrade-a-portal-to-vocabulary-addresses.html">How to upgrade a portal to vocabulary addresses</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/use-a-controlled-vocabulary-in-a-model.html">How to use a controlled vocabulary in a model</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/use-a-sample-form-in-a-view.html">How to use a sample form in a view</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../how-to/write-a-custom-form-or-filter-for-a-measurement-type.html">How to write a custom form or filter for a measurement type</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="base-views.html">Base views</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="components.html">Components</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="configuration.html">Configuration</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="container-images.html">Container images</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="contribution-levels-and-record-access.html">Contribution levels and record access</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="contributor-models.html">Contributor models</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="core-models.html">Core models</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="crediting.html">Crediting</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="development-accounts.html">Development accounts</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="entrance-pages.html">Entrance pages</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="form-and-filter-mixins.html">Form and filter mixins</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="home-page.html">Home page</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="legal-documents.html">Legal documents</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="location-fields.html">Location fields</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="management-commands.html">Management commands</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="measurement-model.html">Measurement model</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="model-configuration.html">Model configuration</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="model-fields.html">Model fields</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="overview-page-blocks.html">Overview page blocks</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="overview-plugins.html">Overview plugins</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="permalinks.html">Permalinks</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="plugins.html">Plugins</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="portal-roles.html">Portal roles in code</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="profile-claiming.html">Profile claiming</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="recent-activity.html">Recent activity</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="record-editing-pages.html">Record editing pages</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="record-fields.html">Record fields</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="records-export.html">Records export</a></li>
+<li class="daisy-nav-item"><a aria-current="page" class="current daisy-nav-link menu-active reference internal" href="#">Records import</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="rest-api.html">REST API</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="sample-model.html">Sample model</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="settings.html">Settings</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="site-search.html">Site search</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="table-schema.html">Table schema</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="template-tags.html">Template tags</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="factories.html">Test factories</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="registry.html">The registry</a></li>
+<li class="daisy-nav-item daisy-nav-branch"><a class="daisy-nav-link reference internal" href="python-api.html">Python API</a><button type="button" class="daisy-nav-toggle btn btn-ghost btn-xs btn-square" aria-expanded="false" aria-label="Show the pages in Python API"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m9 18 6-6-6-6" /> </svg></button><ul class="daisy-nav-list">
+<li class="daisy-nav-item daisy-nav-branch"><a class="daisy-nav-link reference internal" href="api/fairdm/fairdm.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm</span></code></a><button type="button" class="daisy-nav-toggle btn btn-ghost btn-xs btn-square" aria-expanded="false" aria-label="Show the pages in fairdm"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m9 18 6-6-6-6" /> </svg></button><ul class="daisy-nav-list">
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="api/fairdm/fairdm.registry.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.registry</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="api/fairdm/fairdm.utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="api/fairdm/fairdm.backups.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.backups</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="api/fairdm/fairdm.core.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="api/fairdm/fairdm.views.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.views</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="api/fairdm/fairdm.conf.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.conf</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="api/fairdm/fairdm.forms.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.forms</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="api/fairdm/fairdm.db.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.db</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="api/fairdm/fairdm.api.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="api/fairdm/fairdm.factories.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.factories</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="api/fairdm/fairdm.templatetags.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.templatetags</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="api/fairdm/fairdm.management.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.management</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="api/fairdm/fairdm.contrib.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="api/fairdm/fairdm.models.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.models</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="api/fairdm/fairdm.search.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.search</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="api/fairdm/fairdm.plugins.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.plugins</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="api/fairdm/fairdm.config.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.config</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="api/fairdm/fairdm.permissions.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.permissions</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="api/fairdm/fairdm.portal_roles.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.portal_roles</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="api/fairdm/fairdm.apps.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.apps</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="api/fairdm/fairdm.menus.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.menus</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../explanation/how-a-measurement-reports-its-value.html">How a measurement reports its value</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../explanation/how-api-callers-are-limited.html">How API callers are limited</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../explanation/how-fairdm-views-are-layered.html">How FairDM views are layered</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../explanation/how-markdown-is-sanitised.html">How markdown is sanitised</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../explanation/how-record-fields-decide-what-to-offer.html">How record fields decide what to offer</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../explanation/how-the-container-images-are-versioned.html">How the container images are versioned</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../explanation/what-registering-a-type-produces.html">What registering a type produces</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../explanation/why-factories-create-metadata-only-when-asked.html">Why factories create metadata only when asked</a></li>
+</ul>
+</nav>
+          
+        </div>
+      </div>
+    </aside>
+    <label for="daisy-drawer" class="daisy-drawer-overlay" aria-label="Close the navigation"></label>
+    <main id="main-content" role="main" class="daisy-area-main min-w-0 px-4 sm:px-6 lg:px-10" tabindex="-1">
+      <div class="mx-auto max-w-[46rem] pt-6 pb-10">
+          <div class="daisy-article-header flex min-h-8 items-center gap-3">
+            <div class="min-w-0 flex-1">
+<nav class="breadcrumbs daisy-breadcrumbs py-0 text-sm" aria-label="Breadcrumb">
+  <ul>
+    <li><a href="../../index.html" aria-label="Home"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M12 5v16" /> <path d="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z" /> </svg></a></li>
+    <li><a href="../index.html">Developers</a></li>
+    <li aria-current="page"><span class="truncate">Records import</span></li>
+  </ul>
+</nav></div>
+            <div class="flex shrink-0 items-center gap-1">
+              <a href="https://github.com/FAIR-DM/fairdm/edit/main/docs/developers/reference/records-import.md" class="btn btn-ghost btn-sm btn-square tooltip tooltip-left" data-tip="Edit this page" aria-label="Edit this page"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" /> <path d="m15 5 4 4" /> </svg></a>
+            </div>
+          </div>
+          <details class="daisy-toc-mobile collapse collapse-arrow mt-4 rounded-box border border-base-300 bg-base-200/60 xl:hidden">
+            <summary class="collapse-title min-h-0 py-3 text-sm font-semibold">On this page</summary>
+            <nav class="collapse-content text-sm" aria-label="On this page"><ul class="daisy-toc-list">
+<li><a class="daisy-toc-link reference internal" href="#how-an-import-works">How an import works</a><ul class="daisy-toc-list">
+<li><a class="daisy-toc-link reference internal" href="#files-and-limits">Files and limits</a></li>
+<li><a class="daisy-toc-link reference internal" href="#the-options-and-how-rows-find-records">The options and how rows find records</a></li>
+<li><a class="daisy-toc-link reference internal" href="#the-outcomes-of-a-row">The outcomes of a row</a></li>
+<li><a class="daisy-toc-link reference internal" href="#running-the-check-and-the-import">Running the check and the import</a></li>
+<li><a class="daisy-toc-link reference internal" href="#undoing-an-import">Undoing an import</a></li>
+<li><a class="daisy-toc-link reference internal" href="#what-is-kept-and-for-how-long">What is kept, and for how long</a></li>
+</ul>
+</li>
+<li><a class="daisy-toc-link reference internal" href="#what-an-import-stores">What an import stores</a></li>
+<li><a class="daisy-toc-link reference internal" href="#the-options">The options</a></li>
+<li><a class="daisy-toc-link reference internal" href="#reading-a-file">Reading a file</a></li>
+<li><a class="daisy-toc-link reference internal" href="#matching-headings">Matching headings</a></li>
+<li><a class="daisy-toc-link reference internal" href="#importing-rows">Importing rows</a></li>
+<li><a class="daisy-toc-link reference internal" href="#checking-and-importing-a-file">Checking and importing a file</a></li>
+<li><a class="daisy-toc-link reference internal" href="#the-import-pages">The import pages</a></li>
+</ul>
+</nav>
+          </details>
+        <article class="daisy-sphinx-content">
+          
+  <section id="records-import">
+<h1>Records import<a class="headerlink" aria-label="Link to this heading: Records import" href="#records-import" title="Link to this heading">¶</a></h1>
+<p>A person with the edit level on a dataset imports a file of one registered sample or measurement type into it. This page describes what the import stores and how the options form is built. The columns of a file come from the type’s <a class="reference internal" href="table-schema.html"><span class="std std-doc">table schema</span></a>, and the generated API reference describes every class and argument in <a class="reference internal" href="api/fairdm/fairdm.contrib.import_export.models.html"><span class="std std-doc"><code class="docutils literal notranslate"><span class="pre">models</span></code></span></a> and <a class="reference internal" href="api/fairdm/fairdm.contrib.import_export.forms.html"><span class="std std-doc"><code class="docutils literal notranslate"><span class="pre">forms</span></code></span></a>.</p>
+<section id="how-an-import-works">
+<h2>How an import works<a class="headerlink" aria-label="Link to this heading: How an import works" href="#how-an-import-works" title="Link to this heading">¶</a></h2>
+<p>A person who holds the dataset’s <code class="docutils literal notranslate"><span class="pre">import_data</span></code> permission uploads a file, chooses two options, checks the file and then imports it. Anyone else gets a 404 from every import page of the dataset. The import is in three steps, and nothing is written to the dataset until the third.</p>
+<ol class="arabic simple">
+<li><p><strong>Upload.</strong> The person picks the type, the options and the file. The file is read once so that a refused file shows its problem on the same page and leaves no job behind. When a heading matches no column, the person matches the columns by hand first.</p></li>
+<li><p><strong>Check.</strong> A dry run reads every row and saves nothing. It gives each row an outcome, and the person reads the result before anything is written.</p></li>
+<li><p><strong>Import.</strong> The rows the check showed are written in one transaction. The import checks again as it writes, and when the dataset has changed since the check it writes nothing and shows the new result.</p></li>
+</ol>
+<p>An imported job can be undone, and an unfinished one is discarded after 30 days.</p>
+<section id="files-and-limits">
+<h3>Files and limits<a class="headerlink" aria-label="Link to this heading: Files and limits" href="#files-and-limits" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">FileReader</span></code> reads <code class="docutils literal notranslate"><span class="pre">csv</span></code>, <code class="docutils literal notranslate"><span class="pre">tsv</span></code>, <code class="docutils literal notranslate"><span class="pre">xlsx</span></code> and <code class="docutils literal notranslate"><span class="pre">ods</span></code> files, by their extension in any case. A file may be up to 20 MB and hold up to 50,000 rows of data. Only the first sheet of a workbook or spreadsheet is read. A text file is read as UTF-8, then Windows-1252, then Latin-1. A file over a limit, of another format, empty or with no rows is refused with a <code class="docutils literal notranslate"><span class="pre">FileProblem</span></code> that says why. See <a class="reference internal" href="#reading-a-file">Reading a file</a> for every limit.</p>
+</section>
+<section id="the-options-and-how-rows-find-records">
+<h3>The options and how rows find records<a class="headerlink" aria-label="Link to this heading: The options and how rows find records" href="#the-options-and-how-rows-find-records" title="Link to this heading">¶</a></h3>
+<p>The two options are what the file may do and what an empty cell means. A file may add new records and update existing ones, only add, or only update. An empty cell either keeps the stored value or clears it. A new record has nothing to clear, so its empty cells are left to the model’s defaults.</p>
+<p>A row finds the record it is about by its portal ID first. The portal ID is looked up among all samples or all measurements, whatever their type, and it must name a record of the type being imported. A row with no portal ID finds its record by its Local ID within the dataset. A name never finds a record. A row with neither identifier is a new record when the options allow it. A portal ID that names no record, a Local ID that several records hold, and two rows that mean one record are problems. A portal ID that names a record of another dataset leaves the row out. See <a class="reference internal" href="#importing-rows">Importing rows</a>.</p>
+</section>
+<section id="the-outcomes-of-a-row">
+<h3>The outcomes of a row<a class="headerlink" aria-label="Link to this heading: The outcomes of a row" href="#the-outcomes-of-a-row" title="Link to this heading">¶</a></h3>
+<p>Every row of the file ends with one outcome in <code class="docutils literal notranslate"><span class="pre">ImportRow</span></code>:</p>
+<ul class="simple">
+<li><p><strong>New</strong>: the row adds a record.</p></li>
+<li><p><strong>Update</strong>: the row changes a stored record, and the cells it changes are kept, old and new, for as long as the import is checked or stands. Discarding the import or undoing it clears them.</p></li>
+<li><p><strong>Unchanged</strong>: the row matches a stored record and changes nothing.</p></li>
+<li><p><strong>Left out</strong>: the options do not ask for the row, or it names a record of another dataset. The row keeps a note that says why.</p></li>
+<li><p><strong>Problem</strong>: a cell or the lookup is wrong. The row keeps each column that has a problem with its message.</p></li>
+</ul>
+<p>A job with any problem row is <code class="docutils literal notranslate"><span class="pre">problems</span></code> and imports nothing. A job whose rows are only unchanged or left out is <code class="docutils literal notranslate"><span class="pre">nothing</span></code>. Otherwise it is <code class="docutils literal notranslate"><span class="pre">checked</span></code> and ready to import.</p>
+</section>
+<section id="running-the-check-and-the-import">
+<h3>Running the check and the import<a class="headerlink" aria-label="Link to this heading: Running the check and the import" href="#running-the-check-and-the-import" title="Link to this heading">¶</a></h3>
+<p>The portal’s worker runs the check and the import as three tasks, <code class="docutils literal notranslate"><span class="pre">check_job</span></code>, <code class="docutils literal notranslate"><span class="pre">import_job</span></code> and <code class="docutils literal notranslate"><span class="pre">undo_job</span></code>, so a portal must run a Celery worker. The person’s page shows how many rows the phase has finished, or for an undo how many records it has put back. The count is written to the cache after every tenth row and read by the page, so a cache that is cleared makes the count disappear and nothing else.</p>
+<p>Each task may run for 2,400 seconds before it is asked to stop and 2,700 seconds before it is killed. A file of 50,000 rows of the widest demo type took 11 minutes to check and 13 minutes to import on a development machine. A check that runs out of time or fails unexpectedly ends the job as failed. An import that runs out of time or fails unexpectedly has written nothing and returns the job to <code class="docutils literal notranslate"><span class="pre">checked</span></code>.</p>
+</section>
+<section id="undoing-an-import">
+<h3>Undoing an import<a class="headerlink" aria-label="Link to this heading: Undoing an import" href="#undoing-an-import" title="Link to this heading">¶</a></h3>
+<p>A person who holds the dataset’s <code class="docutils literal notranslate"><span class="pre">import_data</span></code> permission can undo an imported job. The request moves the job to the status undoing and returns at once, and a background task deletes the records the import added and restores the stored values of the records it updated, all in one transaction. The job page shows the progress while the job is undoing. It checks no permission on the records themselves.</p>
+<p>Undo is refused, and nothing is changed and the job returns to imported, when any record the import touched has changed since: a record that no longer exists, a record whose stored values differ from what the import left, a sample the import added that now has measurements, or a record the import added that has gained rows in a related table, such as descriptions, dates, identifiers, contributors or relations. The job’s page then names up to 20 of them and counts the rest. The page also reads the same rule when it is drawn, with <code class="docutils literal notranslate"><span class="pre">ImportUndo.conflicts(lock=False)</span></code>, and shows a note naming up to three of the records in the way in place of the Undo button. The undo request checks again, because a record can change between the page and the request. See <code class="docutils literal notranslate"><span class="pre">ImportUndo</span></code> in <a class="reference internal" href="#checking-and-importing-a-file">Checking and importing a file</a>.</p>
+</section>
+<section id="what-is-kept-and-for-how-long">
+<h3>What is kept, and for how long<a class="headerlink" aria-label="Link to this heading: What is kept, and for how long" href="#what-is-kept-and-for-how-long" title="Link to this heading">¶</a></h3>
+<p>The uploaded file is deleted as soon as the import ends in imported, undone, discarded or failed. The rows of a job keep the outcome of each row. An update row also keeps the cells it changes while the import is checked or stands, and discarding or undoing the import clears them, so no cell of a file outlives an import that was set aside. A job left in matching, checking, ready to import, nothing to change or needs changes is discarded after 30 days by the daily task <code class="docutils literal notranslate"><span class="pre">discard_stale_jobs</span></code>, and its file is deleted. The rows of a discarded job stay, so the import is still listed with its counts. The task is scheduled at 02:30 through django-celery-beat. A portal may change its schedule or switch it off in the beat tables, because the app creates the schedule only when it is missing.</p>
+</section>
+</section>
+<section id="what-an-import-stores">
+<h2>What an import stores<a class="headerlink" aria-label="Link to this heading: What an import stores" href="#what-an-import-stores" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">ImportJob</span></code> is one file uploaded into one dataset, from upload to outcome. It holds the dataset, the registered type’s name, who uploaded it, the stored file, the two options, the column map and a status. The status is one of matching columns, checking, ready to import, nothing to change, needs changes, importing, imported, undone, discarded or failed. The stored file is deleted when the import ends in imported, undone, discarded or failed, and deleting a job deletes it too, so a deleted dataset leaves no file behind. The values shown beside each heading on the column matching page are cleared with the file.</p>
+<p><code class="docutils literal notranslate"><span class="pre">ImportRow</span></code> is the outcome of one row of the file: new, update, unchanged, left out or problem. It holds the row’s number and line in the file, the record it resolves to, the cells that change, the problems found, and what undo needs: the values an update replaced and a digest of the record’s stored values after the import. A row keeps no cell of the file. While the file is stored, the job’s page reads it again, as the download of the problems does, to name a problem row by its name cell and to list the values of a row that adds a record. Once the file is deleted the rows list no value. A job lists its rows through <code class="docutils literal notranslate"><span class="pre">job.rows</span></code>, in file order, and a dataset lists its jobs through <code class="docutils literal notranslate"><span class="pre">dataset.import_jobs</span></code>.</p>
+</section>
+<section id="the-options">
+<h2>The options<a class="headerlink" aria-label="Link to this heading: The options" href="#the-options" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">ImportOptionsForm</span></code> asks two questions with a card for each choice. What the file may do is add new records and update existing ones, only add, or only update. What an empty cell means is keep the stored value or clear it. <code class="docutils literal notranslate"><span class="pre">ImportOptionsForm(brief=True)</span></code> leaves each card’s explanation out, for the column matching page where the choices are already known. <code class="docutils literal notranslate"><span class="pre">chosen(mode,</span> <span class="pre">empty)</span></code> returns the two choices the form holds, or the two it is given when the form is unbound or a choice is missing.</p>
+<p><code class="docutils literal notranslate"><span class="pre">UploadForm</span></code> reads the file of an import. It refuses a file over the size limit or of a format the import does not read.</p>
+</section>
+<section id="reading-a-file">
+<h2>Reading a file<a class="headerlink" aria-label="Link to this heading: Reading a file" href="#reading-a-file" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">FileReader</span></code> turns the bytes of a file into headings and rows. Every method is a class method, so nothing is kept between calls. The generated API reference describes each argument in <a class="reference internal" href="api/fairdm/fairdm.contrib.import_export.reader.html"><span class="std std-doc"><code class="docutils literal notranslate"><span class="pre">reader</span></code></span></a>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">FileProblem</span></code> is the error for a file that cannot be imported. Its message says why in the active language, and its <code class="docutils literal notranslate"><span class="pre">code</span></code> names the reason: <code class="docutils literal notranslate"><span class="pre">format</span></code>, <code class="docutils literal notranslate"><span class="pre">too_large</span></code>, <code class="docutils literal notranslate"><span class="pre">too_large_unpacked</span></code>, <code class="docutils literal notranslate"><span class="pre">unreadable</span></code>, <code class="docutils literal notranslate"><span class="pre">empty</span></code>, <code class="docutils literal notranslate"><span class="pre">no_rows</span></code> or <code class="docutils literal notranslate"><span class="pre">too_many_rows</span></code>.</p>
+<p>The class attributes hold the limits and the formats:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">FORMATS</span></code> lists the formats read: <code class="docutils literal notranslate"><span class="pre">csv</span></code>, <code class="docutils literal notranslate"><span class="pre">tsv</span></code>, <code class="docutils literal notranslate"><span class="pre">xlsx</span></code> and <code class="docutils literal notranslate"><span class="pre">ods</span></code>. JSON and <code class="docutils literal notranslate"><span class="pre">.txt</span></code> files are refused.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MAX_BYTES</span></code> is the largest file, 20 MB. <code class="docutils literal notranslate"><span class="pre">MAX_ROWS</span></code> is the most data rows, 50,000.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MAX_COLUMNS</span></code> is the most cells kept of a row, 1,024. A row is cut to it while it is read, and its empty cells at the end are dropped, so a file that claims thousands of columns, or repeats one value across them, costs only the cells it holds.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MAX_UNCOMPRESSED</span></code> is the largest a workbook’s first sheet may be once unpacked, 200 MB. <code class="docutils literal notranslate"><span class="pre">MAX_UNCOMPRESSED_ODS</span></code> is the largest an OpenDocument spreadsheet’s content may be once unpacked, 24 MB, because odfpy builds the whole document in memory at about twenty times its size. A sheet of one-cell rows takes about 120 bytes a row, so the ceiling is about 200,000 such rows, and a file of the 50,000 rows <code class="docutils literal notranslate"><span class="pre">MAX_ROWS</span></code> allows fits while its rows average 480 bytes of XML, around four filled cells. <code class="docutils literal notranslate"><span class="pre">SHEET_ENTRIES</span></code> names the archive entry that holds the first sheet of each of the two formats.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MAX_REPEAT</span></code> is the most empty cells one repeated cell of an OpenDocument row expands to.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ENCODINGS</span></code> lists the text encodings tried in order: UTF-8 with or without a byte order mark, then Windows-1252, then Latin-1.</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">file_format(name)</span></code> names a file’s format by its extension in any case. <code class="docutils literal notranslate"><span class="pre">parse(raw,</span> <span class="pre">fmt)</span></code> returns the headings, the rows and the line of the file each row came from. Headings are trimmed text with empty ones at the end dropped. Each row is cut or filled with <code class="docutils literal notranslate"><span class="pre">None</span></code> to the number of headings, and rows with no value are left out, so a line number counts them. The first row with a value holds the headings, so a blank first line is skipped.</p>
+<p><code class="docutils literal notranslate"><span class="pre">parse</span></code> reads through <code class="docutils literal notranslate"><span class="pre">read_grid(raw,</span> <span class="pre">fmt)</span></code>, which returns every row as a list of cells and stops one row past <code class="docutils literal notranslate"><span class="pre">MAX_ROWS</span></code> instead of reading to the end of the file. It reads through <code class="docutils literal notranslate"><span class="pre">read_csv</span></code>, <code class="docutils literal notranslate"><span class="pre">read_xlsx</span></code> and <code class="docutils literal notranslate"><span class="pre">read_ods</span></code>. A comma-separated file’s delimiter is sniffed between a comma and a semicolon, and a tab is never its delimiter. An Excel workbook is read through openpyxl’s read-only mode, first sheet only.</p>
+<p>An OpenDocument spreadsheet is read with odfpy and never with tablib, which drops repeated rows and fails on a second sheet. <code class="docutils literal notranslate"><span class="pre">read_ods</span></code> reads the first table only. <code class="docutils literal notranslate"><span class="pre">ods_rows</span></code> repeats a row as many times as it is repeated, and <code class="docutils literal notranslate"><span class="pre">ods_cells</span></code> repeats a cell likewise, giving text, a number, a date as text, a truth value or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+<p>An Excel file whose first sheet is larger than <code class="docutils literal notranslate"><span class="pre">MAX_UNCOMPRESSED</span></code> once unpacked, or an OpenDocument file larger than <code class="docutils literal notranslate"><span class="pre">MAX_UNCOMPRESSED_ODS</span></code>, is refused before it is opened. <code class="docutils literal notranslate"><span class="pre">check_unpacked(raw,</span> <span class="pre">fmt)</span></code> reads the size from the archive’s index. <code class="docutils literal notranslate"><span class="pre">decode(raw)</span></code> reads the bytes of a text file in <code class="docutils literal notranslate"><span class="pre">ENCODINGS</span></code>, <code class="docutils literal notranslate"><span class="pre">blank(cell)</span></code> says whether a cell holds nothing, and <code class="docutils literal notranslate"><span class="pre">trimmed(row)</span></code> cuts a row to <code class="docutils literal notranslate"><span class="pre">MAX_COLUMNS</span></code> and drops its empty cells at the end, and <code class="docutils literal notranslate"><span class="pre">limited(rows)</span></code> is the iterator that stops a read at the row limit. A file whose rows go on past twice that limit counting blank ones is refused with <code class="docutils literal notranslate"><span class="pre">too_many_rows</span></code>, so it is never imported short. Any error a parser raises while it reads the rows, such as an OpenDocument number cell with no number, is refused as <code class="docutils literal notranslate"><span class="pre">unreadable</span></code>.</p>
+</section>
+<section id="matching-headings">
+<h2>Matching headings<a class="headerlink" aria-label="Link to this heading: Matching headings" href="#matching-headings" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">HeadingMatcher(schema)</span></code> finds the column each heading of a file means, for the <a class="reference internal" href="table-schema.html"><span class="std std-doc">table schema</span></a> of one type. Its <code class="docutils literal notranslate"><span class="pre">schema</span></code> attribute is that schema, and its <code class="docutils literal notranslate"><span class="pre">keys</span></code> attribute is the column each normalised heading means. The matcher reads the schema and changes nothing in it. The generated API reference describes each argument in <a class="reference internal" href="api/fairdm/fairdm.contrib.import_export.matching.html"><span class="std std-doc"><code class="docutils literal notranslate"><span class="pre">matching</span></code></span></a>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">normalise(heading)</span></code> reduces a heading to its lower-case letters and digits, so <code class="docutils literal notranslate"><span class="pre">Rock</span> <span class="pre">type</span></code>, <code class="docutils literal notranslate"><span class="pre">rock_type</span></code> and <code class="docutils literal notranslate"><span class="pre">ROCK-TYPE</span></code> are the same. <code class="docutils literal notranslate"><span class="pre">match(heading)</span></code> returns the column a heading means, or <code class="docutils literal notranslate"><span class="pre">None</span></code>. A heading means a column by its name, its label, its label without a unit in brackets at the end, or one of its aliases. A column written on export only is never matched.</p>
+<p>Where two columns claim the same words, the first column of the schema keeps them. <code class="docutils literal notranslate"><span class="pre">Sample</span> <span class="pre">ID</span></code> is an alias of both the Local ID and a measurement’s sample column, so it goes to the Local ID.</p>
+<p><code class="docutils literal notranslate"><span class="pre">match_columns(headings)</span></code> matches a whole file and returns the column name of each heading. The first heading to take a column keeps it, and a second heading for the same column, or one that means no column, is an empty string.</p>
+<p><code class="docutils literal notranslate"><span class="pre">problems(job)</span></code> lists what stops the matched columns from being checked: no column matched, two headings matched to one column, a column a new record needs left unmatched unless the job only updates, and a job that only updates with neither the portal ID nor the Local ID matched. <code class="docutils literal notranslate"><span class="pre">warnings(job)</span></code> lists what is worth knowing and does not stop the check: a job that adds and updates with no identifier column, and a latitude matched without a longitude or the reverse. <code class="docutils literal notranslate"><span class="pre">needs_matching(job)</span></code> is true when a heading of the job is matched to no column or <code class="docutils literal notranslate"><span class="pre">problems</span></code> is not empty. A warning alone leaves the matching to be skipped, so the job page shows the warnings above its panel while the file is checked and its outcome is waiting.</p>
+</section>
+<section id="importing-rows">
+<h2>Importing rows<a class="headerlink" aria-label="Link to this heading: Importing rows" href="#importing-rows" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">ImportDefinition.resource(dataset,</span> <span class="pre">**options)</span></code> builds the resource that imports a file of the definition’s type into a dataset. It passes the options to <code class="docutils literal notranslate"><span class="pre">build_resource(schema,</span> <span class="pre">dataset,</span> <span class="pre">mode=&quot;both&quot;,</span> <span class="pre">empty=&quot;keep&quot;,</span> <span class="pre">user=None,</span> <span class="pre">columns=None)</span></code>, which builds a <code class="docutils literal notranslate"><span class="pre">RecordResource</span></code> that reads only the columns the file has, named by <code class="docutils literal notranslate"><span class="pre">columns</span></code>, and returns it. Each call builds new widgets, so the resource of one file shares nothing with the resource of another. The generated API reference describes each argument in <a class="reference internal" href="api/fairdm/fairdm.contrib.import_export.resources.html"><span class="std std-doc"><code class="docutils literal notranslate"><span class="pre">resources</span></code></span></a>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">RecordResource</span></code> is a django-import-export <code class="docutils literal notranslate"><span class="pre">ModelResource</span></code> that reads and writes each cell through its column’s widget. Its <code class="docutils literal notranslate"><span class="pre">schema</span></code>, <code class="docutils literal notranslate"><span class="pre">dataset</span></code>, <code class="docutils literal notranslate"><span class="pre">mode</span></code> and <code class="docutils literal notranslate"><span class="pre">empty</span></code> attributes hold what it was built from. Rows are numbered from 1 in file order, and <code class="docutils literal notranslate"><span class="pre">row_number</span></code> is the one being imported. After an import, <code class="docutils literal notranslate"><span class="pre">notes</span></code> holds why a row was left out, <code class="docutils literal notranslate"><span class="pre">changes</span></code> holds the cells each updated row changes, and <code class="docutils literal notranslate"><span class="pre">record_pks</span></code> holds the primary key of the stored record each row matched, so a caller can find two rows that mean one record. A row that adds a record has no entry in <code class="docutils literal notranslate"><span class="pre">record_pks</span></code>, as its record has no key until it is saved. <code class="docutils literal notranslate"><span class="pre">on_row</span></code> is a function called with <code class="docutils literal notranslate"><span class="pre">rows_done</span></code>, the number of rows imported so far, after each row.</p>
+<p>A row finds its record in <code class="docutils literal notranslate"><span class="pre">get_instance(instance_loader,</span> <span class="pre">row)</span></code>. A portal ID is looked up first, among all samples or all measurements whatever their type, and <code class="docutils literal notranslate"><span class="pre">located</span></code> holds the record it names. Without a portal ID the Local ID is looked up within the dataset. A name never finds a record. <code class="docutils literal notranslate"><span class="pre">base_model</span></code> is <code class="docutils literal notranslate"><span class="pre">Sample</span></code> or <code class="docutils literal notranslate"><span class="pre">Measurement</span></code>, the model a portal ID is looked up in. A portal ID that names no record, a record of another type, or a Local ID held by several records, raises <code class="docutils literal notranslate"><span class="pre">RowProblem</span></code>. A portal ID that names a record of another dataset leaves the row out, through <code class="docutils literal notranslate"><span class="pre">leave_out_other_dataset()</span></code>, with a note, and a measurement’s note says that it may name a sample of another dataset in the sample column. <code class="docutils literal notranslate"><span class="pre">init_instance(row)</span></code> starts a new record in the dataset.</p>
+<p><code class="docutils literal notranslate"><span class="pre">import_instance(instance,</span> <span class="pre">row,</span> <span class="pre">**kwargs)</span></code> first calls <code class="docutils literal notranslate"><span class="pre">settle_empty_cells(instance,</span> <span class="pre">row)</span></code>, which returns the empty required cells as problems by column, and then reads the cells. A new record has nothing to clear, so its empty cells are dropped and the model’s defaults stand. A stored record keeps its value where a cell is empty, unless <code class="docutils literal notranslate"><span class="pre">empty</span></code> is <code class="docutils literal notranslate"><span class="pre">clear</span></code>. An empty cell in a column a new record needs, or one that would clear a column the record needs, is a problem of that column. It is reported together with the problems found reading the other cells, as one <code class="docutils literal notranslate"><span class="pre">ValidationError</span></code> for the row, whether or not the file has location columns. <code class="docutils literal notranslate"><span class="pre">skip_row(instance,</span> <span class="pre">original,</span> <span class="pre">row,</span> <span class="pre">import_validation_errors)</span></code> leaves out a row that the mode does not ask for, with a note, and a stored record’s row that changes nothing, without one.</p>
+<p><code class="docutils literal notranslate"><span class="pre">RowProblem(column,</span> <span class="pre">message)</span></code> is the error a row’s lookup raises. Its <code class="docutils literal notranslate"><span class="pre">column</span></code> is the heading of the column the problem is in and its <code class="docutils literal notranslate"><span class="pre">message</span></code> says what is wrong, so the check can show it beside that column.</p>
+<p><code class="docutils literal notranslate"><span class="pre">changed_cells(schema,</span> <span class="pre">original,</span> <span class="pre">instance,</span> <span class="pre">row)</span></code> lists the cells a row changes in a stored record. It compares the columns the row has, as the cells an export would write, and returns a dict of <code class="docutils literal notranslate"><span class="pre">column</span></code>, <code class="docutils literal notranslate"><span class="pre">label</span></code>, <code class="docutils literal notranslate"><span class="pre">old</span></code> and <code class="docutils literal notranslate"><span class="pre">new</span></code> for each one that differs.</p>
+<p><code class="docutils literal notranslate"><span class="pre">SampleCellWidget</span></code> reads a measurement’s sample cell once for each distinct text. <code class="docutils literal notranslate"><span class="pre">found</span></code> holds, for each cell read so far, the sample or the refusal it came to, and <code class="docutils literal notranslate"><span class="pre">look_up(text)</span></code> does the lookup that fills it. A widget serves one file, so its <code class="docutils literal notranslate"><span class="pre">found</span></code> is empty when the file starts.</p>
+</section>
+<section id="checking-and-importing-a-file">
+<h2>Checking and importing a file<a class="headerlink" aria-label="Link to this heading: Checking and importing a file" href="#checking-and-importing-a-file" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">ImportRun(job)</span></code> runs the check or the import of one <code class="docutils literal notranslate"><span class="pre">ImportJob</span></code>. Its <code class="docutils literal notranslate"><span class="pre">job</span></code> attribute is the job. <code class="docutils literal notranslate"><span class="pre">run(dry_run,</span> <span class="pre">user)</span></code> reads the job’s file once, keeps the columns the job’s column matches name, runs the type’s resource over the rows and returns the unsaved <code class="docutils literal notranslate"><span class="pre">ImportRow</span></code> of every row, plus the record key and stored state before the import of every row the import wrote. The generated API reference describes each argument in <a class="reference internal" href="api/fairdm/fairdm.contrib.import_export.runner.html"><span class="std std-doc"><code class="docutils literal notranslate"><span class="pre">runner</span></code></span></a>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">check()</span></code> runs the file as a dry run, so nothing is written to the dataset, and replaces the job’s rows with the outcome of every row: new, update, unchanged, left out with its note, or a problem with each column that has one. A row whose record another row is also about is a problem, whether the two rows name the record by portal ID, by Local ID or one of each. The job ends as <code class="docutils literal notranslate"><span class="pre">problems</span></code> when any row is a problem, as <code class="docutils literal notranslate"><span class="pre">checked</span></code> when the import would write a record, and as <code class="docutils literal notranslate"><span class="pre">nothing</span></code> otherwise. A file that cannot be read ends the job as <code class="docutils literal notranslate"><span class="pre">failed</span></code> with the reason in <code class="docutils literal notranslate"><span class="pre">error</span></code>, and its file is deleted.</p>
+<p><code class="docutils literal notranslate"><span class="pre">perform(user)</span></code> writes the rows the check showed, in one transaction. It locks the dataset row first, so the imports of one dataset write one at a time, and then reads the job again and does nothing unless its status is <code class="docutils literal notranslate"><span class="pre">importing</span></code>. It compares each row’s outcome and changes with the check’s rows. When any differs, nothing is saved, the rows are replaced with the new outcomes, and the job returns to <code class="docutils literal notranslate"><span class="pre">problems</span></code>, <code class="docutils literal notranslate"><span class="pre">checked</span></code> or <code class="docutils literal notranslate"><span class="pre">nothing</span></code> with an <code class="docutils literal notranslate"><span class="pre">error</span></code> that says the dataset changed since the check. Otherwise it reads every written record back in chunks of 500 and keeps its key, portal ID and digest on the row, and for an updated record the stored values it replaced in <code class="docutils literal notranslate"><span class="pre">before</span></code>, each written with <code class="docutils literal notranslate"><span class="pre">field.value_to_string</span></code> so a restore reads it with <code class="docutils literal notranslate"><span class="pre">field.to_python</span></code>, and an empty value written as <code class="docutils literal notranslate"><span class="pre">None</span></code>. The job then ends as <code class="docutils literal notranslate"><span class="pre">imported</span></code> and its file is deleted.</p>
+<p><code class="docutils literal notranslate"><span class="pre">progress()</span></code> returns how many rows the running phase has finished, as of the last ten, or <code class="docutils literal notranslate"><span class="pre">None</span></code> when no phase is running. <code class="docutils literal notranslate"><span class="pre">progress_key</span></code> is the cache key it reads, and <code class="docutils literal notranslate"><span class="pre">write_progress(done)</span></code> writes it. <code class="docutils literal notranslate"><span class="pre">delete_file()</span></code> deletes the stored file and clears the job’s example values, so no cell of the file outlives it. <code class="docutils literal notranslate"><span class="pre">clear_changes()</span></code> clears the changed cells of the job’s rows, and runs when the job is discarded or undone. <code class="docutils literal notranslate"><span class="pre">fail(message)</span></code> ends the job as failed, and <code class="docutils literal notranslate"><span class="pre">stop(message)</span></code> returns an import that ran out of time to <code class="docutils literal notranslate"><span class="pre">checked</span></code>. <code class="docutils literal notranslate"><span class="pre">DatasetChanged</span></code> is the error <code class="docutils literal notranslate"><span class="pre">confirm(rows)</span></code> raises when the import’s rows differ from the check’s, and its <code class="docutils literal notranslate"><span class="pre">rows</span></code> attribute holds the import’s own rows.</p>
+<p><code class="docutils literal notranslate"><span class="pre">ImportUndo(job).digest(record)</span></code> is the SHA-256 of the canonical JSON of every concrete field of a record, each written with <code class="docutils literal notranslate"><span class="pre">field.value_to_string</span></code>. <code class="docutils literal notranslate"><span class="pre">modified</span></code> is one of the fields, so a save that changes nothing still changes the digest. Read the record from the database before calling it.</p>
+<p><code class="docutils literal notranslate"><span class="pre">ImportUndo(job).conflicts(limit=20)</span></code> lists the records that stand in the way of an undo: a record that no longer exists, one whose digest differs from the one the import stored, a sample the import added that now has measurements, and a record the import added that has rows in any related table, read from the model’s options (reverse foreign keys and generic relations, not the link to a parent type), which is reported as <code class="docutils literal notranslate"><span class="pre">changed</span></code>. It reads the records with <code class="docutils literal notranslate"><span class="pre">select_for_update(of=('self',))</span></code>, so call it inside a transaction: the records stay locked until it ends and a hand edit waits. It returns a dict with <code class="docutils literal notranslate"><span class="pre">entries</span></code>, up to <code class="docutils literal notranslate"><span class="pre">limit</span></code> dicts of <code class="docutils literal notranslate"><span class="pre">pk</span></code>, <code class="docutils literal notranslate"><span class="pre">label</span></code> and <code class="docutils literal notranslate"><span class="pre">reason</span></code> (<code class="docutils literal notranslate"><span class="pre">deleted</span></code>, <code class="docutils literal notranslate"><span class="pre">changed</span></code> or <code class="docutils literal notranslate"><span class="pre">measurements</span></code>), and <code class="docutils literal notranslate"><span class="pre">more</span></code>, the count of the records beyond the limit. It reads no per-record permission: whoever holds the dataset’s <code class="docutils literal notranslate"><span class="pre">import_data</span></code> permission may undo.</p>
+<p><code class="docutils literal notranslate"><span class="pre">ImportUndo(job).undo(user)</span></code> is what the <code class="docutils literal notranslate"><span class="pre">undo_job</span></code> task runs. It locks the dataset row with <code class="docutils literal notranslate"><span class="pre">select_for_update()</span></code>, reads the job’s status again and does nothing, returning <code class="docutils literal notranslate"><span class="pre">None</span></code>, unless the job is <code class="docutils literal notranslate"><span class="pre">undoing</span></code>. When nothing is in the way it deletes the records the import added (one <code class="docutils literal notranslate"><span class="pre">delete()</span></code> per chunk of 500, through the type’s manager, so signals and polymorphic children fire) and restores each changed record’s stored values with <code class="docutils literal notranslate"><span class="pre">setattr(record,</span> <span class="pre">field.attname,</span> <span class="pre">field.to_python(value))</span></code> (a stored <code class="docutils literal notranslate"><span class="pre">None</span></code> is set as it is) and a save, all in one transaction. It then moves the status from <code class="docutils literal notranslate"><span class="pre">undoing</span></code> to <code class="docutils literal notranslate"><span class="pre">undone</span></code> with one conditional update, records <code class="docutils literal notranslate"><span class="pre">undone_at</span></code> and <code class="docutils literal notranslate"><span class="pre">undone_by</span></code> and deletes the file if one is left. It returns the result of <code class="docutils literal notranslate"><span class="pre">conflicts</span></code>, which has no entries once the undo is done. When anything is in the way nothing is changed: <code class="docutils literal notranslate"><span class="pre">describe(found)</span></code> writes the records as one line each, with a last line counting the rest, and <code class="docutils literal notranslate"><span class="pre">release(message)</span></code> returns the job to <code class="docutils literal notranslate"><span class="pre">imported</span></code> with that text in its <code class="docutils literal notranslate"><span class="pre">error</span></code>. <code class="docutils literal notranslate"><span class="pre">release</span></code> does nothing to a job that is not <code class="docutils literal notranslate"><span class="pre">undoing</span></code>. Each chunk written to the cache as <code class="docutils literal notranslate"><span class="pre">ImportRun.progress_key</span></code> counts the records put back, out of the rows the import added and changed.</p>
+<p><code class="docutils literal notranslate"><span class="pre">tasks.discard_stale_jobs</span></code> discards the jobs left in matching, checking, checked, nothing to change or needs changes for 30 days, and deletes their files. Their rows stay without their changed cells. The app schedules it daily at 02:30 through a <code class="docutils literal notranslate"><span class="pre">PeriodicTask</span></code> created after <code class="docutils literal notranslate"><span class="pre">django_celery_beat</span></code> migrates, and never touches one that exists, so a portal may change its schedule or switch it off.</p>
+<p>The tasks in <code class="docutils literal notranslate"><span class="pre">fairdm.contrib.import_export.tasks</span></code> run the three phases on the portal’s worker. <code class="docutils literal notranslate"><span class="pre">check_job(job_pk)</span></code> checks a job that is <code class="docutils literal notranslate"><span class="pre">checking</span></code>, and ends it as failed when it runs out of time or fails with an unexpected error, which is logged. <code class="docutils literal notranslate"><span class="pre">import_job(job_pk,</span> <span class="pre">user_pk)</span></code> imports a job, and a job that runs out of time or fails with an unexpected error has written nothing and returns to <code class="docutils literal notranslate"><span class="pre">checked</span></code>, with the error logged. <code class="docutils literal notranslate"><span class="pre">undo_job(job_pk,</span> <span class="pre">user_pk)</span></code> undoes a job that is <code class="docutils literal notranslate"><span class="pre">undoing</span></code>: when the undo is refused, runs out of time or fails with an unexpected error it has changed nothing and returns the job to <code class="docutils literal notranslate"><span class="pre">imported</span></code> with the reason in <code class="docutils literal notranslate"><span class="pre">error</span></code>, and an unexpected error is also logged. Each task carries its own <code class="docutils literal notranslate"><span class="pre">soft_time_limit</span></code> and <code class="docutils literal notranslate"><span class="pre">time_limit</span></code>, set in <code class="docutils literal notranslate"><span class="pre">CHECK_LIMITS</span></code>, <code class="docutils literal notranslate"><span class="pre">IMPORT_LIMITS</span></code> and <code class="docutils literal notranslate"><span class="pre">UNDO_LIMITS</span></code>. <code class="docutils literal notranslate"><span class="pre">start(task,</span> <span class="pre">*args)</span></code> queues a task when the current transaction commits, queues nothing when it rolls back, and never runs the task in place: the portal runs a worker.</p>
+</section>
+<section id="the-import-pages">
+<h2>The import pages<a class="headerlink" aria-label="Link to this heading: The import pages" href="#the-import-pages" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">fairdm.contrib.import_export.plugins</span></code> registers the import pages on a dataset with <code class="docutils literal notranslate"><span class="pre">&#64;plugins.register(Dataset,</span> <span class="pre">menu=False)</span></code>, so they have no menu entry of their own. Every page answers a person without the dataset’s <code class="docutils literal notranslate"><span class="pre">import_data</span></code> permission with a 404, and a job is only ever read through the dataset’s own <code class="docutils literal notranslate"><span class="pre">import_jobs</span></code>, so another dataset’s job is a 404 too.</p>
+<p><code class="docutils literal notranslate"><span class="pre">records_url(dataset,</span> <span class="pre">definition)</span></code> gives the address of the dataset’s records tab for a type, which the pages link back to. <code class="docutils literal notranslate"><span class="pre">can_import(request,</span> <span class="pre">dataset)</span></code> is the permission check every page uses. <code class="docutils literal notranslate"><span class="pre">import_chooser(dataset,</span> <span class="pre">kind=None)</span></code> builds the data of the dialog that lists the types a person can import: its <code class="docutils literal notranslate"><span class="pre">id</span></code>, a <code class="docutils literal notranslate"><span class="pre">title</span></code> and <code class="docutils literal notranslate"><span class="pre">groups</span></code> of entries, each with the type’s <code class="docutils literal notranslate"><span class="pre">name</span></code>, row <code class="docutils literal notranslate"><span class="pre">count</span></code>, <code class="docutils literal notranslate"><span class="pre">url</span></code>, whether it is <code class="docutils literal notranslate"><span class="pre">required</span></code> and the number of <code class="docutils literal notranslate"><span class="pre">columns</span></code> a file can have. <code class="docutils literal notranslate"><span class="pre">kind</span></code> limits it to samples or measurements.</p>
+<p><code class="docutils literal notranslate"><span class="pre">ImportPage</span></code> is the base of the pages that belong to a dataset’s imports, and <code class="docutils literal notranslate"><span class="pre">DefinitionMixin</span></code> finds the <code class="docutils literal notranslate"><span class="pre">ImportDefinition</span></code> a page’s address names. <code class="docutils literal notranslate"><span class="pre">ImportStart</span></code> is the page at <code class="docutils literal notranslate"><span class="pre">import/&lt;type&gt;/</span></code> that takes the options and the file. It reads the file with <code class="docutils literal notranslate"><span class="pre">FileReader.parse</span></code> before it saves a job, so a refused file shows its problem on the same page and leaves no job. The file is stored under <code class="docutils literal notranslate"><span class="pre">imports/</span></code> as a random 32-character key and the file’s extension in lower case, named by <code class="docutils literal notranslate"><span class="pre">import_file_path</span></code>, so a stored name never holds what the person called the file or a date. The person’s name for it stays in the job’s <code class="docutils literal notranslate"><span class="pre">filename</span></code>. A job whose headings all match goes to <code class="docutils literal notranslate"><span class="pre">checking</span></code>, and one with a heading that needs matching goes to <code class="docutils literal notranslate"><span class="pre">matching</span></code>. <code class="docutils literal notranslate"><span class="pre">ImportTemplate</span></code> downloads the type’s template as Excel or as a CSV with only the headings.</p>
+<p><code class="docutils literal notranslate"><span class="pre">DatasetImports</span></code> is the page at <code class="docutils literal notranslate"><span class="pre">imports/</span></code> that lists the dataset’s jobs, newest first, with the Import dialog. <code class="docutils literal notranslate"><span class="pre">JobPage</span></code> is the base of the pages of one job, <code class="docutils literal notranslate"><span class="pre">JobColumns</span></code> is the matching page at <code class="docutils literal notranslate"><span class="pre">imports/&lt;job&gt;/columns/</span></code>, and <code class="docutils literal notranslate"><span class="pre">JobDetail</span></code> is the job itself at <code class="docutils literal notranslate"><span class="pre">imports/&lt;job&gt;/</span></code>. <code class="docutils literal notranslate"><span class="pre">JobDetail</span></code> runs the actions the job’s status allows (<code class="docutils literal notranslate"><span class="pre">import</span></code>, <code class="docutils literal notranslate"><span class="pre">recheck</span></code>, <code class="docutils literal notranslate"><span class="pre">discard</span></code> and <code class="docutils literal notranslate"><span class="pre">undo</span></code>; <code class="docutils literal notranslate"><span class="pre">discard</span></code> from matching, ready to import, needs changes and nothing to change, each of which shows a Don’t import button) with one conditional update of the status, and queues the task only when that update changed a row, so a second post does nothing. The <code class="docutils literal notranslate"><span class="pre">undo</span></code> action moves an <code class="docutils literal notranslate"><span class="pre">imported</span></code> job to <code class="docutils literal notranslate"><span class="pre">undoing</span></code>, clears its <code class="docutils literal notranslate"><span class="pre">error</span></code>, queues <code class="docutils literal notranslate"><span class="pre">undo_job</span></code> and redirects to the job at once. An undoing job shows the progress component, counted against the records the import wrote, and the page shows the Undo button on every imported job without reading any record. When the task was refused or failed, the imported job’s page shows its <code class="docutils literal notranslate"><span class="pre">error</span></code> as a list: up to 20 records in the way and a count of the rest. It lists the job’s rows by outcome, 100 to a page, with <code class="docutils literal notranslate"><span class="pre">?show=</span></code> for the outcome and <code class="docutils literal notranslate"><span class="pre">?page=</span></code> for the page. <code class="docutils literal notranslate"><span class="pre">JobStatus</span></code> at <code class="docutils literal notranslate"><span class="pre">imports/&lt;job&gt;/status/</span></code> answers the progress component’s poll, and answers with an <code class="docutils literal notranslate"><span class="pre">HX-Refresh</span></code> header once the run is over. <code class="docutils literal notranslate"><span class="pre">JobProblems</span></code> at <code class="docutils literal notranslate"><span class="pre">imports/&lt;job&gt;/problems.xlsx</span></code> downloads the file’s own rows with a column of their problems, for a job that ended as <code class="docutils literal notranslate"><span class="pre">problems</span></code>. It reads the stored file again and writes every cell as text.</p>
+<p><code class="docutils literal notranslate"><span class="pre">ImportJob.get_absolute_url()</span></code> is the address of the job’s page.</p>
+<p>The pages are built from the components in <code class="docutils literal notranslate"><span class="pre">fairdm/templates/cotton/import/</span></code>: <code class="docutils literal notranslate"><span class="pre">c-import.steps</span></code>, <code class="docutils literal notranslate"><span class="pre">c-import.progress</span></code>, <code class="docutils literal notranslate"><span class="pre">c-import.panel</span></code>, <code class="docutils literal notranslate"><span class="pre">c-import.tag</span></code>, <code class="docutils literal notranslate"><span class="pre">c-import.outcome-badge</span></code>, <code class="docutils literal notranslate"><span class="pre">c-import.job-list</span></code>, <code class="docutils literal notranslate"><span class="pre">c-import.alert</span></code>, <code class="docutils literal notranslate"><span class="pre">c-import.choice</span></code>, <code class="docutils literal notranslate"><span class="pre">c-import.downloads</span></code> and <code class="docutils literal notranslate"><span class="pre">c-import.import-menu</span></code>. Each component’s file lists its props and slots in its own annotations.</p>
+<p><code class="docutils literal notranslate"><span class="pre">c-import.import-menu</span></code> takes a <code class="docutils literal notranslate"><span class="pre">chooser</span></code>, the dict <code class="docutils literal notranslate"><span class="pre">import_chooser</span></code> returns, and a <code class="docutils literal notranslate"><span class="pre">label</span></code>. It draws the Import button and, on <code class="docutils literal notranslate"><span class="pre">c-mvp.modal</span></code>, a dialog whose id is the chooser’s <code class="docutils literal notranslate"><span class="pre">id</span></code> and which links each type to its import page. The Samples and Measurements tabs of a dataset put the button beside the Export menu for a person holding <code class="docutils literal notranslate"><span class="pre">dataset.import_data</span></code>, and in the empty state of an empty tab. A tab whose address names a type links straight to that type’s import page instead, using <code class="docutils literal notranslate"><span class="pre">import_url</span></code>. <code class="docutils literal notranslate"><span class="pre">RecordsTab.import_context()</span></code> builds <code class="docutils literal notranslate"><span class="pre">import_url</span></code> and <code class="docutils literal notranslate"><span class="pre">import_chooser</span></code> for the page, and both are <code class="docutils literal notranslate"><span class="pre">None</span></code> on a project’s or a contributor’s tab and for a person who may not import.</p>
+</section>
+</section>
+
+
+        </article>
+        
+          <nav class="daisy-prev-next mt-12 grid gap-3 border-t border-base-300 pt-6 sm:grid-cols-2" aria-label="Previous and next page">
+              <a href="records-export.html" rel="prev" class="group flex items-center gap-3 rounded-box border border-base-300 p-4 transition hover:border-primary/50 hover:bg-base-200 focus-visible:bg-base-200">
+                <svg class="size-4 shrink-0 opacity-60 transition group-hover:-translate-x-0.5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m12 19-7-7 7-7" /> <path d="M19 12H5" /> </svg>
+                <span class="min-w-0"><span class="daisy-prev-next-label block text-xs">Previous</span><span class="block font-medium">Records export</span></span>
+              </a>
+              <a href="rest-api.html" rel="next" class="group flex items-center justify-end gap-3 rounded-box border border-base-300 p-4 text-end transition hover:border-primary/50 hover:bg-base-200 focus-visible:bg-base-200">
+                <span class="min-w-0"><span class="daisy-prev-next-label block text-xs">Next</span><span class="block font-medium">REST API</span></span>
+                <svg class="size-4 shrink-0 opacity-60 transition group-hover:translate-x-0.5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M5 12h14" /> <path d="m12 5 7 7-7 7" /> </svg>
+              </a>
+          </nav>
+        
+      </div>
+    </main>
+      <aside class="daisy-area-secondary" aria-label="Page tools">
+        <div class="daisy-secondary daisy-secondary-inner">
+<nav class="daisy-page-toc mb-6" aria-labelledby="daisy-page-toc-label" data-toc-level="2">
+  <p id="daisy-page-toc-label" class="daisy-section-label mb-2 flex items-center gap-2 leading-4"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M3 5h.01" /> <path d="M3 12h.01" /> <path d="M3 19h.01" /> <path d="M8 5h13" /> <path d="M8 12h13" /> <path d="M8 19h13" /> </svg>On this page</p>
+  <ul class="daisy-toc-list">
+<li><a class="daisy-toc-link reference internal" href="#how-an-import-works">How an import works</a><ul class="daisy-toc-list">
+<li><a class="daisy-toc-link reference internal" href="#files-and-limits">Files and limits</a></li>
+<li><a class="daisy-toc-link reference internal" href="#the-options-and-how-rows-find-records">The options and how rows find records</a></li>
+<li><a class="daisy-toc-link reference internal" href="#the-outcomes-of-a-row">The outcomes of a row</a></li>
+<li><a class="daisy-toc-link reference internal" href="#running-the-check-and-the-import">Running the check and the import</a></li>
+<li><a class="daisy-toc-link reference internal" href="#undoing-an-import">Undoing an import</a></li>
+<li><a class="daisy-toc-link reference internal" href="#what-is-kept-and-for-how-long">What is kept, and for how long</a></li>
+</ul>
+</li>
+<li><a class="daisy-toc-link reference internal" href="#what-an-import-stores">What an import stores</a></li>
+<li><a class="daisy-toc-link reference internal" href="#the-options">The options</a></li>
+<li><a class="daisy-toc-link reference internal" href="#reading-a-file">Reading a file</a></li>
+<li><a class="daisy-toc-link reference internal" href="#matching-headings">Matching headings</a></li>
+<li><a class="daisy-toc-link reference internal" href="#importing-rows">Importing rows</a></li>
+<li><a class="daisy-toc-link reference internal" href="#checking-and-importing-a-file">Checking and importing a file</a></li>
+<li><a class="daisy-toc-link reference internal" href="#the-import-pages">The import pages</a></li>
+</ul>
+
+</nav></div>
+      </aside>
+
+    <footer class="daisy-area-footer daisy-footer border-t border-base-300 bg-base-100 px-4 py-8 text-sm sm:px-6 lg:px-10">
+      <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div class="flex flex-col gap-1"><p>&copy; 2026, Samuel Jennings</p></div>
+        <div class="flex flex-col gap-1"></div>
+        <div class="flex flex-col gap-2 md:items-end"><p>Theme: <a class="link link-hover" href="https://github.com/SamuelJennings/sphinx-daisyui">sphinx-daisyui</a> 0.2.0.</p></div>
+      </div>
+    </footer>
+  </div>
+    <button type="button" class="daisy-back-to-top btn btn-sm fixed bottom-6 left-1/2 z-30 -translate-x-1/2 gap-1 rounded-full shadow-lg" hidden><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m5 12 7-7 7 7" /> <path d="M12 19V5" /> </svg>Back to top</button><dialog id="daisy-search" class="modal modal-top sm:modal-middle" aria-label="Search the documentation"
+  data-daisy-language-data="../../_static/language_data.js"
+  data-daisy-searchtools="../../_static/searchtools.js"
+  data-daisy-searchindex="../../searchindex.js"
+  data-daisy-prompt="Type to search pages, sections and API names."
+  data-daisy-nothing="Nothing matches %(query)s."
+  data-daisy-unavailable="Search is not available here."
+  data-daisy-page="Page"
+  data-daisy-section="Section"
+  data-daisy-as-you-type="true">
+  <div class="modal-box flex max-h-[min(40rem,85dvh)] max-w-2xl flex-col gap-0 p-0 sm:rounded-box">
+    <form action="../../search.html" method="get" class="flex items-center gap-3 border-b border-base-300 px-4 py-3" role="search">
+      <svg class="size-5 shrink-0 opacity-60" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m21 21-4.34-4.34" /> <circle cx="11" cy="11" r="8" /> </svg>
+      <input type="search" name="q" class="daisy-search-input min-w-0 flex-1 bg-transparent text-base outline-none" placeholder="Search the docs" aria-label="Search" autocomplete="off" spellcheck="false" role="combobox" aria-controls="daisy-search-results" aria-autocomplete="list" aria-expanded="false">
+      <kbd class="kbd kbd-sm hidden sm:inline-flex">Esc</kbd>
+      <span class="sm:hidden"><button type="button" class="btn btn-ghost btn-sm btn-square" aria-label="Close search" data-daisy-search-close=""><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M18 6 6 18" /> <path d="m6 6 12 12" /> </svg></button></span>
+    </form>
+    <div class="min-h-0 flex-1 overflow-y-auto p-2">
+      <p class="daisy-search-status daisy-muted px-3 py-6 text-center text-sm" aria-live="polite">Type to search pages, sections and API names.</p>
+      <ul id="daisy-search-results" class="daisy-search-results menu w-full gap-0.5 p-0" role="listbox"></ul>
+    </div>
+    <div class="daisy-muted hidden items-center gap-4 border-t border-base-300 px-4 py-2 text-xs sm:flex">
+      <span class="flex items-center gap-1"><kbd class="kbd kbd-xs">↑</kbd><kbd class="kbd kbd-xs">↓</kbd> to move</span>
+      <span class="flex items-center gap-1"><kbd class="kbd kbd-xs">↵</kbd> to open</span>
+      <span class="ms-auto">Enter with nothing chosen opens the full results.</span>
+    </div>
+  </div>
+  <form method="dialog" class="modal-backdrop"><button aria-label="Close search">close</button></form>
+</dialog>
+  </body>
+</html>

@@ -1,0 +1,199 @@
+# {py:mod}`fairdm.contrib.contributors.access`
+
+```{py:module} fairdm.contrib.contributors.access
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.access
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`RecordAccess <fairdm.contrib.contributors.access.RecordAccess>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.access.RecordAccess
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`REQUIRED_LEVEL <fairdm.contrib.contributors.access.REQUIRED_LEVEL>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.access.REQUIRED_LEVEL
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} REQUIRED_LEVEL
+:canonical: fairdm.contrib.contributors.access.REQUIRED_LEVEL
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.access.REQUIRED_LEVEL
+```
+
+````
+
+`````{py:class} RecordAccess(record)
+:canonical: fairdm.contrib.contributors.access.RecordAccess
+
+```{autodoc2-docstring} fairdm.contrib.contributors.access.RecordAccess
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.access.RecordAccess.__init__
+```
+
+````{py:method} is_core_model(model)
+:canonical: fairdm.contrib.contributors.access.RecordAccess.is_core_model
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.contrib.contributors.access.RecordAccess.is_core_model
+```
+
+````
+
+````{py:method} is_core_record(obj)
+:canonical: fairdm.contrib.contributors.access.RecordAccess.is_core_record
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.contrib.contributors.access.RecordAccess.is_core_record
+```
+
+````
+
+````{py:property} model
+:canonical: fairdm.contrib.contributors.access.RecordAccess.model
+
+```{autodoc2-docstring} fairdm.contrib.contributors.access.RecordAccess.model
+```
+
+````
+
+````{py:property} kind
+:canonical: fairdm.contrib.contributors.access.RecordAccess.kind
+
+```{autodoc2-docstring} fairdm.contrib.contributors.access.RecordAccess.kind
+```
+
+````
+
+````{py:method} above()
+:canonical: fairdm.contrib.contributors.access.RecordAccess.above
+
+```{autodoc2-docstring} fairdm.contrib.contributors.access.RecordAccess.above
+```
+
+````
+
+````{py:method} key(record)
+:canonical: fairdm.contrib.contributors.access.RecordAccess.key
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.contrib.contributors.access.RecordAccess.key
+```
+
+````
+
+````{py:method} required_level(perm)
+:canonical: fairdm.contrib.contributors.access.RecordAccess.required_level
+
+```{autodoc2-docstring} fairdm.contrib.contributors.access.RecordAccess.required_level
+```
+
+````
+
+````{py:method} on_chain(*, include_record)
+:canonical: fairdm.contrib.contributors.access.RecordAccess.on_chain
+
+```{autodoc2-docstring} fairdm.contrib.contributors.access.RecordAccess.on_chain
+```
+
+````
+
+````{py:method} levels_held(person_id)
+:canonical: fairdm.contrib.contributors.access.RecordAccess.levels_held
+
+```{autodoc2-docstring} fairdm.contrib.contributors.access.RecordAccess.levels_held
+```
+
+````
+
+````{py:method} levels_for(person_ids)
+:canonical: fairdm.contrib.contributors.access.RecordAccess.levels_for
+
+```{autodoc2-docstring} fairdm.contrib.contributors.access.RecordAccess.levels_for
+```
+
+````
+
+````{py:method} level_of(user)
+:canonical: fairdm.contrib.contributors.access.RecordAccess.level_of
+
+```{autodoc2-docstring} fairdm.contrib.contributors.access.RecordAccess.level_of
+```
+
+````
+
+````{py:method} own_level(person, held=None)
+:canonical: fairdm.contrib.contributors.access.RecordAccess.own_level
+
+```{autodoc2-docstring} fairdm.contrib.contributors.access.RecordAccess.own_level
+```
+
+````
+
+````{py:method} level_from_above(person, held=None)
+:canonical: fairdm.contrib.contributors.access.RecordAccess.level_from_above
+
+```{autodoc2-docstring} fairdm.contrib.contributors.access.RecordAccess.level_from_above
+```
+
+````
+
+````{py:method} people_above()
+:canonical: fairdm.contrib.contributors.access.RecordAccess.people_above
+
+```{autodoc2-docstring} fairdm.contrib.contributors.access.RecordAccess.people_above
+```
+
+````
+
+````{py:method} managers()
+:canonical: fairdm.contrib.contributors.access.RecordAccess.managers
+
+```{autodoc2-docstring} fairdm.contrib.contributors.access.RecordAccess.managers
+```
+
+````
+
+````{py:method} refuse_move_without_manager(parent_field)
+:canonical: fairdm.contrib.contributors.access.RecordAccess.refuse_move_without_manager
+
+```{autodoc2-docstring} fairdm.contrib.contributors.access.RecordAccess.refuse_move_without_manager
+```
+
+````
+
+````{py:method} can_manage(user)
+:canonical: fairdm.contrib.contributors.access.RecordAccess.can_manage
+
+```{autodoc2-docstring} fairdm.contrib.contributors.access.RecordAccess.can_manage
+```
+
+````
+
+`````

@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta property="og:title" content="Documentation standards" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="contributing/standards/documentation.html" />
+<meta property="og:site_name" content="fairdm" />
+<meta property="og:description" content="These rules cover the documentation a person reads to use what this repository makes: the pages under docs/ and the quickstart in the README. CONSTITUTION.md makes them binding. Docstrings, compone..." />
+<meta name="description" content="These rules cover the documentation a person reads to use what this repository makes: the pages under docs/ and the quickstart in the README. CONSTITUTION.md makes them binding. Docstrings, compone..." />
+
+    <title>Documentation standards &#8212; fairdm 0.7.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/sphinx-daisyui.css?v=aedd34d4" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <script src="../../_static/documentation_options.js?v=d87af0f4"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script kind="utterances">
+
+    var commentsRunWhenDOMLoaded = cb => {
+    if (document.readyState != 'loading') {
+        cb()
+    } else if (document.addEventListener) {
+        document.addEventListener('DOMContentLoaded', cb)
+    } else {
+        document.attachEvent('onreadystatechange', function() {
+        if (document.readyState == 'complete') cb()
+        })
+    }
+}
+
+var addUtterances = () => {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src = "https://utteranc.es/client.js";
+    script.async = "async";
+
+    script.setAttribute("repo", "FAIR-DM/fairdm");
+    script.setAttribute("issue-term", "pathname");
+    script.setAttribute("theme", "preferred-color-scheme");
+    script.setAttribute("label", "documentation");
+    script.setAttribute("crossorigin", "anonymous");
+
+    sections = document.querySelectorAll("div.section");
+    if (sections !== null) {
+        section = sections[sections.length-1];
+        section.appendChild(script);
+    }
+}
+commentsRunWhenDOMLoaded(addUtterances);
+</script>
+    <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+    <link rel="icon" href="../../_static/icon.svg"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Working on the documentation" href="../documentation/index.html" />
+    <link rel="prev" title="Django standards" href="django.html" /> 
+  <meta name="color-scheme" content="light dark">
+  <script src="../../_static/scripts/mode.js" data-light-theme="light" data-dark-theme="dark" data-default-mode="auto" data-themes=""></script>
+  <script defer src="../../_static/scripts/keys.js"></script>
+  <script defer src="../../_static/scripts/page-address.js"></script>
+  <script defer src="../../_static/scripts/versions.js"></script>
+  <script defer src="../../_static/scripts/search.js"></script>
+  <script defer src="../../_static/scripts/frame.js"></script>
+  <script defer src="../../_static/scripts/back-to-top.js"></script>
+  <script defer src="../../_static/scripts/announcement.js"></script>
+  <script defer src="../../_static/scripts/navigation.js"></script>
+  <script defer src="../../_static/scripts/theme-menu.js"></script>
+  <script defer src="../../_static/scripts/page-toc.js"></script>
+  </head><body class="bg-base-100 text-base-content antialiased" data-daisy-root="../../" data-daisy-suffix=".html" data-daisy-link-suffix=".html" data-daisy-builder="html" data-daisy-page="contributing/standards/documentation">
+  <a href="#main-content" class="btn btn-primary btn-sm absolute -top-20 left-4 z-50 focus:top-2">Skip to content</a>
+  <div class="daisy-layout" style='--daisy-areas-lg: "header header header" "primary main main" "primary footer footer"; --daisy-areas-xl: "header header header" "primary main secondary" "primary footer footer"; --daisy-primary-top: var(--daisy-header-height); --daisy-secondary-top: var(--daisy-header-height);' data-layout="hHh LpR lff" data-header-fixed data-primary-fixed data-secondary-fixed>
+    <input id="daisy-drawer" type="checkbox" class="hidden" aria-hidden="true" tabindex="-1">
+
+    <header class="daisy-area-header daisy-navbar bg-base-100/90 backdrop-blur supports-[backdrop-filter]:bg-base-100/75">
+      <div class="navbar mx-auto min-h-16 max-w-[96rem] gap-2 px-3 sm:px-4">
+        <label for="daisy-drawer" role="button" tabindex="0" data-daisy-drawer-open class="btn btn-ghost btn-square btn-sm lg:hidden" aria-label="Open the navigation"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M4 5h16" /> <path d="M4 12h16" /> <path d="M4 19h16" /> </svg></label>
+        <div class="flex min-w-0 items-center gap-2">
+<a href="../../index.html" class="daisy-brand flex min-w-0 items-center gap-2.5 rounded-field px-1 py-1 font-semibold hover:opacity-85">
+    <img src="../../_static/fairdm_light.svg" alt="fairdm" class="daisy-logo-light h-8 w-auto">
+    <img src="../../_static/fairdm_dark.svg" alt="fairdm" class="daisy-logo-dark h-8 w-auto">
+</a>
+        </div>
+        <div class="hidden min-w-0 flex-1 items-center lg:flex" data-navbar-align="left">
+<nav aria-label="Sections" class="min-w-0">
+  <ul class="flex items-center gap-1"><li class="daisy-dropdown dropdown dropdown-end">
+    <div tabindex="0" role="button" aria-haspopup="menu" class="btn btn-ghost btn-sm font-medium btn-active text-primary" aria-current="true">More<svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m6 9 6 6 6-6" /> </svg></div>
+    <ul tabindex="-1" class="dropdown-content z-40 mt-2 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg menu w-56">
+            <li><a href="../../developers/index.html">Developers</a></li>
+            <li><a href="../../administrators/index.html">Administrators</a></li>
+            <li><a href="../../users/index.html">Users</a></li>
+            <li><a href="../../explanation/what-fairdm-is-for.html">What FairDM is for</a></li>
+            <li><a href="../../explanation/fair-data-and-research-data-infrastructure.html">FAIR data and research data infrastructure</a></li>
+            <li><a href="../../explanation/the-technology-stack.html">The technology stack</a></li>
+            <li><a href="../../explanation/the-core-data-model.html">The core data model</a></li>
+            <li><a href="../../explanation/how-sample-and-measurement-types-are-stored.html">How sample and measurement types are stored</a></li>
+            <li><a href="../../explanation/controlled-vocabularies.html">Controlled vocabularies</a></li>
+            <li><a href="../../explanation/configuration-over-code.html">Configuration over code</a></li>
+            <li><a href="../../explanation/why-complete-metadata-matters.html">Why complete metadata matters</a></li>
+            <li><a href="../../explanation/how-access-to-a-record-is-decided.html">How access to a record is decided</a></li>
+            <li><a href="../../explanation/why-fairdm-records-contributors.html">Why FairDM records contributors</a></li>
+            <li><a href="../../explanation/how-contributor-accounts-and-credits-work.html">How contributor accounts and credits work</a></li>
+            <li><a href="../../explanation/how-a-profile-is-claimed.html">How a profile is claimed</a></li>
+            <li><a href="../../explanation/how-fairdm-configures-a-portal.html">How FairDM configures a portal</a></li>
+            <li><a href="../../explanation/who-is-asked-to-agree-to-a-legal-document.html">Who is asked to agree to a legal document</a></li>
+            <li><a href="../../explanation/how-locations-are-stored-and-protected.html">How locations are stored and protected</a></li>
+            <li><a href="../../explanation/dataset-publication-dois-and-datacite-metadata.html">Dataset publication, DOIs and DataCite metadata</a></li>
+            <li><a href="../../reference/glossary.html">Glossary</a></li>
+            <li><a href="../../reference/contributor-roles.html">Contributor roles</a></li>
+            <li><a href="../index.html" class="menu-active" aria-current="true">Framework Contributors</a></li>
+            <li><a href="../../adr/index.html">Architecture Decision Records</a></li>
+            <li><a href="../../ROADMAP.html">Roadmap — FairDM</a></li>
+            <li><a href="../../changelog.html">Changelog</a></li>
+            <li><a href="https://github.com/FAIR-DM/fairdm/blob/main/CHANGELOG.md">Changelog<svg class="size-3.5 opacity-60" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M15 3h6v6" /> <path d="M10 14 21 3" /> <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /> </svg><span class="sr-only">(leads outside the site)</span></a></li></ul>
+  </li>
+  </ul>
+</nav></div>
+        <div class="ms-auto flex items-center gap-1">
+          
+<button type="button" class="daisy-search-open daisy-muted btn btn-sm h-9 gap-2 border-base-300 bg-base-200/70 font-normal shadow-none hover:bg-base-200 md:w-56 md:justify-start" aria-label="Search" aria-haspopup="dialog">
+  <svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m21 21-4.34-4.34" /> <circle cx="11" cy="11" r="8" /> </svg>
+  <span class="hidden md:inline">Search the docs</span>
+  <span class="ms-auto hidden items-center gap-0.5 md:flex"><kbd class="kbd kbd-xs" data-daisy-mod>Ctrl</kbd><kbd class="kbd kbd-xs">K</kbd></span>
+</button>
+          <div class="hidden items-center gap-1 sm:flex" data-daisy-navbar-end><div class="daisy-dropdown dropdown dropdown-end" data-daisy-json-url="https://docs.fairdm.org/switcher.json" data-daisy-version-match="0.7" data-text-preferred="Preferred" data-text-current="Current version">
+    <div tabindex="0" role="button" aria-haspopup="menu" class="btn btn-ghost btn-sm gap-1 font-medium" aria-label="Choose a version">
+      <svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /> <path d="M3 3v5h5" /> <path d="M12 7v5l4 2" /> </svg><span data-daisy-version-label>0.7</span><svg class="size-3.5 opacity-60" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m6 9 6 6 6-6" /> </svg></div>
+    <div tabindex="-1" class="dropdown-content z-40 mt-2 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg w-52">
+      <ul class="menu w-full p-0" data-daisy-version-list></ul></div>
+  </div><div class="daisy-dropdown dropdown dropdown-end" data-daisy-mode-names="Match the system|Light|Dark">
+    <div tabindex="0" role="button" aria-haspopup="menu" class="btn btn-ghost btn-sm btn-square" aria-label="Choose the colour theme">
+    <span data-daisy-mode-icon="auto"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M12 2v2" /> <path d="M14.837 16.385a6 6 0 1 1-7.223-7.222c.624-.147.97.66.715 1.248a4 4 0 0 0 5.26 5.259c.589-.255 1.396.09 1.248.715" /> <path d="M16 12a4 4 0 0 0-4-4" /> <path d="m19 5-1.256 1.256" /> <path d="M20 12h2" /> </svg></span>
+    <span data-daisy-mode-icon="light"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <circle cx="12" cy="12" r="4" /> <path d="M12 2v2" /> <path d="M12 20v2" /> <path d="m4.93 4.93 1.41 1.41" /> <path d="m17.66 17.66 1.41 1.41" /> <path d="M2 12h2" /> <path d="M20 12h2" /> <path d="m6.34 17.66-1.41 1.41" /> <path d="m19.07 4.93-1.41 1.41" /> </svg></span>
+    <span data-daisy-mode-icon="dark"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401" /> </svg></span>
+    <span data-daisy-mode-icon="theme"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z" /> <circle cx="13.5" cy="6.5" r=".5" fill="currentColor" /> <circle cx="17.5" cy="10.5" r=".5" fill="currentColor" /> <circle cx="6.5" cy="12.5" r=".5" fill="currentColor" /> <circle cx="8.5" cy="7.5" r=".5" fill="currentColor" /> </svg></span>
+    <span class="sr-only" data-daisy-mode-current></span></div>
+    <div tabindex="-1" class="dropdown-content z-40 mt-2 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg w-60">
+    <ul class="menu menu-sm w-full p-0">
+      <li><button type="button" data-daisy-set-mode="auto" aria-pressed="false"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M12 2v2" /> <path d="M14.837 16.385a6 6 0 1 1-7.223-7.222c.624-.147.97.66.715 1.248a4 4 0 0 0 5.26 5.259c.589-.255 1.396.09 1.248.715" /> <path d="M16 12a4 4 0 0 0-4-4" /> <path d="m19 5-1.256 1.256" /> <path d="M20 12h2" /> </svg>Match the system</button></li>
+      <li><button type="button" data-daisy-set-mode="light" aria-pressed="false"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <circle cx="12" cy="12" r="4" /> <path d="M12 2v2" /> <path d="M12 20v2" /> <path d="m4.93 4.93 1.41 1.41" /> <path d="m17.66 17.66 1.41 1.41" /> <path d="M2 12h2" /> <path d="M20 12h2" /> <path d="m6.34 17.66-1.41 1.41" /> <path d="m19.07 4.93-1.41 1.41" /> </svg>Light</button></li>
+      <li><button type="button" data-daisy-set-mode="dark" aria-pressed="false"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401" /> </svg>Dark</button></li>
+    </ul></div>
+  </div>
+<ul class="flex items-center" aria-label="Icon links">
+    <li><a href="https://github.com/FAIR-DM/fairdm/" class="btn btn-ghost btn-sm btn-square tooltip tooltip-bottom" data-tip="GitHub" aria-label="GitHub"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></a></li>
+</ul></div>
+        </div>
+      </div>
+    </header>
+
+    <aside class="daisy-area-primary" aria-label="Site navigation">
+      <div class="daisy-primary-inner">
+        <div class="flex items-center gap-2 border-b border-base-300 p-3 lg:hidden">
+          
+<a href="../../index.html" class="daisy-brand flex min-w-0 items-center gap-2.5 rounded-field px-1 py-1 font-semibold hover:opacity-85">
+    <img src="../../_static/fairdm_light.svg" alt="fairdm" class="daisy-logo-light h-8 w-auto">
+    <img src="../../_static/fairdm_dark.svg" alt="fairdm" class="daisy-logo-dark h-8 w-auto">
+</a>
+          <label for="daisy-drawer" role="button" tabindex="0" data-daisy-drawer-close class="btn btn-ghost btn-sm btn-square ms-auto" aria-label="Close the navigation"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M18 6 6 18" /> <path d="m6 6 12 12" /> </svg></label>
+        </div>
+        <div class="flex flex-wrap items-center gap-1 border-b border-base-300 p-3 sm:hidden empty:hidden" data-daisy-navbar-end-slot></div>
+          <nav class="border-b border-base-300 p-3 lg:hidden" aria-label="Sections">
+            <ul class="menu menu-sm w-full p-0">
+                <li><a href="../../developers/index.html">Developers</a></li>
+                <li><a href="../../administrators/index.html">Administrators</a></li>
+                <li><a href="../../users/index.html">Users</a></li>
+                <li><a href="../../explanation/what-fairdm-is-for.html">What FairDM is for</a></li>
+                <li><a href="../../explanation/fair-data-and-research-data-infrastructure.html">FAIR data and research data infrastructure</a></li>
+                <li><a href="../../explanation/the-technology-stack.html">The technology stack</a></li>
+                <li><a href="../../explanation/the-core-data-model.html">The core data model</a></li>
+                <li><a href="../../explanation/how-sample-and-measurement-types-are-stored.html">How sample and measurement types are stored</a></li>
+                <li><a href="../../explanation/controlled-vocabularies.html">Controlled vocabularies</a></li>
+                <li><a href="../../explanation/configuration-over-code.html">Configuration over code</a></li>
+                <li><a href="../../explanation/why-complete-metadata-matters.html">Why complete metadata matters</a></li>
+                <li><a href="../../explanation/how-access-to-a-record-is-decided.html">How access to a record is decided</a></li>
+                <li><a href="../../explanation/why-fairdm-records-contributors.html">Why FairDM records contributors</a></li>
+                <li><a href="../../explanation/how-contributor-accounts-and-credits-work.html">How contributor accounts and credits work</a></li>
+                <li><a href="../../explanation/how-a-profile-is-claimed.html">How a profile is claimed</a></li>
+                <li><a href="../../explanation/how-fairdm-configures-a-portal.html">How FairDM configures a portal</a></li>
+                <li><a href="../../explanation/who-is-asked-to-agree-to-a-legal-document.html">Who is asked to agree to a legal document</a></li>
+                <li><a href="../../explanation/how-locations-are-stored-and-protected.html">How locations are stored and protected</a></li>
+                <li><a href="../../explanation/dataset-publication-dois-and-datacite-metadata.html">Dataset publication, DOIs and DataCite metadata</a></li>
+                <li><a href="../../reference/glossary.html">Glossary</a></li>
+                <li><a href="../../reference/contributor-roles.html">Contributor roles</a></li>
+                <li><a href="../index.html" class="menu-active" aria-current="true">Framework Contributors</a></li>
+                <li><a href="../../adr/index.html">Architecture Decision Records</a></li>
+                <li><a href="../../ROADMAP.html">Roadmap — FairDM</a></li>
+                <li><a href="../../changelog.html">Changelog</a></li>
+                <li><a href="https://github.com/FAIR-DM/fairdm/blob/main/CHANGELOG.md">Changelog<svg class="size-3.5 opacity-60" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M15 3h6v6" /> <path d="M10 14 21 3" /> <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /> </svg><span class="sr-only">(leads outside the site)</span></a></li>
+            </ul>
+          </nav>
+        <div class="daisy-sidebar-scroll px-3 py-4 lg:py-8 lg:ps-4 lg:pe-2">
+          
+<nav class="daisy-nav" aria-label="Documentation"><ul class="daisy-nav-list">
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../before_you_start.html">Before You Start</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../registry-system.html">Registry System Architecture</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../base-views.html">Changing the base views</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../getting_started.html">Contributing to FairDM</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../django_dev.html">Python Code Development</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="testing.html">Testing standards</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="code-documentation.html">Code documentation standards</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="django.html">Django standards</a></li>
+<li class="daisy-nav-item"><a aria-current="page" class="current daisy-nav-link menu-active reference internal" href="#">Documentation standards</a></li>
+<li class="daisy-nav-item daisy-nav-branch"><a class="daisy-nav-link reference internal" href="../documentation/index.html">Working on the documentation</a><button type="button" class="daisy-nav-toggle btn btn-ghost btn-xs btn-square" aria-expanded="false" aria-label="Show the pages in Working on the documentation"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m9 18 6-6-6-6" /> </svg></button><ul class="daisy-nav-list">
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../documentation/cross-references.html">Cross-references</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../documentation/validation-rules.html">Validation rules</a></li>
+</ul>
+</li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../feature-documentation.html">Documenting features</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../testing/index.html">Running the tests</a></li>
+</ul>
+</nav>
+          
+        </div>
+      </div>
+    </aside>
+    <label for="daisy-drawer" class="daisy-drawer-overlay" aria-label="Close the navigation"></label>
+    <main id="main-content" role="main" class="daisy-area-main min-w-0 px-4 sm:px-6 lg:px-10" tabindex="-1">
+      <div class="mx-auto max-w-[46rem] pt-6 pb-10">
+          <div class="daisy-article-header flex min-h-8 items-center gap-3">
+            <div class="min-w-0 flex-1">
+<nav class="breadcrumbs daisy-breadcrumbs py-0 text-sm" aria-label="Breadcrumb">
+  <ul>
+    <li><a href="../../index.html" aria-label="Home"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M12 5v16" /> <path d="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z" /> </svg></a></li>
+    <li><a href="../index.html">Framework Contributors</a></li>
+    <li aria-current="page"><span class="truncate">Documentation standards</span></li>
+  </ul>
+</nav></div>
+            <div class="flex shrink-0 items-center gap-1">
+              <a href="https://github.com/FAIR-DM/fairdm/edit/main/docs/contributing/standards/documentation.md" class="btn btn-ghost btn-sm btn-square tooltip tooltip-left" data-tip="Edit this page" aria-label="Edit this page"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" /> <path d="m15 5 4 4" /> </svg></a>
+            </div>
+          </div>
+          <details class="daisy-toc-mobile collapse collapse-arrow mt-4 rounded-box border border-base-300 bg-base-200/60 xl:hidden">
+            <summary class="collapse-title min-h-0 py-3 text-sm font-semibold">On this page</summary>
+            <nav class="collapse-content text-sm" aria-label="On this page"><ul class="daisy-toc-list">
+<li><a class="daisy-toc-link reference internal" href="#what-these-rules-cover">1. What these rules cover</a></li>
+<li><a class="daisy-toc-link reference internal" href="#the-four-types">2. The four types</a></li>
+<li><a class="daisy-toc-link reference internal" href="#where-pages-live">3. Where pages live</a><ul class="daisy-toc-list">
+<li><a class="daisy-toc-link reference internal" href="#documentation-for-more-than-one-reader">Documentation for more than one reader</a></li>
+</ul>
+</li>
+<li><a class="daisy-toc-link reference internal" href="#tutorials">4. Tutorials</a></li>
+<li><a class="daisy-toc-link reference internal" href="#how-to-guides">5. How-to guides</a></li>
+<li><a class="daisy-toc-link reference internal" href="#reference">6. Reference</a></li>
+<li><a class="daisy-toc-link reference internal" href="#explanation">7. Explanation</a></li>
+<li><a class="daisy-toc-link reference internal" href="#every-page">8. Every page</a></li>
+<li><a class="daisy-toc-link reference internal" href="#enforcement">9. Enforcement</a></li>
+<li><a class="daisy-toc-link reference internal" href="#project-additions">Project additions</a><ul class="daisy-toc-list">
+<li><a class="daisy-toc-link reference internal" href="#readers">Readers</a></li>
+<li><a class="daisy-toc-link reference internal" href="#shared-reference">Shared reference</a></li>
+</ul>
+</li>
+</ul>
+</nav>
+          </details>
+        <article class="daisy-sphinx-content">
+          
+  <section id="documentation-standards">
+<h1>Documentation standards<a class="headerlink" aria-label="Link to this heading: Documentation standards" href="#documentation-standards" title="Link to this heading">¶</a></h1>
+<p>These rules cover the documentation a person reads to use what this repository makes: the pages
+under <code class="docutils literal notranslate"><span class="pre">docs/</span></code> and the quickstart in the README. <code class="docutils literal notranslate"><span class="pre">CONSTITUTION.md</span></code> makes them binding. Docstrings,
+component annotations and comments are covered by
+<a class="reference internal" href="code-documentation.html"><span class="std std-doc"><code class="docutils literal notranslate"><span class="pre">code-documentation.md</span></code></span></a>. The sections above <strong>Project additions</strong> are
+shared unchanged with our other repositories, so edit this repository’s rules in that last
+section only.</p>
+<p>The rules follow <a class="reference external" href="https://diataxis.fr/">Diátaxis</a>, which sorts documentation by what the reader
+needs at the moment they open it.</p>
+<section id="what-these-rules-cover">
+<h2>1. What these rules cover<a class="headerlink" aria-label="Link to this heading: 1. What these rules cover" href="#what-these-rules-cover" title="Link to this heading">¶</a></h2>
+<p>They cover documentation written for the people who use the repository’s work:</p>
+<ul class="simple">
+<li><p>for a package, the developer who installs it in their own project,</p></li>
+<li><p>for an application, the person who uses the site.</p></li>
+</ul>
+<p>Material written for the people who maintain the repository has a form of its own and is not
+covered here:</p>
+<ul class="simple">
+<li><p>the changelog,</p></li>
+<li><p>decision records in <code class="docutils literal notranslate"><span class="pre">docs/adr/</span></code>,</p></li>
+<li><p>the roadmap,</p></li>
+<li><p>specifications in <code class="docutils literal notranslate"><span class="pre">specs/</span></code>,</p></li>
+<li><p>contributor guides and standards pages in <code class="docutils literal notranslate"><span class="pre">docs/contributing/</span></code>,</p></li>
+<li><p>files that configure tools.</p></li>
+</ul>
+<p>A user page may link to any of these. An explanation, for example, can point to the decision
+record behind a design.</p>
+</section>
+<section id="the-four-types">
+<h2>2. The four types<a class="headerlink" aria-label="Link to this heading: 2. The four types" href="#the-four-types" title="Link to this heading">¶</a></h2>
+<p>Every page is one of four types, and only one.</p>
+<div aria-label="Table" class="daisy-sphinx-scroll" role="region" tabindex="0"><table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Type</p></th>
+<th class="head"><p>The reader</p></th>
+<th class="head"><p>Answers</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Tutorial</p></td>
+<td><p>Is new, and learning by doing</p></td>
+<td><p>Show me how to get started</p></td>
+</tr>
+<tr class="row-odd"><td><p>How-to guide</p></td>
+<td><p>Already uses it, and has a job to do</p></td>
+<td><p>How do I do this one thing?</p></td>
+</tr>
+<tr class="row-even"><td><p>Reference</p></td>
+<td><p>Is working, and needs a fact</p></td>
+<td><p>What exactly is this setting, component or command?</p></td>
+</tr>
+<tr class="row-odd"><td><p>Explanation</p></td>
+<td><p>Is stepping back to understand</p></td>
+<td><p>Why does it work this way?</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Two questions tell the types apart:</p>
+<ul class="simple">
+<li><p><strong>Does the page guide an action, or inform understanding?</strong> Tutorials and how-to guides guide
+action. Reference and explanation inform.</p></li>
+<li><p><strong>Is the reader learning, or working?</strong> Tutorials and explanation serve learning. How-to
+guides and reference serve work.</p></li>
+</ul>
+<p>Material of a second type goes on a second page, and the two link to each other. A how-to guide
+that stops to explain a design, or a reference page that walks through a task, has two pages in
+it.</p>
+</section>
+<section id="where-pages-live">
+<h2>3. Where pages live<a class="headerlink" aria-label="Link to this heading: 3. Where pages live" href="#where-pages-live" title="Link to this heading">¶</a></h2>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>docs/
+├── index.md
+├── tutorial.md
+├── how-to/
+├── reference/
+└── explanation/
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">index.md</span></code></strong> says in one paragraph what the package is for, then lists the pages under one
+heading for each type, in the order Tutorial, How-to guides, Reference, Explanation. The
+maintainers’ material from section 1 follows under headings of its own.</p></li>
+<li><p><strong>A directory is created when its first page arrives.</strong> None of them is set up in advance, and
+none is left empty.</p></li>
+<li><p><strong>A tutorial longer than one page</strong> becomes a <code class="docutils literal notranslate"><span class="pre">tutorial/</span></code> directory, its pages numbered in
+the order they are read.</p></li>
+<li><p><strong>A file is named after its title</strong>, in lowercase words joined by hyphens, with “How to” left
+off: <code class="docutils literal notranslate"><span class="pre">how-to/add-a-menu-item.md</span></code>, <code class="docutils literal notranslate"><span class="pre">reference/settings.md</span></code>,
+<code class="docutils literal notranslate"><span class="pre">explanation/how-a-theme-is-applied.md</span></code>.</p></li>
+</ul>
+<p><strong>A small package needs no <code class="docutils literal notranslate"><span class="pre">docs/</span></code> directory.</strong> When setting the package up takes no more than
+two short examples, the quickstart in the README is its tutorial and the README is its
+documentation. A package that needs more than that has a <code class="docutils literal notranslate"><span class="pre">docs/</span></code> directory laid out as above,
+and the README’s quickstart links to the tutorial there.</p>
+<p><strong>An application’s user guide is organised by the application’s own sections</strong>, not by type,
+because a person looks for help under the name of the screen they are on. Each page is still one
+type, and its title follows the rule for that type. Where the guide lives and how its contents are
+ordered is set out in <strong>Project additions</strong>.</p>
+<section id="documentation-for-more-than-one-reader">
+<h3>Documentation for more than one reader<a class="headerlink" aria-label="Link to this heading: Documentation for more than one reader" href="#documentation-for-more-than-one-reader" title="Link to this heading">¶</a></h3>
+<p>A repository whose readers do different jobs, such as the developers who build on it, the staff
+who run a site built with it and the people who use that site, splits <code class="docutils literal notranslate"><span class="pre">docs/</span></code> by reader first.
+It declares its readers in <strong>Project additions</strong> with a table headed <strong>Readers</strong>:</p>
+<div class="highlight-markdown notranslate"><div class="highlight"><pre><span></span><span class="gu">### Readers</span>
+
+| Reader | Lives in | Does | Organised by |
+|---|---|---|---|
+| Portal developer | <span class="sb">`developers/`</span> | Builds and deploys a portal | type |
+| Portal administrator | <span class="sb">`administrators/`</span> | Runs a portal: people, roles, review | type |
+| Portal user | <span class="sb">`users/`</span> | Adds and edits research data | the site's sections |
+</pre></div>
+</div>
+<p>A repository with no such table has one reader, and the layout above applies as it stands.</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>docs/
+├── index.md
+├── explanation/
+├── developers/
+│   ├── tutorial.md
+│   ├── how-to/
+│   ├── reference/
+│   └── explanation/
+├── administrators/
+└── users/
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><strong>Readers are told apart by what they do, not by what they are allowed to do.</strong> A role gets a
+section of its own only when its tasks differ. A role that only sees one more button gets a
+line on the how-to guide for that task, such as “Only data managers see <strong>Merge</strong>”.</p></li>
+<li><p><strong>A reader’s section organised by type</strong> has the layout of a single-reader <code class="docutils literal notranslate"><span class="pre">docs/</span></code>, and leaves
+out a type it has no pages for.</p></li>
+<li><p><strong>A reader’s section organised by the site’s sections</strong> follows the rule for an application’s
+user guide above.</p></li>
+<li><p><strong>Explanation that every reader needs is written once</strong>, in <code class="docutils literal notranslate"><span class="pre">docs/explanation/</span></code>. A reader’s
+own <code class="docutils literal notranslate"><span class="pre">explanation/</span></code> holds only what that reader needs.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">index.md</span></code></strong> says in one paragraph what the repository is for, then gives one entry for each
+reader, in the order of the table, saying who it is for and linking to that reader’s section.
+The shared explanation and the maintainers’ material follow.</p></li>
+</ul>
+</section>
+</section>
+<section id="tutorials">
+<h2>4. Tutorials<a class="headerlink" aria-label="Link to this heading: 4. Tutorials" href="#tutorials" title="Link to this heading">¶</a></h2>
+<p>A tutorial takes someone new from nothing to a working result.</p>
+<ul class="simple">
+<li><p><strong>Title</strong>: what the reader will have built, such as “Build your first page”.</p></li>
+<li><p><strong>Before you start</strong>: what the reader needs, with a link for each.</p></li>
+<li><p><strong>One path.</strong> No options, no alternatives and no “you could also”. Choices belong in how-to
+guides.</p></li>
+<li><p><strong>Every step ends with something the reader can see</strong>: a page that loads, a command’s output,
+a test that passes.</p></li>
+<li><p><strong>The code is complete.</strong> Each block can be copied as it stands, with its imports. A name the
+reader must change, such as <code class="docutils literal notranslate"><span class="pre">yourproject</span></code>, is called out the first time it appears.</p></li>
+<li><p><strong>It explains almost nothing.</strong> One sentence at most, then a link to the explanation.</p></li>
+<li><p><strong>It ends with the finished result</strong>, and links to the how-to guides a reader is likely to
+want next.</p></li>
+</ul>
+<p>A tutorial is followed from start to finish, in a new project, before a release that changes
+anything it relies on.</p>
+</section>
+<section id="how-to-guides">
+<h2>5. How-to guides<a class="headerlink" aria-label="Link to this heading: 5. How-to guides" href="#how-to-guides" title="Link to this heading">¶</a></h2>
+<p>A how-to guide takes someone who already uses the package through one task.</p>
+<ul class="simple">
+<li><p><strong>Title</strong>: “How to”, then a verb, then what it acts on: “How to add a menu item”, “How to
+restrict a field to part of a vocabulary”.</p></li>
+<li><p><strong>Opening paragraph</strong>, with no heading: what the task achieves and when someone would do it,
+in two sentences at most.</p></li>
+<li><p><strong>Before you start</strong>: only when the task has a real precondition. Left out otherwise.</p></li>
+<li><p><strong>Steps</strong>: one numbered list, one action to a step. Code in a step shows only what that step
+changes, with enough around it to show where it goes.</p></li>
+<li><p><strong>The result</strong>: what the reader sees once the task is done, and anything that changed
+elsewhere.</p></li>
+</ul>
+<p>A how-to guide covers one task. A second task gets a guide of its own. It does not teach the
+basics, which the tutorial covers, or explain the design, which the explanation covers. Every
+setting, component or command it uses links to its reference entry.</p>
+<p><strong>Troubleshooting is a set of how-to guides.</strong> Each entry is headed by the symptom the reader
+sees, gives the cause in one sentence, then the fix.</p>
+</section>
+<section id="reference">
+<h2>6. Reference<a class="headerlink" aria-label="Link to this heading: 6. Reference" href="#reference" title="Link to this heading">¶</a></h2>
+<p>A reference page describes the machinery: settings, components, template tags, management
+commands, views, models and the Python API.</p>
+<ul class="simple">
+<li><p><strong>It describes, and does nothing else.</strong> No steps and no argument. A short example is fine
+where it shows the usage faster than the prose can.</p></li>
+<li><p><strong>It is built like the thing it describes.</strong> One page for the settings, one for the
+components, one for the template tags, each in the order the code defines them or in
+alphabetical order.</p></li>
+<li><p><strong>Every entry gives the same facts in the same order</strong>: the name, its type or signature, its
+default, what it does, and what it accepts.</p></li>
+<li><p><strong>It is complete.</strong> Every public setting, component, tag and command has an entry. One that is
+missing is a defect.</p></li>
+</ul>
+<p><strong>The Python API is generated from docstrings</strong> wherever the repository builds its
+documentation, and <a class="reference internal" href="code-documentation.html"><span class="std std-doc"><code class="docutils literal notranslate"><span class="pre">code-documentation.md</span></code></span></a> makes those docstrings
+complete. A docstring is never restated by hand on a reference page. A repository without a docs
+build writes reference pages only for what a user sets or calls from outside Python: settings,
+components, template tags and management commands.</p>
+<p><strong>An application’s reference is a screen guide</strong>: one page for each screen, titled with the
+screen’s own heading. It says what the screen is for and how to reach it, then has one section
+for each part of the screen, saying what the part shows and what it shows when empty. It closes
+with what the reader can do from the screen, each action a link to its how-to guide.</p>
+</section>
+<section id="explanation">
+<h2>7. Explanation<a class="headerlink" aria-label="Link to this heading: 7. Explanation" href="#explanation" title="Link to this heading">¶</a></h2>
+<p>An explanation helps a reader understand a subject.</p>
+<ul class="simple">
+<li><p><strong>Title</strong>: the subject, not a question: “How a theme is applied”, “Concepts, schemes and
+collections”.</p></li>
+<li><p><strong>Opening paragraph</strong>, with no heading: what the page covers and what it does not.</p></li>
+<li><p><strong>Body</strong>: one idea to a section. Why the design is the way it is, what it was weighed against,
+and where its limits are.</p></li>
+<li><p><strong>Decisions link to their record.</strong> Where a decision has an entry in <code class="docutils literal notranslate"><span class="pre">docs/adr/</span></code>, the
+explanation gives the reasoning in a form a user can follow and links to the record.</p></li>
+</ul>
+<p>An explanation never takes the reader through a task and never lists settings. A sequence that
+describes how something works is fine. A list of things to do is a how-to guide.</p>
+</section>
+<section id="every-page">
+<h2>8. Every page<a class="headerlink" aria-label="Link to this heading: 8. Every page" href="#every-page" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><strong>It reads on its own.</strong> A reader arrives from search or from a link, so the opening says what
+the page covers.</p></li>
+<li><p><strong>It speaks to the reader as “you”.</strong></p></li>
+<li><p><strong>It links rather than repeats.</strong> A setting is described once, on its reference page, and
+linked from everywhere else.</p></li>
+<li><p><strong>It describes the current release.</strong> What changed, and when, is in the changelog. A page has
+no “new in” notes and no record of how it used to work.</p></li>
+</ul>
+</section>
+<section id="enforcement">
+<h2>9. Enforcement<a class="headerlink" aria-label="Link to this heading: 9. Enforcement" href="#enforcement" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Where the repository builds its documentation, the build treats warnings as errors, so a page
+left out of the contents or a broken cross-reference fails it.</p></li>
+<li><p>Everything else, including that each page is one type, is checked in review.</p></li>
+</ul>
+</section>
+<section id="project-additions">
+<h2>Project additions<a class="headerlink" aria-label="Link to this heading: Project additions" href="#project-additions" title="Link to this heading">¶</a></h2>
+<section id="readers">
+<h3>Readers<a class="headerlink" aria-label="Link to this heading: Readers" href="#readers" title="Link to this heading">¶</a></h3>
+<div aria-label="Table" class="daisy-sphinx-scroll" role="region" tabindex="0"><table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Reader</p></th>
+<th class="head"><p>Lives in</p></th>
+<th class="head"><p>Does</p></th>
+<th class="head"><p>Organised by</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Portal developer</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">developers/</span></code></p></td>
+<td><p>Builds a research data portal on FairDM and deploys it</p></td>
+<td><p>type</p></td>
+</tr>
+<tr class="row-odd"><td><p>Portal administrator</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">administrators/</span></code></p></td>
+<td><p>Runs a portal: people, roles, content review and configuration checks</p></td>
+<td><p>type</p></td>
+</tr>
+<tr class="row-even"><td><p>Portal user</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">users/</span></code></p></td>
+<td><p>Adds, edits and publishes research data in a portal</p></td>
+<td><p>the site’s sections</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The portal user’s guide follows the sections a portal shows in its navigation: projects,
+datasets, samples, measurements and the account pages. Explanation that every reader needs, such
+as why FairDM favours configuration over code, lives in <code class="docutils literal notranslate"><span class="pre">docs/explanation/</span></code>.</p>
+</section>
+<section id="shared-reference">
+<h3>Shared reference<a class="headerlink" aria-label="Link to this heading: Shared reference" href="#shared-reference" title="Link to this heading">¶</a></h3>
+<p>Reference that every reader needs, such as the glossary, lives in <code class="docutils literal notranslate"><span class="pre">docs/reference/</span></code>.</p>
+<hr class="docutils" />
+<p><strong>Version</strong>: 1.2.0</p>
+</section>
+</section>
+</section>
+
+
+        </article>
+        
+          <nav class="daisy-prev-next mt-12 grid gap-3 border-t border-base-300 pt-6 sm:grid-cols-2" aria-label="Previous and next page">
+              <a href="django.html" rel="prev" class="group flex items-center gap-3 rounded-box border border-base-300 p-4 transition hover:border-primary/50 hover:bg-base-200 focus-visible:bg-base-200">
+                <svg class="size-4 shrink-0 opacity-60 transition group-hover:-translate-x-0.5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m12 19-7-7 7-7" /> <path d="M19 12H5" /> </svg>
+                <span class="min-w-0"><span class="daisy-prev-next-label block text-xs">Previous</span><span class="block font-medium">Django standards</span></span>
+              </a>
+              <a href="../documentation/index.html" rel="next" class="group flex items-center justify-end gap-3 rounded-box border border-base-300 p-4 text-end transition hover:border-primary/50 hover:bg-base-200 focus-visible:bg-base-200">
+                <span class="min-w-0"><span class="daisy-prev-next-label block text-xs">Next</span><span class="block font-medium">Working on the documentation</span></span>
+                <svg class="size-4 shrink-0 opacity-60 transition group-hover:translate-x-0.5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M5 12h14" /> <path d="m12 5 7 7-7 7" /> </svg>
+              </a>
+          </nav>
+        
+      </div>
+    </main>
+      <aside class="daisy-area-secondary" aria-label="Page tools">
+        <div class="daisy-secondary daisy-secondary-inner">
+<nav class="daisy-page-toc mb-6" aria-labelledby="daisy-page-toc-label" data-toc-level="2">
+  <p id="daisy-page-toc-label" class="daisy-section-label mb-2 flex items-center gap-2 leading-4"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M3 5h.01" /> <path d="M3 12h.01" /> <path d="M3 19h.01" /> <path d="M8 5h13" /> <path d="M8 12h13" /> <path d="M8 19h13" /> </svg>On this page</p>
+  <ul class="daisy-toc-list">
+<li><a class="daisy-toc-link reference internal" href="#what-these-rules-cover">1. What these rules cover</a></li>
+<li><a class="daisy-toc-link reference internal" href="#the-four-types">2. The four types</a></li>
+<li><a class="daisy-toc-link reference internal" href="#where-pages-live">3. Where pages live</a><ul class="daisy-toc-list">
+<li><a class="daisy-toc-link reference internal" href="#documentation-for-more-than-one-reader">Documentation for more than one reader</a></li>
+</ul>
+</li>
+<li><a class="daisy-toc-link reference internal" href="#tutorials">4. Tutorials</a></li>
+<li><a class="daisy-toc-link reference internal" href="#how-to-guides">5. How-to guides</a></li>
+<li><a class="daisy-toc-link reference internal" href="#reference">6. Reference</a></li>
+<li><a class="daisy-toc-link reference internal" href="#explanation">7. Explanation</a></li>
+<li><a class="daisy-toc-link reference internal" href="#every-page">8. Every page</a></li>
+<li><a class="daisy-toc-link reference internal" href="#enforcement">9. Enforcement</a></li>
+<li><a class="daisy-toc-link reference internal" href="#project-additions">Project additions</a><ul class="daisy-toc-list">
+<li><a class="daisy-toc-link reference internal" href="#readers">Readers</a></li>
+<li><a class="daisy-toc-link reference internal" href="#shared-reference">Shared reference</a></li>
+</ul>
+</li>
+</ul>
+
+</nav></div>
+      </aside>
+
+    <footer class="daisy-area-footer daisy-footer border-t border-base-300 bg-base-100 px-4 py-8 text-sm sm:px-6 lg:px-10">
+      <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div class="flex flex-col gap-1"><p>&copy; 2026, Samuel Jennings</p></div>
+        <div class="flex flex-col gap-1"></div>
+        <div class="flex flex-col gap-2 md:items-end"><p>Theme: <a class="link link-hover" href="https://github.com/SamuelJennings/sphinx-daisyui">sphinx-daisyui</a> 0.2.0.</p></div>
+      </div>
+    </footer>
+  </div>
+    <button type="button" class="daisy-back-to-top btn btn-sm fixed bottom-6 left-1/2 z-30 -translate-x-1/2 gap-1 rounded-full shadow-lg" hidden><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m5 12 7-7 7 7" /> <path d="M12 19V5" /> </svg>Back to top</button><dialog id="daisy-search" class="modal modal-top sm:modal-middle" aria-label="Search the documentation"
+  data-daisy-language-data="../../_static/language_data.js"
+  data-daisy-searchtools="../../_static/searchtools.js"
+  data-daisy-searchindex="../../searchindex.js"
+  data-daisy-prompt="Type to search pages, sections and API names."
+  data-daisy-nothing="Nothing matches %(query)s."
+  data-daisy-unavailable="Search is not available here."
+  data-daisy-page="Page"
+  data-daisy-section="Section"
+  data-daisy-as-you-type="true">
+  <div class="modal-box flex max-h-[min(40rem,85dvh)] max-w-2xl flex-col gap-0 p-0 sm:rounded-box">
+    <form action="../../search.html" method="get" class="flex items-center gap-3 border-b border-base-300 px-4 py-3" role="search">
+      <svg class="size-5 shrink-0 opacity-60" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m21 21-4.34-4.34" /> <circle cx="11" cy="11" r="8" /> </svg>
+      <input type="search" name="q" class="daisy-search-input min-w-0 flex-1 bg-transparent text-base outline-none" placeholder="Search the docs" aria-label="Search" autocomplete="off" spellcheck="false" role="combobox" aria-controls="daisy-search-results" aria-autocomplete="list" aria-expanded="false">
+      <kbd class="kbd kbd-sm hidden sm:inline-flex">Esc</kbd>
+      <span class="sm:hidden"><button type="button" class="btn btn-ghost btn-sm btn-square" aria-label="Close search" data-daisy-search-close=""><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M18 6 6 18" /> <path d="m6 6 12 12" /> </svg></button></span>
+    </form>
+    <div class="min-h-0 flex-1 overflow-y-auto p-2">
+      <p class="daisy-search-status daisy-muted px-3 py-6 text-center text-sm" aria-live="polite">Type to search pages, sections and API names.</p>
+      <ul id="daisy-search-results" class="daisy-search-results menu w-full gap-0.5 p-0" role="listbox"></ul>
+    </div>
+    <div class="daisy-muted hidden items-center gap-4 border-t border-base-300 px-4 py-2 text-xs sm:flex">
+      <span class="flex items-center gap-1"><kbd class="kbd kbd-xs">↑</kbd><kbd class="kbd kbd-xs">↓</kbd> to move</span>
+      <span class="flex items-center gap-1"><kbd class="kbd kbd-xs">↵</kbd> to open</span>
+      <span class="ms-auto">Enter with nothing chosen opens the full results.</span>
+    </div>
+  </div>
+  <form method="dialog" class="modal-backdrop"><button aria-label="Close search">close</button></form>
+</dialog>
+  </body>
+</html>

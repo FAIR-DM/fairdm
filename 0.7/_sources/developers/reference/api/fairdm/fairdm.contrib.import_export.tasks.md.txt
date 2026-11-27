@@ -1,0 +1,167 @@
+# {py:mod}`fairdm.contrib.import_export.tasks`
+
+```{py:module} fairdm.contrib.import_export.tasks
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.tasks
+:allowtitles:
+```
+
+## Module Contents
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`start <fairdm.contrib.import_export.tasks.start>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.tasks.start
+    :summary:
+    ```
+* - {py:obj}`check_job <fairdm.contrib.import_export.tasks.check_job>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.tasks.check_job
+    :summary:
+    ```
+* - {py:obj}`import_job <fairdm.contrib.import_export.tasks.import_job>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.tasks.import_job
+    :summary:
+    ```
+* - {py:obj}`undo_job <fairdm.contrib.import_export.tasks.undo_job>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.tasks.undo_job
+    :summary:
+    ```
+* - {py:obj}`discard_stale_jobs <fairdm.contrib.import_export.tasks.discard_stale_jobs>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.tasks.discard_stale_jobs
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`logger <fairdm.contrib.import_export.tasks.logger>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.tasks.logger
+    :summary:
+    ```
+* - {py:obj}`CHECK_LIMITS <fairdm.contrib.import_export.tasks.CHECK_LIMITS>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.tasks.CHECK_LIMITS
+    :summary:
+    ```
+* - {py:obj}`IMPORT_LIMITS <fairdm.contrib.import_export.tasks.IMPORT_LIMITS>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.tasks.IMPORT_LIMITS
+    :summary:
+    ```
+* - {py:obj}`UNDO_LIMITS <fairdm.contrib.import_export.tasks.UNDO_LIMITS>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.tasks.UNDO_LIMITS
+    :summary:
+    ```
+* - {py:obj}`STALE_DAYS <fairdm.contrib.import_export.tasks.STALE_DAYS>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.tasks.STALE_DAYS
+    :summary:
+    ```
+* - {py:obj}`STALE_STATUSES <fairdm.contrib.import_export.tasks.STALE_STATUSES>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.tasks.STALE_STATUSES
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} logger
+:canonical: fairdm.contrib.import_export.tasks.logger
+:value: >
+   'getLogger(...)'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.tasks.logger
+```
+
+````
+
+````{py:data} CHECK_LIMITS
+:canonical: fairdm.contrib.import_export.tasks.CHECK_LIMITS
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.tasks.CHECK_LIMITS
+```
+
+````
+
+````{py:data} IMPORT_LIMITS
+:canonical: fairdm.contrib.import_export.tasks.IMPORT_LIMITS
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.tasks.IMPORT_LIMITS
+```
+
+````
+
+````{py:data} UNDO_LIMITS
+:canonical: fairdm.contrib.import_export.tasks.UNDO_LIMITS
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.tasks.UNDO_LIMITS
+```
+
+````
+
+````{py:data} STALE_DAYS
+:canonical: fairdm.contrib.import_export.tasks.STALE_DAYS
+:value: >
+   30
+
+```{autodoc2-docstring} fairdm.contrib.import_export.tasks.STALE_DAYS
+```
+
+````
+
+````{py:data} STALE_STATUSES
+:canonical: fairdm.contrib.import_export.tasks.STALE_STATUSES
+:value: >
+   ()
+
+```{autodoc2-docstring} fairdm.contrib.import_export.tasks.STALE_STATUSES
+```
+
+````
+
+````{py:function} start(task, *args)
+:canonical: fairdm.contrib.import_export.tasks.start
+
+```{autodoc2-docstring} fairdm.contrib.import_export.tasks.start
+```
+````
+
+````{py:function} check_job(job_pk)
+:canonical: fairdm.contrib.import_export.tasks.check_job
+
+```{autodoc2-docstring} fairdm.contrib.import_export.tasks.check_job
+```
+````
+
+````{py:function} import_job(job_pk, user_pk)
+:canonical: fairdm.contrib.import_export.tasks.import_job
+
+```{autodoc2-docstring} fairdm.contrib.import_export.tasks.import_job
+```
+````
+
+````{py:function} undo_job(job_pk, user_pk)
+:canonical: fairdm.contrib.import_export.tasks.undo_job
+
+```{autodoc2-docstring} fairdm.contrib.import_export.tasks.undo_job
+```
+````
+
+````{py:function} discard_stale_jobs()
+:canonical: fairdm.contrib.import_export.tasks.discard_stale_jobs
+
+```{autodoc2-docstring} fairdm.contrib.import_export.tasks.discard_stale_jobs
+```
+````

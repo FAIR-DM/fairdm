@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>fairdm.conf.setup &#8212; fairdm 0.7.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/sphinx-daisyui.css?v=aedd34d4" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <script src="../../../_static/documentation_options.js?v=d87af0f4"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=f281be69"></script>
+    <script kind="utterances">
+
+    var commentsRunWhenDOMLoaded = cb => {
+    if (document.readyState != 'loading') {
+        cb()
+    } else if (document.addEventListener) {
+        document.addEventListener('DOMContentLoaded', cb)
+    } else {
+        document.attachEvent('onreadystatechange', function() {
+        if (document.readyState == 'complete') cb()
+        })
+    }
+}
+
+var addUtterances = () => {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src = "https://utteranc.es/client.js";
+    script.async = "async";
+
+    script.setAttribute("repo", "FAIR-DM/fairdm");
+    script.setAttribute("issue-term", "pathname");
+    script.setAttribute("theme", "preferred-color-scheme");
+    script.setAttribute("label", "documentation");
+    script.setAttribute("crossorigin", "anonymous");
+
+    sections = document.querySelectorAll("div.section");
+    if (sections !== null) {
+        section = sections[sections.length-1];
+        section.appendChild(script);
+    }
+}
+commentsRunWhenDOMLoaded(addUtterances);
+</script>
+    <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+
+
+
+
+const initStyles = () => {
+    const defaultStyle = document.createElement('style');
+    defaultStyle.textContent = "pre.mermaid {\n    /* Same as .mermaid-container > pre */\n    display: block;\n    width: 100%;\n}\n\npre.mermaid > svg {\n    /* Same as .mermaid-container > pre > svg */\n    height: 500px;\n    width: 100%;\n    max-width: 100% !important;\n}";
+    document.head.appendChild(defaultStyle);
+
+    const fullscreenStyle = document.createElement('style');
+    fullscreenStyle.textContent = ".mermaid-container {\n    position: relative;\n    display: flex;\n    flex-direction: row;\n    width: 100%;\n}\n\n.mermaid-container > pre {\n    display: block;\n    width: 100%;\n}\n\n.mermaid-container > pre > svg {\n    height: 500px;\n    width: 100%;\n    max-width: 100% !important;\n}\n\n.mermaid-fullscreen-btn {\n    position: absolute;\n    width: 28px;\n    height: 28px;\n    background: rgba(255, 255, 255, 0.95);\n    border: 1px solid rgba(0, 0, 0, 0.3);\n    border-radius: 4px;\n    cursor: pointer;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    transition: all 0.2s;\n    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);\n    font-size: 14px;\n    line-height: 1;\n    padding: 0;\n    color: #333;\n}\n\n.mermaid-fullscreen-btn:hover {\n    opacity: 100% !important;\n    background: rgba(255, 255, 255, 1);\n    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);\n    transform: scale(1.1);\n}\n\n.mermaid-fullscreen-btn.dark-theme {\n    background: rgba(50, 50, 50, 0.95);\n    border: 1px solid rgba(255, 255, 255, 0.3);\n    color: #e0e0e0;\n}\n\n.mermaid-fullscreen-btn.dark-theme:hover {\n    background: rgba(60, 60, 60, 1);\n    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);\n}\n\n.mermaid-fullscreen-modal {\n    display: none;\n    position: fixed !important;\n    top: 0 !important;\n    left: 0 !important;\n    width: 95vw;\n    height: 100vh;\n    background: rgba(255, 255, 255, 0.98);\n    z-index: 9999;\n    padding: 20px;\n    overflow: auto;\n}\n\n.mermaid-fullscreen-modal.dark-theme {\n    background: rgba(0, 0, 0, 0.98);\n}\n\n.mermaid-fullscreen-modal.active {\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen {\n    position: relative;\n    width: 95vw;\n    height: 90vh;\n    max-width: 95vw;\n    max-height: 90vh;\n    background: white;\n    border-radius: 8px;\n    padding: 20px;\n    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);\n    overflow: auto;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen.dark-theme {\n    background: #1a1a1a;\n    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);\n}\n\n.mermaid-container-fullscreen pre.mermaid {\n    width: 100%;\n    height: 100%;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen .mermaid svg {\n    height: 100% !important;\n    width: 100% !important;\n    cursor: grab;\n}\n\n.mermaid-fullscreen-close {\n    position: fixed !important;\n    top: 20px !important;\n    right: 20px !important;\n    width: 40px;\n    height: 40px;\n    background: rgba(255, 255, 255, 0.95);\n    border: 1px solid rgba(0, 0, 0, 0.2);\n    border-radius: 50%;\n    cursor: pointer;\n    z-index: 10000;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);\n    transition: all 0.2s;\n    font-size: 24px;\n    line-height: 1;\n    color: #333;\n}\n\n.mermaid-fullscreen-close:hover {\n    background: white;\n    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);\n    transform: scale(1.1);\n}\n\n.mermaid-fullscreen-close.dark-theme {\n    background: rgba(50, 50, 50, 0.95);\n    border: 1px solid rgba(255, 255, 255, 0.2);\n    color: #e0e0e0;\n}\n\n.mermaid-fullscreen-close.dark-theme:hover {\n    background: rgba(60, 60, 60, 1);\n    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);\n}\n\n.mermaid-fullscreen-modal .mermaid-fullscreen-btn {\n    display: none !important;\n}";
+    document.head.appendChild(fullscreenStyle);
+}
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    // We use a set of heuristics:
+    // 1. Check for common dark mode classes or attributes
+    // 2. Check computed background color brightness
+    if (document.documentElement.classList.contains('dark') ||
+        document.documentElement.getAttribute('data-theme') === 'dark' ||
+        document.body.classList.contains('dark') ||
+        document.body.getAttribute('data-theme') === 'dark') {
+        // console.log("Dark theme detected via class/attribute");
+        return true;
+    }
+    if (document.documentElement.classList.contains('light') ||
+        document.documentElement.getAttribute('data-theme') === 'light' ||
+        document.body.classList.contains('light') ||
+        document.body.getAttribute('data-theme') === 'light') {
+        // console.log("Light theme detected via class/attribute");
+        return false;
+    }
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        // console.log("Dark theme detected via prefers-color-scheme");
+        return true;
+    }
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        // console.log("Background color brightness:", brightness);
+        return brightness < 128;
+    }
+    // console.log("No dark or light theme detected, defaulting to light theme");
+    return false;
+};
+
+let darkTheme = isDarkTheme();
+let modal = null;
+let modalContent = null;
+let previousScrollOffset = [window.scrollX, window.scrollY];
+let _lazyObserver = null;
+let _renderQueue = Promise.resolve();
+let closeModal = () => {};
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal?.classList.contains('active')) {
+        closeModal();
+    }
+});
+
+// Apply d3 zoom to each SVG. Idempotent: an SVG already wrapped is skipped,
+// so this is safe to call both for the initial batch and for diagrams that
+// render lazily once they become visible.
+const addZoomToSvgs = (svgs) => {
+    svgs.each(function() {
+        if (this.getAttribute('data-zoom-applied') === 'true') return;
+        var svg = d3.select(this);
+        svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+        var inner = svg.select("g");
+        var zoom = d3.zoom().on("zoom", function(event) {
+            inner.attr("transform", event.transform);
+        });
+        svg.call(zoom);
+        this.setAttribute('data-zoom-applied', 'true');
+    });
+};
+
+const runMermaid = async (rerun) => {
+    console.log("Running mermaid diagrams, rerun =", rerun);
+    // clear all existing mermaid charts
+    let all_mermaids = document.querySelectorAll(".mermaid");
+
+    if (rerun) {
+        // Disconnect any previous lazy rendering observer
+        if (_lazyObserver) {
+            _lazyObserver.disconnect();
+            _lazyObserver = null;
+        }
+
+        all_mermaids.forEach((el) => {
+            el.removeAttribute('data-mermaid-deferred');
+            el.removeAttribute('data-mermaid-render-failed');
+            if(!el.hasAttribute("data-original-code")) {
+                // store original code
+                // console.log(`Storing original code for first run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+            if(el.getAttribute("data-processed") === "true") {
+                // remove and restore original
+                el.removeAttribute("data-processed");
+                // console.log(`Restoring original code for re-run: `, el.getAttribute('data-original-code'));
+                el.innerHTML = el.getAttribute('data-original-code');
+            } else {
+                // store original code
+                // console.log(`Storing original code for re-run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+        });
+
+        // Separate visible and hidden elements. Mermaid's layout engine measures
+        // text dimensions via the DOM, which fails for elements hidden by a parent
+        // (e.g., Reveal.js non-active slides, sphinx-design unopened tabs),
+        // producing broken SVGs. Render visible elements now, defer hidden ones.
+        const visible = [];
+        const hidden = [];
+        all_mermaids.forEach((el) => {
+            // offsetParent is null for display:none ancestors.
+            // getClientRects().length > 0 catches position:fixed elements
+            // (which also have null offsetParent but are still visible).
+            if (el.offsetParent !== null || el.getClientRects().length > 0) {
+                visible.push(el);
+            } else {
+                hidden.push(el);
+                el.setAttribute('data-mermaid-deferred', 'true');
+            }
+        });
+
+        if (visible.length > 0) {
+            try {
+                await mermaid.run({ nodes: visible });
+            } catch (e) {
+                console.error("Mermaid rendering failed:", e);
+            }
+        }
+
+        // Lazily render hidden elements when they become visible.
+        // Uses a promise chain (_renderQueue) to serialize rendering,
+        // since IntersectionObserver may report multiple entries at once
+        // and mermaid.run() is not safe to call concurrently.
+        if (hidden.length > 0) {
+            if (typeof IntersectionObserver === 'undefined') {
+                console.warn("IntersectionObserver not available; hidden mermaid diagrams will not render.");
+            } else {
+                _renderQueue = Promise.resolve();
+                _lazyObserver = new IntersectionObserver((entries) => {
+                    for (const entry of entries) {
+                        if (entry.isIntersecting && entry.target.getAttribute("data-processed") !== "true") {
+                            _lazyObserver.unobserve(entry.target);
+                            const el = entry.target;
+                            _renderQueue = _renderQueue.then(async () => {
+                                try {
+                                    await mermaid.run({ nodes: [el] });
+                                    el.removeAttribute('data-mermaid-deferred');
+                                    // Apply zoom to the now-rendered diagram, matching
+                                    // the decoration visible diagrams receive.
+                                    if (true) {
+                                        addZoomToSvgs(d3.selectAll(".mermaid").select(function() {
+                                            return this.querySelector("svg");
+                                        }));
+                                    }
+                                } catch (e) {
+                                    console.error("Mermaid deferred rendering failed:", e);
+                                    el.removeAttribute('data-mermaid-deferred');
+                                    el.setAttribute('data-mermaid-render-failed', 'true');
+                                }
+                            });
+                        }
+                    }
+                });
+                hidden.forEach((el) => _lazyObserver.observe(el));
+            }
+        }
+    }
+
+    all_mermaids = document.querySelectorAll(".mermaid");
+    // Exclude deferred (hidden) and render-failed elements from completion checks
+    const mermaids_active = document.querySelectorAll(".mermaid:not([data-mermaid-deferred]):not([data-mermaid-render-failed])");
+    const mermaids_processed = document.querySelectorAll(".mermaid:not([data-mermaid-deferred]):not([data-mermaid-render-failed])[data-processed='true']");
+
+    if (true) {
+        const mermaids_to_add_zoom = -1 === -1 ? mermaids_active.length : -1;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll(".mermaid").select(function() {
+                return this.querySelector("svg");
+            });
+            // Wait until every active (visible) diagram has rendered. Deferred
+            // diagrams are excluded, so a fixed d3_node_count that counts a
+            // hidden diagram no longer loops forever waiting for its SVG.
+            if(mermaids_active.length !== mermaids_processed.length) {
+                setTimeout(() => runMermaid(false), 200);
+                return;
+            }
+            addZoomToSvgs(svgs);
+        }
+    } else if(mermaids_active.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(() => runMermaid(false), 200);
+        return;
+    }
+
+    // Stop here if not adding fullscreen capability
+    if (!true) return;
+
+    if (modal !== null ) {
+        // Destroy existing modal
+        modal.remove();
+        modal = null;
+        modalContent = null;
+    }
+
+    modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            // Already processed, adjust button class if needed
+            const existingBtn = mermaidDiv.parentNode.querySelector('.mermaid-fullscreen-btn');
+            if (existingBtn) {
+                existingBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+            }
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = "\u26f6";
+        fullscreenBtn.style.opacity = "50%";
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scrollX, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.display = 'block';
+
+                if (true) {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+        container.appendChild(fullscreenBtn);
+    });
+};
+
+
+
+const load = async () => {
+    initStyles();
+
+
+    await runMermaid(true);
+
+    const reRunIfThemeChanges = async () => {
+        const newDarkTheme = isDarkTheme();
+        if (newDarkTheme !== darkTheme) {
+            darkTheme = newDarkTheme;
+            console.log("Theme change detected, re-running mermaid with", darkTheme ? "dark" : "default", "theme");
+            await mermaid.initialize(
+                {...{"startOnLoad": false},
+                ...{ darkMode: darkTheme, theme: darkTheme ? "dark" : "default" },
+                }
+            );
+            await runMermaid(true);
+        }
+    };
+
+    // Update theme classes when theme changes
+    const themeObserver = new MutationObserver(reRunIfThemeChanges);
+    themeObserver.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    themeObserver.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+};
+
+
+
+
+
+console.log("Initializing mermaid with", darkTheme ? "dark" : "default", "theme");
+mermaid.initialize(
+    {...{"startOnLoad": false},
+    ...{ darkMode: darkTheme, theme: darkTheme ? "dark" : "default" },
+    }
+);
+
+window.addEventListener("load", load);
+window.runMermaid = runMermaid;</script>
+    <link rel="icon" href="../../../_static/icon.svg"/>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  <meta name="color-scheme" content="light dark">
+  <script src="../../../_static/scripts/mode.js" data-light-theme="light" data-dark-theme="dark" data-default-mode="auto" data-themes=""></script>
+  <script defer src="../../../_static/scripts/keys.js"></script>
+  <script defer src="../../../_static/scripts/page-address.js"></script>
+  <script defer src="../../../_static/scripts/versions.js"></script>
+  <script defer src="../../../_static/scripts/search.js"></script>
+  <script defer src="../../../_static/scripts/frame.js"></script>
+  <script defer src="../../../_static/scripts/back-to-top.js"></script>
+  <script defer src="../../../_static/scripts/announcement.js"></script>
+  <script defer src="../../../_static/scripts/navigation.js"></script>
+  <script defer src="../../../_static/scripts/theme-menu.js"></script>
+  <script defer src="../../../_static/scripts/page-toc.js"></script>
+  </head><body class="bg-base-100 text-base-content antialiased" data-daisy-root="../../../" data-daisy-suffix=".html" data-daisy-link-suffix=".html" data-daisy-builder="html" data-daisy-page="_modules/fairdm/conf/setup">
+  <a href="#main-content" class="btn btn-primary btn-sm absolute -top-20 left-4 z-50 focus:top-2">Skip to content</a>
+  <div class="daisy-layout" style='--daisy-areas-lg: "header header header" "primary main main" "primary footer footer"; --daisy-areas-xl: "header header header" "primary main secondary" "primary footer footer"; --daisy-primary-top: var(--daisy-header-height); --daisy-secondary-top: var(--daisy-header-height);' data-layout="hHh LpR lff" data-header-fixed data-primary-fixed data-secondary-fixed>
+    <input id="daisy-drawer" type="checkbox" class="hidden" aria-hidden="true" tabindex="-1">
+
+    <header class="daisy-area-header daisy-navbar bg-base-100/90 backdrop-blur supports-[backdrop-filter]:bg-base-100/75">
+      <div class="navbar mx-auto min-h-16 max-w-[96rem] gap-2 px-3 sm:px-4">
+        <label for="daisy-drawer" role="button" tabindex="0" data-daisy-drawer-open class="btn btn-ghost btn-square btn-sm lg:hidden" aria-label="Open the navigation"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M4 5h16" /> <path d="M4 12h16" /> <path d="M4 19h16" /> </svg></label>
+        <div class="flex min-w-0 items-center gap-2">
+<a href="../../../index.html" class="daisy-brand flex min-w-0 items-center gap-2.5 rounded-field px-1 py-1 font-semibold hover:opacity-85">
+    <img src="../../../_static/fairdm_light.svg" alt="fairdm" class="daisy-logo-light h-8 w-auto">
+    <img src="../../../_static/fairdm_dark.svg" alt="fairdm" class="daisy-logo-dark h-8 w-auto">
+</a>
+        </div>
+        <div class="hidden min-w-0 flex-1 items-center lg:flex" data-navbar-align="left">
+<nav aria-label="Sections" class="min-w-0">
+  <ul class="flex items-center gap-1"><li class="daisy-dropdown dropdown dropdown-end">
+    <div tabindex="0" role="button" aria-haspopup="menu" class="btn btn-ghost btn-sm font-medium">More<svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m6 9 6 6 6-6" /> </svg></div>
+    <ul tabindex="-1" class="dropdown-content z-40 mt-2 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg menu w-56">
+            <li><a href="../../../developers/index.html">Developers</a></li>
+            <li><a href="../../../administrators/index.html">Administrators</a></li>
+            <li><a href="../../../users/index.html">Users</a></li>
+            <li><a href="../../../explanation/what-fairdm-is-for.html">What FairDM is for</a></li>
+            <li><a href="../../../explanation/fair-data-and-research-data-infrastructure.html">FAIR data and research data infrastructure</a></li>
+            <li><a href="../../../explanation/the-technology-stack.html">The technology stack</a></li>
+            <li><a href="../../../explanation/the-core-data-model.html">The core data model</a></li>
+            <li><a href="../../../explanation/how-sample-and-measurement-types-are-stored.html">How sample and measurement types are stored</a></li>
+            <li><a href="../../../explanation/controlled-vocabularies.html">Controlled vocabularies</a></li>
+            <li><a href="../../../explanation/configuration-over-code.html">Configuration over code</a></li>
+            <li><a href="../../../explanation/why-complete-metadata-matters.html">Why complete metadata matters</a></li>
+            <li><a href="../../../explanation/how-access-to-a-record-is-decided.html">How access to a record is decided</a></li>
+            <li><a href="../../../explanation/why-fairdm-records-contributors.html">Why FairDM records contributors</a></li>
+            <li><a href="../../../explanation/how-contributor-accounts-and-credits-work.html">How contributor accounts and credits work</a></li>
+            <li><a href="../../../explanation/how-a-profile-is-claimed.html">How a profile is claimed</a></li>
+            <li><a href="../../../explanation/how-fairdm-configures-a-portal.html">How FairDM configures a portal</a></li>
+            <li><a href="../../../explanation/who-is-asked-to-agree-to-a-legal-document.html">Who is asked to agree to a legal document</a></li>
+            <li><a href="../../../explanation/how-locations-are-stored-and-protected.html">How locations are stored and protected</a></li>
+            <li><a href="../../../explanation/dataset-publication-dois-and-datacite-metadata.html">Dataset publication, DOIs and DataCite metadata</a></li>
+            <li><a href="../../../reference/glossary.html">Glossary</a></li>
+            <li><a href="../../../reference/contributor-roles.html">Contributor roles</a></li>
+            <li><a href="../../../contributing/index.html">Framework Contributors</a></li>
+            <li><a href="../../../adr/index.html">Architecture Decision Records</a></li>
+            <li><a href="../../../ROADMAP.html">Roadmap — FairDM</a></li>
+            <li><a href="../../../changelog.html">Changelog</a></li>
+            <li><a href="https://github.com/FAIR-DM/fairdm/blob/main/CHANGELOG.md">Changelog<svg class="size-3.5 opacity-60" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M15 3h6v6" /> <path d="M10 14 21 3" /> <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /> </svg><span class="sr-only">(leads outside the site)</span></a></li></ul>
+  </li>
+  </ul>
+</nav></div>
+        <div class="ms-auto flex items-center gap-1">
+          
+<button type="button" class="daisy-search-open daisy-muted btn btn-sm h-9 gap-2 border-base-300 bg-base-200/70 font-normal shadow-none hover:bg-base-200 md:w-56 md:justify-start" aria-label="Search" aria-haspopup="dialog">
+  <svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m21 21-4.34-4.34" /> <circle cx="11" cy="11" r="8" /> </svg>
+  <span class="hidden md:inline">Search the docs</span>
+  <span class="ms-auto hidden items-center gap-0.5 md:flex"><kbd class="kbd kbd-xs" data-daisy-mod>Ctrl</kbd><kbd class="kbd kbd-xs">K</kbd></span>
+</button>
+          <div class="hidden items-center gap-1 sm:flex" data-daisy-navbar-end><div class="daisy-dropdown dropdown dropdown-end" data-daisy-json-url="https://docs.fairdm.org/switcher.json" data-daisy-version-match="0.7" data-text-preferred="Preferred" data-text-current="Current version">
+    <div tabindex="0" role="button" aria-haspopup="menu" class="btn btn-ghost btn-sm gap-1 font-medium" aria-label="Choose a version">
+      <svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /> <path d="M3 3v5h5" /> <path d="M12 7v5l4 2" /> </svg><span data-daisy-version-label>0.7</span><svg class="size-3.5 opacity-60" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m6 9 6 6 6-6" /> </svg></div>
+    <div tabindex="-1" class="dropdown-content z-40 mt-2 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg w-52">
+      <ul class="menu w-full p-0" data-daisy-version-list></ul></div>
+  </div><div class="daisy-dropdown dropdown dropdown-end" data-daisy-mode-names="Match the system|Light|Dark">
+    <div tabindex="0" role="button" aria-haspopup="menu" class="btn btn-ghost btn-sm btn-square" aria-label="Choose the colour theme">
+    <span data-daisy-mode-icon="auto"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M12 2v2" /> <path d="M14.837 16.385a6 6 0 1 1-7.223-7.222c.624-.147.97.66.715 1.248a4 4 0 0 0 5.26 5.259c.589-.255 1.396.09 1.248.715" /> <path d="M16 12a4 4 0 0 0-4-4" /> <path d="m19 5-1.256 1.256" /> <path d="M20 12h2" /> </svg></span>
+    <span data-daisy-mode-icon="light"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <circle cx="12" cy="12" r="4" /> <path d="M12 2v2" /> <path d="M12 20v2" /> <path d="m4.93 4.93 1.41 1.41" /> <path d="m17.66 17.66 1.41 1.41" /> <path d="M2 12h2" /> <path d="M20 12h2" /> <path d="m6.34 17.66-1.41 1.41" /> <path d="m19.07 4.93-1.41 1.41" /> </svg></span>
+    <span data-daisy-mode-icon="dark"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401" /> </svg></span>
+    <span data-daisy-mode-icon="theme"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z" /> <circle cx="13.5" cy="6.5" r=".5" fill="currentColor" /> <circle cx="17.5" cy="10.5" r=".5" fill="currentColor" /> <circle cx="6.5" cy="12.5" r=".5" fill="currentColor" /> <circle cx="8.5" cy="7.5" r=".5" fill="currentColor" /> </svg></span>
+    <span class="sr-only" data-daisy-mode-current></span></div>
+    <div tabindex="-1" class="dropdown-content z-40 mt-2 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg w-60">
+    <ul class="menu menu-sm w-full p-0">
+      <li><button type="button" data-daisy-set-mode="auto" aria-pressed="false"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M12 2v2" /> <path d="M14.837 16.385a6 6 0 1 1-7.223-7.222c.624-.147.97.66.715 1.248a4 4 0 0 0 5.26 5.259c.589-.255 1.396.09 1.248.715" /> <path d="M16 12a4 4 0 0 0-4-4" /> <path d="m19 5-1.256 1.256" /> <path d="M20 12h2" /> </svg>Match the system</button></li>
+      <li><button type="button" data-daisy-set-mode="light" aria-pressed="false"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <circle cx="12" cy="12" r="4" /> <path d="M12 2v2" /> <path d="M12 20v2" /> <path d="m4.93 4.93 1.41 1.41" /> <path d="m17.66 17.66 1.41 1.41" /> <path d="M2 12h2" /> <path d="M20 12h2" /> <path d="m6.34 17.66-1.41 1.41" /> <path d="m19.07 4.93-1.41 1.41" /> </svg>Light</button></li>
+      <li><button type="button" data-daisy-set-mode="dark" aria-pressed="false"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401" /> </svg>Dark</button></li>
+    </ul></div>
+  </div>
+<ul class="flex items-center" aria-label="Icon links">
+    <li><a href="https://github.com/FAIR-DM/fairdm/" class="btn btn-ghost btn-sm btn-square tooltip tooltip-bottom" data-tip="GitHub" aria-label="GitHub"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></a></li>
+</ul></div>
+        </div>
+      </div>
+    </header>
+
+    <aside class="daisy-area-primary" aria-label="Site navigation">
+      <div class="daisy-primary-inner">
+        <div class="flex items-center gap-2 border-b border-base-300 p-3 lg:hidden">
+          
+<a href="../../../index.html" class="daisy-brand flex min-w-0 items-center gap-2.5 rounded-field px-1 py-1 font-semibold hover:opacity-85">
+    <img src="../../../_static/fairdm_light.svg" alt="fairdm" class="daisy-logo-light h-8 w-auto">
+    <img src="../../../_static/fairdm_dark.svg" alt="fairdm" class="daisy-logo-dark h-8 w-auto">
+</a>
+          <label for="daisy-drawer" role="button" tabindex="0" data-daisy-drawer-close class="btn btn-ghost btn-sm btn-square ms-auto" aria-label="Close the navigation"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M18 6 6 18" /> <path d="m6 6 12 12" /> </svg></label>
+        </div>
+        <div class="flex flex-wrap items-center gap-1 border-b border-base-300 p-3 sm:hidden empty:hidden" data-daisy-navbar-end-slot></div>
+          <nav class="border-b border-base-300 p-3 lg:hidden" aria-label="Sections">
+            <ul class="menu menu-sm w-full p-0">
+                <li><a href="../../../developers/index.html">Developers</a></li>
+                <li><a href="../../../administrators/index.html">Administrators</a></li>
+                <li><a href="../../../users/index.html">Users</a></li>
+                <li><a href="../../../explanation/what-fairdm-is-for.html">What FairDM is for</a></li>
+                <li><a href="../../../explanation/fair-data-and-research-data-infrastructure.html">FAIR data and research data infrastructure</a></li>
+                <li><a href="../../../explanation/the-technology-stack.html">The technology stack</a></li>
+                <li><a href="../../../explanation/the-core-data-model.html">The core data model</a></li>
+                <li><a href="../../../explanation/how-sample-and-measurement-types-are-stored.html">How sample and measurement types are stored</a></li>
+                <li><a href="../../../explanation/controlled-vocabularies.html">Controlled vocabularies</a></li>
+                <li><a href="../../../explanation/configuration-over-code.html">Configuration over code</a></li>
+                <li><a href="../../../explanation/why-complete-metadata-matters.html">Why complete metadata matters</a></li>
+                <li><a href="../../../explanation/how-access-to-a-record-is-decided.html">How access to a record is decided</a></li>
+                <li><a href="../../../explanation/why-fairdm-records-contributors.html">Why FairDM records contributors</a></li>
+                <li><a href="../../../explanation/how-contributor-accounts-and-credits-work.html">How contributor accounts and credits work</a></li>
+                <li><a href="../../../explanation/how-a-profile-is-claimed.html">How a profile is claimed</a></li>
+                <li><a href="../../../explanation/how-fairdm-configures-a-portal.html">How FairDM configures a portal</a></li>
+                <li><a href="../../../explanation/who-is-asked-to-agree-to-a-legal-document.html">Who is asked to agree to a legal document</a></li>
+                <li><a href="../../../explanation/how-locations-are-stored-and-protected.html">How locations are stored and protected</a></li>
+                <li><a href="../../../explanation/dataset-publication-dois-and-datacite-metadata.html">Dataset publication, DOIs and DataCite metadata</a></li>
+                <li><a href="../../../reference/glossary.html">Glossary</a></li>
+                <li><a href="../../../reference/contributor-roles.html">Contributor roles</a></li>
+                <li><a href="../../../contributing/index.html">Framework Contributors</a></li>
+                <li><a href="../../../adr/index.html">Architecture Decision Records</a></li>
+                <li><a href="../../../ROADMAP.html">Roadmap — FairDM</a></li>
+                <li><a href="../../../changelog.html">Changelog</a></li>
+                <li><a href="https://github.com/FAIR-DM/fairdm/blob/main/CHANGELOG.md">Changelog<svg class="size-3.5 opacity-60" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M15 3h6v6" /> <path d="M10 14 21 3" /> <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /> </svg><span class="sr-only">(leads outside the site)</span></a></li>
+            </ul>
+          </nav>
+        <div class="daisy-sidebar-scroll px-3 py-4 lg:py-8 lg:ps-4 lg:pe-2">
+          
+          
+        </div>
+      </div>
+    </aside>
+    <label for="daisy-drawer" class="daisy-drawer-overlay" aria-label="Close the navigation"></label>
+    <main id="main-content" role="main" class="daisy-area-main min-w-0 px-4 sm:px-6 lg:px-10" tabindex="-1">
+      <div class="mx-auto max-w-[46rem] pt-6 pb-10">
+          <div class="daisy-article-header flex min-h-8 items-center gap-3">
+            <div class="min-w-0 flex-1">
+<nav class="breadcrumbs daisy-breadcrumbs py-0 text-sm" aria-label="Breadcrumb">
+  <ul>
+    <li><a href="../../../index.html" aria-label="Home"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M12 5v16" /> <path d="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z" /> </svg></a></li>
+    <li><a href="../../index.html">Module code</a></li>
+    <li><a href="../conf.html">fairdm.conf</a></li>
+    <li aria-current="page"><span class="truncate">fairdm.conf.setup</span></li>
+  </ul>
+</nav></div>
+            <div class="flex shrink-0 items-center gap-1">
+              
+            </div>
+          </div>
+        <article class="daisy-sphinx-content">
+          
+  <h1>Source code for fairdm.conf.setup</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""FairDM configuration setup entry point.</span>
+
+<span class="sd">This module provides ``setup()``, the single call a portal's settings module</span>
+<span class="sd">makes to obtain a complete Django configuration.</span>
+
+<span class="sd">**Resolved environment.** Taken literally from the ``DJANGO_ENV`` environment</span>
+<span class="sd">variable, defaulting to ``production`` when unset. Not validated against an</span>
+<span class="sd">allowlist: any name is valid, including one nothing ships an override for.</span>
+
+<span class="sd">**Environment files**, read in this order, later files not overriding a</span>
+<span class="sd">variable already set in the process environment except where noted:</span>
+
+<span class="sd">1. ``stack.env``, beside the portal's ``base_dir``, if present.</span>
+<span class="sd">2. ``stack.&lt;environment&gt;.env``, beside ``base_dir``, if present.</span>
+<span class="sd">3. The explicit ``env_file=`` argument, if given — this one *does* overwrite</span>
+<span class="sd">   variables already set, including by the two files above.</span>
+
+<span class="sd">**Layers**, applied in this order, each later layer overriding the same</span>
+<span class="sd">setting in an earlier one:</span>
+
+<span class="sd">1. The production baseline — every module under ``fairdm/conf/settings/``.</span>
+<span class="sd">2. FairDM's own override module for the resolved environment, if it ships</span>
+<span class="sd">   one. Only ``development.py`` today.</span>
+<span class="sd">3. Settings contributed by addons named in the ``addons=`` argument.</span>
+<span class="sd">4. The portal's own override module for the resolved environment, resolved</span>
+<span class="sd">   beside its settings module regardless of directory name.</span>
+<span class="sd">5. Assignments the portal's settings module makes after ``setup()`` returns —</span>
+<span class="sd">   the only supported way to override a FairDM-owned setting.</span>
+
+<span class="sd">Layers 2 and 4 are both selected by existence, not from a fixed list of</span>
+<span class="sd">permitted names: if no module named after the resolved environment exists,</span>
+<span class="sd">that layer is skipped without error.</span>
+<span class="sd">"""</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">inspect</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">environ</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.core.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">ImproperlyConfigured</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">split_settings.tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">include</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">record</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.addons</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_addons</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="c1">#: Value types a layer can alter without rebinding the name. Deep-copied when</span>
+<span class="c1">#: a snapshot is taken, so the change is still visible afterwards.</span>
+<span class="n">_MUTABLE_CONTAINERS</span> <span class="o">=</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">dict</span><span class="p">,</span> <span class="nb">set</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_uppercase_scope</span><span class="p">(</span><span class="n">scope</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Return every uppercase key in ``scope`` and its current value.</span>
+
+<span class="sd">    Uppercase is Django's settings convention, also used for the bookkeeping keys</span>
+<span class="sd">    ``setup()`` injects itself.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        scope: The namespace to read.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        The uppercase entries of ``scope``.</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">value</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">scope</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">isupper</span><span class="p">()}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_snapshot_scope</span><span class="p">(</span><span class="n">scope</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Return ``_uppercase_scope`` with mutable containers copied out of harm's way.</span>
+
+<span class="sd">    A layer does not have to rebind a name to change a setting: ``development.py`` writes</span>
+<span class="sd">    ``INSTALLED_APPS += [...]``, which mutates the baseline's own list in place. A snapshot</span>
+<span class="sd">    holding a reference to that list sees the mutation on both sides of the diff and credits</span>
+<span class="sd">    the baseline with a value it did not produce.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        scope: The namespace to snapshot.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        The uppercase entries of ``scope``, with lists, dicts and sets deep-copied.</span>
+<span class="sd">    """</span>
+    <span class="n">snapshot</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">scope</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">key</span><span class="o">.</span><span class="n">isupper</span><span class="p">():</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">_MUTABLE_CONTAINERS</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># pragma: no cover — defensive</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"Could not snapshot </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> for provenance; "</span>
+                    <span class="s2">"falling back to identity comparison"</span>
+                <span class="p">)</span>
+        <span class="n">snapshot</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+    <span class="k">return</span> <span class="n">snapshot</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_scratch_scope</span><span class="p">(</span><span class="n">scope</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Return a private copy of ``scope`` an addon's setup module can execute against.</span>
+
+<span class="sd">    ``include()`` execs a module directly against whatever dict it is given, so a shallow copy</span>
+<span class="sd">    would still share the object a ``+=`` mutates in place. A discarded scratch copy that shared</span>
+<span class="sd">    the baseline's ``INSTALLED_APPS`` would corrupt the real scope before raising.</span>
+
+<span class="sd">    Only settings are copied. Django reads uppercase names and nothing else, so lowercase names</span>
+<span class="sd">    (the portal's imports and helpers, and ``__builtins__``) stay in the scratch scope by</span>
+<span class="sd">    reference. Copying those too would rebind a container the portal shares with another module</span>
+<span class="sd">    when the copies merge back.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        scope: The namespace to copy.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A scope whose uppercase mutable containers are deep-copied.</span>
+<span class="sd">    """</span>
+    <span class="n">scratch</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">scope</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">isupper</span><span class="p">()</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">_MUTABLE_CONTAINERS</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># pragma: no cover — defensive</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"Could not snapshot </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> for an addon's scratch scope; "</span>
+                    <span class="s2">"falling back to a shared reference"</span>
+                <span class="p">)</span>
+        <span class="n">scratch</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+    <span class="k">return</span> <span class="n">scratch</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_differs</span><span class="p">(</span><span class="n">before_value</span><span class="p">,</span> <span class="n">after_value</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Return whether a layer changed a container, comparing by value.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        before_value: The container before the layer ran.</span>
+<span class="sd">        after_value: The container after the layer ran.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ``True`` when the values differ, or when they cannot be compared and are not identical.</span>
+<span class="sd">    """</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">before_value</span> <span class="o">!=</span> <span class="n">after_value</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># pragma: no cover — defensive</span>
+        <span class="k">return</span> <span class="n">before_value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">after_value</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_written_keys</span><span class="p">(</span><span class="n">before</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">after</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Return the uppercase keys a layer wrote.</span>
+
+<span class="sd">    That is the names it introduced, the names it rebound, and the containers it mutated in place.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        before: The snapshot taken before the layer ran.</span>
+<span class="sd">        after: The scope after the layer ran.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        The written setting names, sorted.</span>
+<span class="sd">    """</span>
+    <span class="n">written</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">after</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">before</span><span class="p">:</span>
+            <span class="n">written</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">_MUTABLE_CONTAINERS</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">_differs</span><span class="p">(</span><span class="n">before</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">value</span><span class="p">):</span>
+                <span class="n">written</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">before</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">value</span><span class="p">:</span>
+            <span class="n">written</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">written</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="setup">
+<a class="viewcode-back" href="../../../developers/reference/api/fairdm/fairdm.conf.setup.html#fairdm.conf.setup.setup">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">setup</span><span class="p">(</span>
+    <span class="n">apps</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">addons</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">base_dir</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">env_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Initialize FairDM configuration with environment-specific settings.</span>
+
+<span class="sd">    The main entry point for portal configuration. See the module docstring for the resolved</span>
+<span class="sd">    environment, the environment files and the five layers this composes into the caller's</span>
+<span class="sd">    global namespace.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        apps: List of portal-specific Django apps to include in INSTALLED_APPS.</span>
+<span class="sd">        addons: List of FairDM addon packages to enable.</span>
+<span class="sd">        base_dir: Project base directory (auto-detected if not provided).</span>
+<span class="sd">        env_file: Optional path to .env file to load.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ImproperlyConfigured: An addon's setup module fails while applying in production.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; import fairdm</span>
+<span class="sd">        &gt;&gt;&gt; fairdm.setup(</span>
+<span class="sd">        ...     apps=["my_portal_app"],</span>
+<span class="sd">        ...     addons=["fairdm_discussions"],</span>
+<span class="sd">        ... )</span>
+<span class="sd">    """</span>
+    <span class="n">apps</span> <span class="o">=</span> <span class="n">apps</span> <span class="ow">or</span> <span class="p">[]</span>
+    <span class="n">addons</span> <span class="o">=</span> <span class="n">addons</span> <span class="ow">or</span> <span class="p">[]</span>
+
+    <span class="n">env_profile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"DJANGO_ENV"</span><span class="p">,</span> <span class="s2">"production"</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"🚀 FairDM Configuration: </span><span class="si">{</span><span class="n">env_profile</span><span class="si">}</span><span class="s2"> environment"</span><span class="p">)</span>
+
+    <span class="n">caller_globals</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">stack</span><span class="p">()[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">f_globals</span>
+
+    <span class="c1"># Captured before `__file__` is overwritten below for split_settings. A settings module</span>
+    <span class="c1"># with no usable `__file__` (generated, or imported from an archive) cannot be anchored,</span>
+    <span class="c1"># so the portal override lookup is skipped.</span>
+    <span class="n">portal_settings_dir</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">caller_file</span> <span class="o">=</span> <span class="n">caller_globals</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"__file__"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">caller_file</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">portal_settings_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">caller_file</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span>
+        <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+            <span class="n">portal_settings_dir</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">portal_settings_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="s2">"Could not determine the portal's settings module directory; "</span>
+            <span class="s2">"its environment override module (if any) will not be looked up."</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">base_dir</span><span class="p">:</span>
+        <span class="n">base_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">caller_globals</span><span class="p">[</span><span class="s2">"__file__"</span><span class="p">])</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">parent</span>
+
+    <span class="kn">from</span><span class="w"> </span><span class="nn">.environment</span><span class="w"> </span><span class="kn">import</span> <span class="n">NON_PRODUCTION_ENVIRONMENTS</span><span class="p">,</span> <span class="n">env</span>
+
+    <span class="n">env_files_to_load</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">base_dir</span> <span class="o">/</span> <span class="s2">"stack.env"</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="n">env_files_to_load</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">base_dir</span> <span class="o">/</span> <span class="s2">"stack.env"</span><span class="p">))</span>
+
+    <span class="n">env_specific_file</span> <span class="o">=</span> <span class="n">base_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"stack.</span><span class="si">{</span><span class="n">env_profile</span><span class="si">}</span><span class="s2">.env"</span>
+    <span class="k">if</span> <span class="n">env_specific_file</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="n">env_files_to_load</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">env_specific_file</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">env_file</span> <span class="ow">and</span> <span class="n">Path</span><span class="p">(</span><span class="n">env_file</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="n">env_files_to_load</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">env_file</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">env_path</span> <span class="ow">in</span> <span class="n">env_files_to_load</span><span class="p">:</span>
+        <span class="c1"># Only the explicit file overwrites variables already set.</span>
+        <span class="n">is_custom_file</span> <span class="o">=</span> <span class="n">env_path</span> <span class="o">==</span> <span class="n">env_file</span>
+        <span class="n">environ</span><span class="o">.</span><span class="n">Env</span><span class="o">.</span><span class="n">read_env</span><span class="p">(</span><span class="n">env_path</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="n">is_custom_file</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"Loaded environment file: </span><span class="si">{</span><span class="n">env_path</span><span class="si">}</span><span class="s2"> (overwrite=</span><span class="si">{</span><span class="n">is_custom_file</span><span class="si">}</span><span class="s2">)"</span>
+        <span class="p">)</span>
+
+    <span class="n">caller_globals</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="s2">"env"</span><span class="p">:</span> <span class="n">env</span><span class="p">,</span>
+            <span class="s2">"BASE_DIR"</span><span class="p">:</span> <span class="n">base_dir</span><span class="p">,</span>
+            <span class="s2">"FAIRDM_APPS"</span><span class="p">:</span> <span class="n">apps</span><span class="p">,</span>
+            <span class="s2">"DJANGO_ENV"</span><span class="p">:</span> <span class="n">env_profile</span><span class="p">,</span>
+            <span class="s2">"__file__"</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Each layer's contribution is the delta of the scope's uppercase keys around its</span>
+    <span class="c1"># `include()` call.</span>
+    <span class="n">record</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Loading production baseline settings..."</span><span class="p">)</span>
+
+    <span class="c1"># Order matters: later modules read names the earlier ones define.</span>
+    <span class="n">settings_modules</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">"settings/apps.py"</span><span class="p">,</span>
+        <span class="s2">"settings/security.py"</span><span class="p">,</span>
+        <span class="s2">"settings/database.py"</span><span class="p">,</span>
+        <span class="s2">"settings/cache.py"</span><span class="p">,</span>
+        <span class="s2">"settings/static_media.py"</span><span class="p">,</span>
+        <span class="s2">"settings/celery.py"</span><span class="p">,</span>
+        <span class="s2">"settings/control_room.py"</span><span class="p">,</span>
+        <span class="s2">"settings/auth.py"</span><span class="p">,</span>
+        <span class="s2">"settings/logging.py"</span><span class="p">,</span>
+        <span class="s2">"settings/email.py"</span><span class="p">,</span>
+        <span class="s2">"settings/addons.py"</span><span class="p">,</span>
+        <span class="s2">"settings/api.py"</span><span class="p">,</span>
+    <span class="p">]</span>
+
+    <span class="n">before</span> <span class="o">=</span> <span class="n">_snapshot_scope</span><span class="p">(</span><span class="n">caller_globals</span><span class="p">)</span>
+    <span class="n">include</span><span class="p">(</span><span class="o">*</span><span class="n">settings_modules</span><span class="p">,</span> <span class="n">scope</span><span class="o">=</span><span class="n">caller_globals</span><span class="p">)</span>
+    <span class="n">after</span> <span class="o">=</span> <span class="n">_uppercase_scope</span><span class="p">(</span><span class="n">caller_globals</span><span class="p">)</span>
+    <span class="n">record</span><span class="o">.</span><span class="n">add_layer</span><span class="p">(</span>
+        <span class="s2">"baseline"</span><span class="p">,</span>
+        <span class="nb">str</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">"settings"</span><span class="p">),</span>
+        <span class="kc">True</span><span class="p">,</span>
+        <span class="n">_written_keys</span><span class="p">(</span><span class="n">before</span><span class="p">,</span> <span class="n">after</span><span class="p">),</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Layer 2. Selected by existence: any environment name is looked up the same way.</span>
+    <span class="n">fairdm_override</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">env_profile</span><span class="si">}</span><span class="s2">.py"</span>
+    <span class="n">fairdm_override_found</span> <span class="o">=</span> <span class="n">fairdm_override</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span>
+    <span class="n">before</span> <span class="o">=</span> <span class="n">_snapshot_scope</span><span class="p">(</span><span class="n">caller_globals</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">fairdm_override_found</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"Applying FairDM </span><span class="si">{</span><span class="n">env_profile</span><span class="si">}</span><span class="s2"> overrides from </span><span class="si">{</span><span class="n">fairdm_override</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span>
+        <span class="n">include</span><span class="p">(</span><span class="n">fairdm_override</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">scope</span><span class="o">=</span><span class="n">caller_globals</span><span class="p">)</span>
+    <span class="n">after</span> <span class="o">=</span> <span class="n">_uppercase_scope</span><span class="p">(</span><span class="n">caller_globals</span><span class="p">)</span>
+    <span class="n">record</span><span class="o">.</span><span class="n">add_layer</span><span class="p">(</span>
+        <span class="s2">"fairdm override"</span><span class="p">,</span>
+        <span class="nb">str</span><span class="p">(</span><span class="n">fairdm_override</span><span class="p">),</span>
+        <span class="n">fairdm_override_found</span><span class="p">,</span>
+        <span class="n">_written_keys</span><span class="p">(</span><span class="n">before</span><span class="p">,</span> <span class="n">after</span><span class="p">),</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Layer 3. Each addon applies to a scratch scope and merges only on success, so a</span>
+    <span class="c1"># module that raises partway leaves no partial writes. A failure fails fast on the</span>
+    <span class="c1"># production baseline and warns and skips elsewhere, like an addon that cannot be</span>
+    <span class="c1"># found.</span>
+    <span class="n">applied_addon_modules</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">before</span> <span class="o">=</span> <span class="n">_snapshot_scope</span><span class="p">(</span><span class="n">caller_globals</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">addons</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">addon_name</span><span class="p">,</span> <span class="n">module_path</span> <span class="ow">in</span> <span class="n">load_addons</span><span class="p">(</span><span class="n">addons</span><span class="p">,</span> <span class="n">env_profile</span><span class="p">):</span>
+            <span class="n">scratch</span> <span class="o">=</span> <span class="n">_scratch_scope</span><span class="p">(</span><span class="n">caller_globals</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">include</span><span class="p">(</span><span class="n">module_path</span><span class="p">,</span> <span class="n">scope</span><span class="o">=</span><span class="n">scratch</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+                <span class="n">message</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"Addon '</span><span class="si">{</span><span class="n">addon_name</span><span class="si">}</span><span class="s2">' setup module raised while applying "</span>
+                    <span class="sa">f</span><span class="s2">"its settings: </span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="s2">"</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="n">env_profile</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">NON_PRODUCTION_ENVIRONMENTS</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">ImproperlyConfigured</span><span class="p">(</span><span class="n">message</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+                <span class="k">continue</span>
+            <span class="n">caller_globals</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">scratch</span><span class="p">)</span>
+            <span class="n">applied_addon_modules</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">module_path</span><span class="p">)</span>
+    <span class="n">after</span> <span class="o">=</span> <span class="n">_uppercase_scope</span><span class="p">(</span><span class="n">caller_globals</span><span class="p">)</span>
+    <span class="n">record</span><span class="o">.</span><span class="n">add_layer</span><span class="p">(</span>
+        <span class="s2">"addons"</span><span class="p">,</span>
+        <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">applied_addon_modules</span><span class="p">)</span> <span class="k">if</span> <span class="n">applied_addon_modules</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="nb">bool</span><span class="p">(</span><span class="n">applied_addon_modules</span><span class="p">),</span>
+        <span class="n">_written_keys</span><span class="p">(</span><span class="n">before</span><span class="p">,</span> <span class="n">after</span><span class="p">),</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Layer 4. Selected by existence, and skipped without error if absent.</span>
+    <span class="n">portal_override</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">portal_override_found</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">before</span> <span class="o">=</span> <span class="n">_snapshot_scope</span><span class="p">(</span><span class="n">caller_globals</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">portal_settings_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">portal_override</span> <span class="o">=</span> <span class="n">portal_settings_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">env_profile</span><span class="si">}</span><span class="s2">.py"</span>
+        <span class="n">portal_override_found</span> <span class="o">=</span> <span class="n">portal_override</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">portal_override_found</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"Applying portal </span><span class="si">{</span><span class="n">env_profile</span><span class="si">}</span><span class="s2"> overrides from </span><span class="si">{</span><span class="n">portal_override</span><span class="si">}</span><span class="s2">"</span>
+            <span class="p">)</span>
+            <span class="n">include</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">portal_override</span><span class="p">),</span> <span class="n">scope</span><span class="o">=</span><span class="n">caller_globals</span><span class="p">)</span>
+    <span class="n">after</span> <span class="o">=</span> <span class="n">_uppercase_scope</span><span class="p">(</span><span class="n">caller_globals</span><span class="p">)</span>
+    <span class="n">record</span><span class="o">.</span><span class="n">add_layer</span><span class="p">(</span>
+        <span class="s2">"portal override"</span><span class="p">,</span>
+        <span class="nb">str</span><span class="p">(</span><span class="n">portal_override</span><span class="p">)</span> <span class="k">if</span> <span class="n">portal_override</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">portal_override_found</span><span class="p">,</span>
+        <span class="n">_written_keys</span><span class="p">(</span><span class="n">before</span><span class="p">,</span> <span class="n">after</span><span class="p">),</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Validation belongs to Django's check framework (`fairdm/conf/checks.py`), except this</span>
+    <span class="c1"># rule: django-parler enforces it when any parler-model app imports, before checks run,</span>
+    <span class="c1"># and this is the only point ahead of every such app.</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">django.conf</span><span class="w"> </span><span class="kn">import</span> <span class="n">global_settings</span>
+
+    <span class="kn">from</span><span class="w"> </span><span class="nn">fairdm.conf.checks</span><span class="w"> </span><span class="kn">import</span> <span class="n">raise_on_parler_languages_mismatch</span>
+
+    <span class="n">raise_on_parler_languages_mismatch</span><span class="p">(</span>
+        <span class="n">caller_globals</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"LANGUAGES"</span><span class="p">,</span> <span class="n">global_settings</span><span class="o">.</span><span class="n">LANGUAGES</span><span class="p">),</span>
+        <span class="n">caller_globals</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"PARLER_LANGUAGES"</span><span class="p">,</span> <span class="p">{}),</span>
+        <span class="n">caller_globals</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"PARLER_DEFAULT_LANGUAGE_CODE"</span><span class="p">),</span>
+    <span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"✅ Configuration complete"</span><span class="p">)</span></div>
+
+
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.addons</span><span class="w"> </span><span class="kn">import</span> <span class="n">addon_urls</span>  <span class="c1"># noqa: F401</span>
+</pre></div>
+
+        </article>
+        
+        
+      </div>
+    </main>
+      <aside class="daisy-area-secondary" aria-label="Page tools">
+        <div class="daisy-secondary daisy-secondary-inner"></div>
+      </aside>
+
+    <footer class="daisy-area-footer daisy-footer border-t border-base-300 bg-base-100 px-4 py-8 text-sm sm:px-6 lg:px-10">
+      <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div class="flex flex-col gap-1"><p>&copy; 2026, Samuel Jennings</p></div>
+        <div class="flex flex-col gap-1"></div>
+        <div class="flex flex-col gap-2 md:items-end"><p>Theme: <a class="link link-hover" href="https://github.com/SamuelJennings/sphinx-daisyui">sphinx-daisyui</a> 0.2.0.</p></div>
+      </div>
+    </footer>
+  </div>
+    <button type="button" class="daisy-back-to-top btn btn-sm fixed bottom-6 left-1/2 z-30 -translate-x-1/2 gap-1 rounded-full shadow-lg" hidden><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m5 12 7-7 7 7" /> <path d="M12 19V5" /> </svg>Back to top</button><dialog id="daisy-search" class="modal modal-top sm:modal-middle" aria-label="Search the documentation"
+  data-daisy-language-data="../../../_static/language_data.js"
+  data-daisy-searchtools="../../../_static/searchtools.js"
+  data-daisy-searchindex="../../../searchindex.js"
+  data-daisy-prompt="Type to search pages, sections and API names."
+  data-daisy-nothing="Nothing matches %(query)s."
+  data-daisy-unavailable="Search is not available here."
+  data-daisy-page="Page"
+  data-daisy-section="Section"
+  data-daisy-as-you-type="true">
+  <div class="modal-box flex max-h-[min(40rem,85dvh)] max-w-2xl flex-col gap-0 p-0 sm:rounded-box">
+    <form action="../../../search.html" method="get" class="flex items-center gap-3 border-b border-base-300 px-4 py-3" role="search">
+      <svg class="size-5 shrink-0 opacity-60" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m21 21-4.34-4.34" /> <circle cx="11" cy="11" r="8" /> </svg>
+      <input type="search" name="q" class="daisy-search-input min-w-0 flex-1 bg-transparent text-base outline-none" placeholder="Search the docs" aria-label="Search" autocomplete="off" spellcheck="false" role="combobox" aria-controls="daisy-search-results" aria-autocomplete="list" aria-expanded="false">
+      <kbd class="kbd kbd-sm hidden sm:inline-flex">Esc</kbd>
+      <span class="sm:hidden"><button type="button" class="btn btn-ghost btn-sm btn-square" aria-label="Close search" data-daisy-search-close=""><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M18 6 6 18" /> <path d="m6 6 12 12" /> </svg></button></span>
+    </form>
+    <div class="min-h-0 flex-1 overflow-y-auto p-2">
+      <p class="daisy-search-status daisy-muted px-3 py-6 text-center text-sm" aria-live="polite">Type to search pages, sections and API names.</p>
+      <ul id="daisy-search-results" class="daisy-search-results menu w-full gap-0.5 p-0" role="listbox"></ul>
+    </div>
+    <div class="daisy-muted hidden items-center gap-4 border-t border-base-300 px-4 py-2 text-xs sm:flex">
+      <span class="flex items-center gap-1"><kbd class="kbd kbd-xs">↑</kbd><kbd class="kbd kbd-xs">↓</kbd> to move</span>
+      <span class="flex items-center gap-1"><kbd class="kbd kbd-xs">↵</kbd> to open</span>
+      <span class="ms-auto">Enter with nothing chosen opens the full results.</span>
+    </div>
+  </div>
+  <form method="dialog" class="modal-backdrop"><button aria-label="Close search">close</button></form>
+</dialog>
+  </body>
+</html>

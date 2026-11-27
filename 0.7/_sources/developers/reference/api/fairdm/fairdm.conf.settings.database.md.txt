@@ -1,0 +1,174 @@
+# {py:mod}`fairdm.conf.settings.database`
+
+```{py:module} fairdm.conf.settings.database
+```
+
+```{autodoc2-docstring} fairdm.conf.settings.database
+:allowtitles:
+```
+
+## Module Contents
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`env <fairdm.conf.settings.database.env>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.database.env
+    :summary:
+    ```
+* - {py:obj}`BASE_DIR <fairdm.conf.settings.database.BASE_DIR>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.database.BASE_DIR
+    :summary:
+    ```
+* - {py:obj}`DEFAULT_AUTO_FIELD <fairdm.conf.settings.database.DEFAULT_AUTO_FIELD>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.database.DEFAULT_AUTO_FIELD
+    :summary:
+    ```
+* - {py:obj}`DATABASES <fairdm.conf.settings.database.DATABASES>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.database.DATABASES
+    :summary:
+    ```
+* - {py:obj}`BACKUP_PUBLIC_KEY <fairdm.conf.settings.database.BACKUP_PUBLIC_KEY>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.database.BACKUP_PUBLIC_KEY
+    :summary:
+    ```
+* - {py:obj}`DBBACKUP_HOSTNAME <fairdm.conf.settings.database.DBBACKUP_HOSTNAME>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.database.DBBACKUP_HOSTNAME
+    :summary:
+    ```
+* - {py:obj}`DBBACKUP_CONNECTORS <fairdm.conf.settings.database.DBBACKUP_CONNECTORS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.database.DBBACKUP_CONNECTORS
+    :summary:
+    ```
+* - {py:obj}`DBBACKUP_FILENAME_TEMPLATE <fairdm.conf.settings.database.DBBACKUP_FILENAME_TEMPLATE>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.database.DBBACKUP_FILENAME_TEMPLATE
+    :summary:
+    ```
+* - {py:obj}`DBBACKUP_MEDIA_FILENAME_TEMPLATE <fairdm.conf.settings.database.DBBACKUP_MEDIA_FILENAME_TEMPLATE>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.database.DBBACKUP_MEDIA_FILENAME_TEMPLATE
+    :summary:
+    ```
+* - {py:obj}`GDAL_LIBRARY_PATH <fairdm.conf.settings.database.GDAL_LIBRARY_PATH>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.database.GDAL_LIBRARY_PATH
+    :summary:
+    ```
+* - {py:obj}`GEOS_LIBRARY_PATH <fairdm.conf.settings.database.GEOS_LIBRARY_PATH>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.database.GEOS_LIBRARY_PATH
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} env
+:canonical: fairdm.conf.settings.database.env
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.database.env
+```
+
+````
+
+````{py:data} BASE_DIR
+:canonical: fairdm.conf.settings.database.BASE_DIR
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.database.BASE_DIR
+```
+
+````
+
+````{py:data} DEFAULT_AUTO_FIELD
+:canonical: fairdm.conf.settings.database.DEFAULT_AUTO_FIELD
+:value: >
+   'django.db.models.BigAutoField'
+
+```{autodoc2-docstring} fairdm.conf.settings.database.DEFAULT_AUTO_FIELD
+```
+
+````
+
+````{py:data} DATABASES
+:canonical: fairdm.conf.settings.database.DATABASES
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.database.DATABASES
+```
+
+````
+
+````{py:data} BACKUP_PUBLIC_KEY
+:canonical: fairdm.conf.settings.database.BACKUP_PUBLIC_KEY
+:value: >
+   'str(...)'
+
+```{autodoc2-docstring} fairdm.conf.settings.database.BACKUP_PUBLIC_KEY
+```
+
+````
+
+````{py:data} DBBACKUP_HOSTNAME
+:canonical: fairdm.conf.settings.database.DBBACKUP_HOSTNAME
+:value: >
+   'env(...)'
+
+```{autodoc2-docstring} fairdm.conf.settings.database.DBBACKUP_HOSTNAME
+```
+
+````
+
+````{py:data} DBBACKUP_CONNECTORS
+:canonical: fairdm.conf.settings.database.DBBACKUP_CONNECTORS
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.database.DBBACKUP_CONNECTORS
+```
+
+````
+
+````{py:data} DBBACKUP_FILENAME_TEMPLATE
+:canonical: fairdm.conf.settings.database.DBBACKUP_FILENAME_TEMPLATE
+:value: >
+   '{databasename}-{servername}-{datetime}.{extension}'
+
+```{autodoc2-docstring} fairdm.conf.settings.database.DBBACKUP_FILENAME_TEMPLATE
+```
+
+````
+
+````{py:data} DBBACKUP_MEDIA_FILENAME_TEMPLATE
+:canonical: fairdm.conf.settings.database.DBBACKUP_MEDIA_FILENAME_TEMPLATE
+:value: >
+   '{databasename}_media-{servername}-{datetime}.{extension}'
+
+```{autodoc2-docstring} fairdm.conf.settings.database.DBBACKUP_MEDIA_FILENAME_TEMPLATE
+```
+
+````
+
+````{py:data} GDAL_LIBRARY_PATH
+:canonical: fairdm.conf.settings.database.GDAL_LIBRARY_PATH
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.database.GDAL_LIBRARY_PATH
+```
+
+````
+
+````{py:data} GEOS_LIBRARY_PATH
+:canonical: fairdm.conf.settings.database.GEOS_LIBRARY_PATH
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.database.GEOS_LIBRARY_PATH
+```
+
+````

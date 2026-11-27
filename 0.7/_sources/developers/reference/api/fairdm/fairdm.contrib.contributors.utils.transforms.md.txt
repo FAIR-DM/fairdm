@@ -1,0 +1,347 @@
+# {py:mod}`fairdm.contrib.contributors.utils.transforms`
+
+```{py:module} fairdm.contrib.contributors.utils.transforms
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.transforms
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`BaseTransform <fairdm.contrib.contributors.utils.transforms.BaseTransform>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.utils.transforms.BaseTransform
+    :summary:
+    ```
+* - {py:obj}`DataCiteTransform <fairdm.contrib.contributors.utils.transforms.DataCiteTransform>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.utils.transforms.DataCiteTransform
+    :summary:
+    ```
+* - {py:obj}`SchemaOrgTransform <fairdm.contrib.contributors.utils.transforms.SchemaOrgTransform>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.utils.transforms.SchemaOrgTransform
+    :summary:
+    ```
+* - {py:obj}`CSLJSONTransform <fairdm.contrib.contributors.utils.transforms.CSLJSONTransform>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.utils.transforms.CSLJSONTransform
+    :summary:
+    ```
+* - {py:obj}`ORCIDTransform <fairdm.contrib.contributors.utils.transforms.ORCIDTransform>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.utils.transforms.ORCIDTransform
+    :summary:
+    ```
+* - {py:obj}`RORTransform <fairdm.contrib.contributors.utils.transforms.RORTransform>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.utils.transforms.RORTransform
+    :summary:
+    ```
+````
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`contributor_to_datacite <fairdm.contrib.contributors.utils.transforms.contributor_to_datacite>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.utils.transforms.contributor_to_datacite
+    :summary:
+    ```
+* - {py:obj}`contributor_to_schema_org <fairdm.contrib.contributors.utils.transforms.contributor_to_schema_org>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.utils.transforms.contributor_to_schema_org
+    :summary:
+    ```
+* - {py:obj}`contributor_to_csljson <fairdm.contrib.contributors.utils.transforms.contributor_to_csljson>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.utils.transforms.contributor_to_csljson
+    :summary:
+    ```
+* - {py:obj}`csljson_to_contributor <fairdm.contrib.contributors.utils.transforms.csljson_to_contributor>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.utils.transforms.csljson_to_contributor
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} BaseTransform
+:canonical: fairdm.contrib.contributors.utils.transforms.BaseTransform
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.transforms.BaseTransform
+```
+
+````{py:method} dictget(data: dict | list, path: list, default: typing.Any = '') -> typing.Any
+:canonical: fairdm.contrib.contributors.utils.transforms.BaseTransform.dictget
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.transforms.BaseTransform.dictget
+```
+
+````
+
+````{py:method} export(contributor: fairdm.contrib.contributors.models.Contributor) -> dict
+:canonical: fairdm.contrib.contributors.utils.transforms.BaseTransform.export
+:abstractmethod:
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.transforms.BaseTransform.export
+```
+
+````
+
+````{py:method} import_data(data: dict, instance: fairdm.contrib.contributors.models.Contributor | None = None, save: bool = True) -> fairdm.contrib.contributors.models.Contributor
+:canonical: fairdm.contrib.contributors.utils.transforms.BaseTransform.import_data
+:abstractmethod:
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.transforms.BaseTransform.import_data
+```
+
+````
+
+````{py:method} validate(data: dict) -> bool
+:canonical: fairdm.contrib.contributors.utils.transforms.BaseTransform.validate
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.transforms.BaseTransform.validate
+```
+
+````
+
+`````
+
+`````{py:class} DataCiteTransform
+:canonical: fairdm.contrib.contributors.utils.transforms.DataCiteTransform
+
+Bases: {py:obj}`fairdm.contrib.contributors.utils.transforms.BaseTransform`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.transforms.DataCiteTransform
+```
+
+````{py:method} export(contributor: fairdm.contrib.contributors.models.Contributor) -> dict
+:canonical: fairdm.contrib.contributors.utils.transforms.DataCiteTransform.export
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.transforms.DataCiteTransform.export
+```
+
+````
+
+````{py:method} import_data(data: dict, instance: fairdm.contrib.contributors.models.Contributor | None = None, save: bool = True) -> fairdm.contrib.contributors.models.Contributor
+:canonical: fairdm.contrib.contributors.utils.transforms.DataCiteTransform.import_data
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.transforms.DataCiteTransform.import_data
+```
+
+````
+
+`````
+
+`````{py:class} SchemaOrgTransform
+:canonical: fairdm.contrib.contributors.utils.transforms.SchemaOrgTransform
+
+Bases: {py:obj}`fairdm.contrib.contributors.utils.transforms.BaseTransform`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.transforms.SchemaOrgTransform
+```
+
+````{py:method} export(contributor: fairdm.contrib.contributors.models.Contributor) -> dict
+:canonical: fairdm.contrib.contributors.utils.transforms.SchemaOrgTransform.export
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.transforms.SchemaOrgTransform.export
+```
+
+````
+
+````{py:method} import_data(data: dict, instance: fairdm.contrib.contributors.models.Contributor | None = None, save: bool = True) -> fairdm.contrib.contributors.models.Contributor
+:canonical: fairdm.contrib.contributors.utils.transforms.SchemaOrgTransform.import_data
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.transforms.SchemaOrgTransform.import_data
+```
+
+````
+
+`````
+
+`````{py:class} CSLJSONTransform
+:canonical: fairdm.contrib.contributors.utils.transforms.CSLJSONTransform
+
+Bases: {py:obj}`fairdm.contrib.contributors.utils.transforms.BaseTransform`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.transforms.CSLJSONTransform
+```
+
+````{py:method} export(contributor: fairdm.contrib.contributors.models.Contributor) -> dict
+:canonical: fairdm.contrib.contributors.utils.transforms.CSLJSONTransform.export
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.transforms.CSLJSONTransform.export
+```
+
+````
+
+````{py:method} import_data(data: dict, instance: fairdm.contrib.contributors.models.Contributor | None = None, save: bool = True) -> fairdm.contrib.contributors.models.Contributor
+:canonical: fairdm.contrib.contributors.utils.transforms.CSLJSONTransform.import_data
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.transforms.CSLJSONTransform.import_data
+```
+
+````
+
+`````
+
+`````{py:class} ORCIDTransform
+:canonical: fairdm.contrib.contributors.utils.transforms.ORCIDTransform
+
+Bases: {py:obj}`fairdm.contrib.contributors.utils.transforms.BaseTransform`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.transforms.ORCIDTransform
+```
+
+````{py:method} fetch_from_api(orcid_id: str) -> dict
+:canonical: fairdm.contrib.contributors.utils.transforms.ORCIDTransform.fetch_from_api
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.transforms.ORCIDTransform.fetch_from_api
+```
+
+````
+
+````{py:method} export(contributor: fairdm.contrib.contributors.models.Contributor) -> dict
+:canonical: fairdm.contrib.contributors.utils.transforms.ORCIDTransform.export
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.transforms.ORCIDTransform.export
+```
+
+````
+
+````{py:method} import_data(data: dict, instance: fairdm.contrib.contributors.models.Person | None = None, save: bool = True) -> fairdm.contrib.contributors.models.Person
+:canonical: fairdm.contrib.contributors.utils.transforms.ORCIDTransform.import_data
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.transforms.ORCIDTransform.import_data
+```
+
+````
+
+````{py:method} update_or_create(orcid: str, force: bool = False, **kwargs) -> tuple[fairdm.contrib.contributors.models.Person, bool]
+:canonical: fairdm.contrib.contributors.utils.transforms.ORCIDTransform.update_or_create
+:classmethod:
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.transforms.ORCIDTransform.update_or_create
+```
+
+````
+
+````{py:method} get_or_create(orcid: str) -> tuple[fairdm.contrib.contributors.models.Person, bool]
+:canonical: fairdm.contrib.contributors.utils.transforms.ORCIDTransform.get_or_create
+:classmethod:
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.transforms.ORCIDTransform.get_or_create
+```
+
+````
+
+`````
+
+`````{py:class} RORTransform
+:canonical: fairdm.contrib.contributors.utils.transforms.RORTransform
+
+Bases: {py:obj}`fairdm.contrib.contributors.utils.transforms.BaseTransform`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.transforms.RORTransform
+```
+
+````{py:method} clean_ror_id(ror_id_or_link: str) -> str
+:canonical: fairdm.contrib.contributors.utils.transforms.RORTransform.clean_ror_id
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.transforms.RORTransform.clean_ror_id
+```
+
+````
+
+````{py:method} fetch_from_api(ror_id: str) -> dict
+:canonical: fairdm.contrib.contributors.utils.transforms.RORTransform.fetch_from_api
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.transforms.RORTransform.fetch_from_api
+```
+
+````
+
+````{py:method} export(contributor: fairdm.contrib.contributors.models.Contributor) -> dict
+:canonical: fairdm.contrib.contributors.utils.transforms.RORTransform.export
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.transforms.RORTransform.export
+```
+
+````
+
+````{py:method} import_data(data: dict, instance: fairdm.contrib.contributors.models.Organization | None = None, save: bool = True) -> fairdm.contrib.contributors.models.Organization
+:canonical: fairdm.contrib.contributors.utils.transforms.RORTransform.import_data
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.transforms.RORTransform.import_data
+```
+
+````
+
+````{py:method} display_name(data: dict) -> str
+:canonical: fairdm.contrib.contributors.utils.transforms.RORTransform.display_name
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.transforms.RORTransform.display_name
+```
+
+````
+
+````{py:method} import_location(data: dict, org: fairdm.contrib.contributors.models.Organization) -> None
+:canonical: fairdm.contrib.contributors.utils.transforms.RORTransform.import_location
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.transforms.RORTransform.import_location
+```
+
+````
+
+````{py:method} update_or_create(ror_id: str, force: bool = False, **kwargs) -> tuple[fairdm.contrib.contributors.models.Organization, bool]
+:canonical: fairdm.contrib.contributors.utils.transforms.RORTransform.update_or_create
+:classmethod:
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.transforms.RORTransform.update_or_create
+```
+
+````
+
+````{py:method} get_or_create(ror_id: str) -> tuple[fairdm.contrib.contributors.models.Organization, bool]
+:canonical: fairdm.contrib.contributors.utils.transforms.RORTransform.get_or_create
+:classmethod:
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.transforms.RORTransform.get_or_create
+```
+
+````
+
+`````
+
+````{py:function} contributor_to_datacite(contributor: fairdm.contrib.contributors.models.Contributor) -> dict
+:canonical: fairdm.contrib.contributors.utils.transforms.contributor_to_datacite
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.transforms.contributor_to_datacite
+```
+````
+
+````{py:function} contributor_to_schema_org(contributor: fairdm.contrib.contributors.models.Contributor) -> dict
+:canonical: fairdm.contrib.contributors.utils.transforms.contributor_to_schema_org
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.transforms.contributor_to_schema_org
+```
+````
+
+````{py:function} contributor_to_csljson(contributor: fairdm.contrib.contributors.models.Contributor) -> dict
+:canonical: fairdm.contrib.contributors.utils.transforms.contributor_to_csljson
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.transforms.contributor_to_csljson
+```
+````
+
+````{py:function} csljson_to_contributor(data: dict, save: bool = True) -> fairdm.contrib.contributors.models.Contributor
+:canonical: fairdm.contrib.contributors.utils.transforms.csljson_to_contributor
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.transforms.csljson_to_contributor
+```
+````

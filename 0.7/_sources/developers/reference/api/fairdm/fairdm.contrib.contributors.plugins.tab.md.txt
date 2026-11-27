@@ -1,0 +1,126 @@
+# {py:mod}`fairdm.contrib.contributors.plugins.tab`
+
+```{py:module} fairdm.contrib.contributors.plugins.tab
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`ContributionList <fairdm.contrib.contributors.plugins.tab.ContributionList>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab.ContributionList
+    :summary:
+    ```
+````
+
+### API
+
+``````{py:class} ContributionList(**kwargs)
+:canonical: fairdm.contrib.contributors.plugins.tab.ContributionList
+
+Bases: {py:obj}`fairdm.contrib.contributors.plugins.tab_base.ContributorsBase`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab.ContributionList
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab.ContributionList.__init__
+```
+
+````{py:attribute} manager_only
+:canonical: fairdm.contrib.contributors.plugins.tab.ContributionList.manager_only
+:value: >
+   False
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab.ContributionList.manager_only
+```
+
+````
+
+````{py:attribute} url_path
+:canonical: fairdm.contrib.contributors.plugins.tab.ContributionList.url_path
+:value: >
+   'contributors'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab.ContributionList.url_path
+```
+
+````
+
+````{py:attribute} template_name
+:canonical: fairdm.contrib.contributors.plugins.tab.ContributionList.template_name
+:value: >
+   'contributors/tab/page.html'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab.ContributionList.template_name
+```
+
+````
+
+````{py:attribute} page_title
+:canonical: fairdm.contrib.contributors.plugins.tab.ContributionList.page_title
+:value: >
+   'gettext_lazy(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab.ContributionList.page_title
+```
+
+````
+
+`````{py:class} Media
+:canonical: fairdm.contrib.contributors.plugins.tab.ContributionList.Media
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab.ContributionList.Media
+```
+
+````{py:attribute} css
+:canonical: fairdm.contrib.contributors.plugins.tab.ContributionList.Media.css
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab.ContributionList.Media.css
+```
+
+````
+
+````{py:attribute} js
+:canonical: fairdm.contrib.contributors.plugins.tab.ContributionList.Media.js
+:value: >
+   ['contributors/tab.js']
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab.ContributionList.Media.js
+```
+
+````
+
+`````
+
+````{py:attribute} extra_views
+:canonical: fairdm.contrib.contributors.plugins.tab.ContributionList.extra_views
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab.ContributionList.extra_views
+```
+
+````
+
+````{py:method} get_context_data(**kwargs)
+:canonical: fairdm.contrib.contributors.plugins.tab.ContributionList.get_context_data
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.tab.ContributionList.get_context_data
+```
+
+````
+
+``````

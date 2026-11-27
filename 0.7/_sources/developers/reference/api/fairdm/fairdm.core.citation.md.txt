@@ -1,0 +1,461 @@
+# {py:mod}`fairdm.core.citation`
+
+```{py:module} fairdm.core.citation
+```
+
+```{autodoc2-docstring} fairdm.core.citation
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`CitationFormat <fairdm.core.citation.CitationFormat>`
+  - ```{autodoc2-docstring} fairdm.core.citation.CitationFormat
+    :summary:
+    ```
+* - {py:obj}`CitationWriter <fairdm.core.citation.CitationWriter>`
+  - ```{autodoc2-docstring} fairdm.core.citation.CitationWriter
+    :summary:
+    ```
+* - {py:obj}`RisCitationWriter <fairdm.core.citation.RisCitationWriter>`
+  - ```{autodoc2-docstring} fairdm.core.citation.RisCitationWriter
+    :summary:
+    ```
+* - {py:obj}`CitedName <fairdm.core.citation.CitedName>`
+  - ```{autodoc2-docstring} fairdm.core.citation.CitedName
+    :summary:
+    ```
+* - {py:obj}`Citation <fairdm.core.citation.Citation>`
+  - ```{autodoc2-docstring} fairdm.core.citation.Citation
+    :summary:
+    ```
+````
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`publication_types <fairdm.core.citation.publication_types>`
+  - ```{autodoc2-docstring} fairdm.core.citation.publication_types
+    :summary:
+    ```
+* - {py:obj}`collapse_whitespace <fairdm.core.citation.collapse_whitespace>`
+  - ```{autodoc2-docstring} fairdm.core.citation.collapse_whitespace
+    :summary:
+    ```
+* - {py:obj}`escape_tex <fairdm.core.citation.escape_tex>`
+  - ```{autodoc2-docstring} fairdm.core.citation.escape_tex
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`VERBATIM_FIELDS <fairdm.core.citation.VERBATIM_FIELDS>`
+  - ```{autodoc2-docstring} fairdm.core.citation.VERBATIM_FIELDS
+    :summary:
+    ```
+* - {py:obj}`PUBLICATION_TYPES <fairdm.core.citation.PUBLICATION_TYPES>`
+  - ```{autodoc2-docstring} fairdm.core.citation.PUBLICATION_TYPES
+    :summary:
+    ```
+* - {py:obj}`FALLBACK_TYPES <fairdm.core.citation.FALLBACK_TYPES>`
+  - ```{autodoc2-docstring} fairdm.core.citation.FALLBACK_TYPES
+    :summary:
+    ```
+* - {py:obj}`FORMATS <fairdm.core.citation.FORMATS>`
+  - ```{autodoc2-docstring} fairdm.core.citation.FORMATS
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} VERBATIM_FIELDS
+:canonical: fairdm.core.citation.VERBATIM_FIELDS
+:value: >
+   ('doi', 'url')
+
+```{autodoc2-docstring} fairdm.core.citation.VERBATIM_FIELDS
+```
+
+````
+
+````{py:data} PUBLICATION_TYPES
+:canonical: fairdm.core.citation.PUBLICATION_TYPES
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.citation.PUBLICATION_TYPES
+```
+
+````
+
+````{py:data} FALLBACK_TYPES
+:canonical: fairdm.core.citation.FALLBACK_TYPES
+:value: >
+   ('misc', 'GEN')
+
+```{autodoc2-docstring} fairdm.core.citation.FALLBACK_TYPES
+```
+
+````
+
+`````{py:class} CitationFormat
+:canonical: fairdm.core.citation.CitationFormat
+
+```{autodoc2-docstring} fairdm.core.citation.CitationFormat
+```
+
+````{py:attribute} key
+:canonical: fairdm.core.citation.CitationFormat.key
+:type: str
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.citation.CitationFormat.key
+```
+
+````
+
+````{py:attribute} label
+:canonical: fairdm.core.citation.CitationFormat.label
+:type: str | django.utils.functional.Promise
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.citation.CitationFormat.label
+```
+
+````
+
+````{py:attribute} content_type
+:canonical: fairdm.core.citation.CitationFormat.content_type
+:type: str
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.citation.CitationFormat.content_type
+```
+
+````
+
+````{py:attribute} extension
+:canonical: fairdm.core.citation.CitationFormat.extension
+:type: str
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.citation.CitationFormat.extension
+```
+
+````
+
+````{py:attribute} downloadable
+:canonical: fairdm.core.citation.CitationFormat.downloadable
+:type: bool
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.citation.CitationFormat.downloadable
+```
+
+````
+
+`````
+
+````{py:data} FORMATS
+:canonical: fairdm.core.citation.FORMATS
+:value: >
+   ()
+
+```{autodoc2-docstring} fairdm.core.citation.FORMATS
+```
+
+````
+
+````{py:function} publication_types(csl_type)
+:canonical: fairdm.core.citation.publication_types
+
+```{autodoc2-docstring} fairdm.core.citation.publication_types
+```
+````
+
+````{py:function} collapse_whitespace(value)
+:canonical: fairdm.core.citation.collapse_whitespace
+
+```{autodoc2-docstring} fairdm.core.citation.collapse_whitespace
+```
+````
+
+````{py:function} escape_tex(value)
+:canonical: fairdm.core.citation.escape_tex
+
+```{autodoc2-docstring} fairdm.core.citation.escape_tex
+```
+````
+
+````{py:class} CitationWriter(encoding=None)
+:canonical: fairdm.core.citation.CitationWriter
+
+Bases: {py:obj}`pybtex.database.output.bibtex.Writer`
+
+```{autodoc2-docstring} fairdm.core.citation.CitationWriter
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.citation.CitationWriter.__init__
+```
+
+````
+
+`````{py:class} RisCitationWriter(*, mapping: typing.Optional[dict] = None, list_tags: typing.Optional[list[str]] = None, delimiter_tags_mapping: typing.Optional[dict] = None, ignore: typing.Optional[list[str]] = None, skip_unknown_tags: bool = False, enforce_list_tags: bool = True)
+:canonical: fairdm.core.citation.RisCitationWriter
+
+Bases: {py:obj}`rispy.RisWriter`
+
+```{autodoc2-docstring} fairdm.core.citation.RisCitationWriter
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.citation.RisCitationWriter.__init__
+```
+
+````{py:method} set_header(count)
+:canonical: fairdm.core.citation.RisCitationWriter.set_header
+
+```{autodoc2-docstring} fairdm.core.citation.RisCitationWriter.set_header
+```
+
+````
+
+`````
+
+`````{py:class} CitedName
+:canonical: fairdm.core.citation.CitedName
+
+```{autodoc2-docstring} fairdm.core.citation.CitedName
+```
+
+````{py:attribute} family
+:canonical: fairdm.core.citation.CitedName.family
+:type: str
+:value: <Multiline-String>
+
+```{autodoc2-docstring} fairdm.core.citation.CitedName.family
+```
+
+````
+
+````{py:attribute} given
+:canonical: fairdm.core.citation.CitedName.given
+:type: str
+:value: <Multiline-String>
+
+```{autodoc2-docstring} fairdm.core.citation.CitedName.given
+```
+
+````
+
+````{py:attribute} suffix
+:canonical: fairdm.core.citation.CitedName.suffix
+:type: str
+:value: <Multiline-String>
+
+```{autodoc2-docstring} fairdm.core.citation.CitedName.suffix
+```
+
+````
+
+````{py:attribute} literal
+:canonical: fairdm.core.citation.CitedName.literal
+:type: str
+:value: <Multiline-String>
+
+```{autodoc2-docstring} fairdm.core.citation.CitedName.literal
+```
+
+````
+
+````{py:method} from_contributor(contributor)
+:canonical: fairdm.core.citation.CitedName.from_contributor
+:classmethod:
+
+```{autodoc2-docstring} fairdm.core.citation.CitedName.from_contributor
+```
+
+````
+
+````{py:method} from_item_name(name)
+:canonical: fairdm.core.citation.CitedName.from_item_name
+:classmethod:
+
+```{autodoc2-docstring} fairdm.core.citation.CitedName.from_item_name
+```
+
+````
+
+````{py:method} to_bibtex_person()
+:canonical: fairdm.core.citation.CitedName.to_bibtex_person
+
+```{autodoc2-docstring} fairdm.core.citation.CitedName.to_bibtex_person
+```
+
+````
+
+````{py:method} to_ris()
+:canonical: fairdm.core.citation.CitedName.to_ris
+
+```{autodoc2-docstring} fairdm.core.citation.CitedName.to_ris
+```
+
+````
+
+`````
+
+`````{py:class} Citation
+:canonical: fairdm.core.citation.Citation
+
+```{autodoc2-docstring} fairdm.core.citation.Citation
+```
+
+````{py:attribute} key
+:canonical: fairdm.core.citation.Citation.key
+:type: str
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.citation.Citation.key
+```
+
+````
+
+````{py:attribute} authors
+:canonical: fairdm.core.citation.Citation.authors
+:type: list[fairdm.core.citation.CitedName]
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.citation.Citation.authors
+```
+
+````
+
+````{py:attribute} year
+:canonical: fairdm.core.citation.Citation.year
+:type: int | None
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.citation.Citation.year
+```
+
+````
+
+````{py:attribute} title
+:canonical: fairdm.core.citation.Citation.title
+:type: str
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.citation.Citation.title
+```
+
+````
+
+````{py:attribute} publisher
+:canonical: fairdm.core.citation.Citation.publisher
+:type: str
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.citation.Citation.publisher
+```
+
+````
+
+````{py:attribute} doi
+:canonical: fairdm.core.citation.Citation.doi
+:type: str | None
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.citation.Citation.doi
+```
+
+````
+
+````{py:attribute} url
+:canonical: fairdm.core.citation.Citation.url
+:type: str | None
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.citation.Citation.url
+```
+
+````
+
+````{py:attribute} bibtex_type
+:canonical: fairdm.core.citation.Citation.bibtex_type
+:type: str
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.citation.Citation.bibtex_type
+```
+
+````
+
+````{py:attribute} ris_type
+:canonical: fairdm.core.citation.Citation.ris_type
+:type: str
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.citation.Citation.ris_type
+```
+
+````
+
+````{py:method} to_bibtex()
+:canonical: fairdm.core.citation.Citation.to_bibtex
+
+```{autodoc2-docstring} fairdm.core.citation.Citation.to_bibtex
+```
+
+````
+
+````{py:method} to_ris()
+:canonical: fairdm.core.citation.Citation.to_ris
+
+```{autodoc2-docstring} fairdm.core.citation.Citation.to_ris
+```
+
+````
+
+````{py:method} filename(extension)
+:canonical: fairdm.core.citation.Citation.filename
+
+```{autodoc2-docstring} fairdm.core.citation.Citation.filename
+```
+
+````
+
+`````
