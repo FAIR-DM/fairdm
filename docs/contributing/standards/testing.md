@@ -229,9 +229,10 @@ suite while working:
 pytest -m "not slow"
 ```
 
-It skips every test that takes over a second or starts a subprocess: the migration tests, the
-backup and restore tests and the Docker script tests. The full suite, `pytest`, runs before a
-pull request and in CI.
+It skips the slowest tests: the migration tests, the backup and restore tests and the Docker
+script tests. A test that takes over a second or starts a subprocess carries the `slow` marker,
+and a few older ones still start a Python process without it. The full suite, `pytest`, runs
+before a pull request and in CI.
 
 ### Warnings fail
 

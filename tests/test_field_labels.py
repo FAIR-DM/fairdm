@@ -8,10 +8,11 @@ from django.utils.functional import Promise
 
 TESTS_DIRECTORY = Path(settings.BASE_DIR) / "tests"
 
-# Fields that were added without a label or a help text, by model label. The list holds
-# what is still missing. Adding a field to it hides a defect, so add the label to the
-# field instead and take its entry out: the second test fails for an entry that no
-# longer has a gap.
+# Fields that have no lazy label or help text, by model label. The list holds what is
+# still missing. Some are fields a dependency defines, such as the ones Django's user
+# model brings, and close only when the model redeclares them. Adding a field to the
+# list hides a defect, so add the label to the field instead and take its entry out: the
+# second test fails for an entry that no longer has a gap.
 KNOWN_GAPS: dict[str, set[str]] = {
     "contributors.ClaimingAuditLog": {
         "details",

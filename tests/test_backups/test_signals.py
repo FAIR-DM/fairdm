@@ -1,13 +1,23 @@
 """Tests for ``fairdm/backups/signals.py``: the default backup tasks."""
 
+from importlib import import_module
+
 import pytest
+from celery import current_app
 from django.conf import settings
 from django_celery_beat.models import CrontabSchedule, PeriodicTask
 
-from fairdm.backups.signals import seed_default_tasks
+from fairdm.backups.signals import DEFAULT_TASKS, seed_default_tasks
 
 DATABASE_TASK = "fairdm.backups.tasks.backup_database"
 MEDIA_TASK = "fairdm.backups.tasks.backup_media"
+
+
+class TestDefaultTasks:
+    def test_each_seeded_task_is_a_registered_celery_task(self):
+        import_module("fairdm.backups.tasks")
+
+        assert {task for _, task in DEFAULT_TASKS} <= set(current_app.tasks)
 
 
 @pytest.mark.django_db

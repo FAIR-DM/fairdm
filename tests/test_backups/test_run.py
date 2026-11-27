@@ -91,6 +91,17 @@ class TestRunBackup:
         assert earlier[0] not in kept
         assert earlier[1] in kept
 
+    def test_a_new_media_backup_removes_the_oldest_and_keeps_the_count(
+        self, backup_storage, seed_backups
+    ):
+        earlier = seed_backups("media", KEEP)
+
+        run_backup("media")
+
+        kept = backup_storage.list_backups(content_type="media")
+        assert len(kept) == KEEP
+        assert earlier[0] not in kept
+
     def test_database_and_media_backups_are_counted_separately(
         self, backup_storage, seed_backups
     ):
