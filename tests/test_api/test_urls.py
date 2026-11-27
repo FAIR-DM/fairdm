@@ -98,8 +98,10 @@ class TestTokenPages:
 
     @pytest.fixture
     def signed_in_client(self, person):
+        """A person who has just confirmed their password, as creating a token asks."""
         client = Client()
         client.force_login(person)
+        client.post(reverse("account_reauthenticate"), {"password": "password123"})
         return client
 
     @pytest.fixture
