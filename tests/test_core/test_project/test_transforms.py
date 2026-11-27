@@ -92,6 +92,20 @@ class TestToDatacite:
 
         assert data["fundingReferences"] == project.funding
 
+    def test_a_person_left_out_of_the_citation_is_not_a_creator(self):
+        project = ProjectFactory(funding=None)
+        left_out = PersonFactory()
+        kept = PersonFactory()
+        for person in (kept, left_out):
+            project.add_contributor(
+                person, with_roles=[f"{CONTRIBUTOR_ROLES}/creator"]
+            )
+        project.contributors.filter(contributor=left_out).update(in_citation=False)
+
+        data = to_datacite(project)
+
+        assert [c["name"] for c in data["creators"]] == [kept.name]
+
     def test_funding_references_is_not_the_same_list_as_the_model_field(self):
         project = ProjectFactory(
             funding=[{"funderName": "Sample Agency", "awardNumber": "GRANT-42"}]

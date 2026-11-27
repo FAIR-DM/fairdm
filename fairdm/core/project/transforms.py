@@ -134,7 +134,8 @@ class ProjectDataCiteTransform(BaseTransform):
             # `.all()` reads the prefetch cache; `.values_list()` would query per contribution.
             for role in contribution.roles.all():
                 if role.uri == CREATOR:
-                    creators.append(representation)
+                    if contribution.in_citation:
+                        creators.append(representation)
                 else:
                     contributors.append(
                         {**representation, "contributorType": notation(role)}

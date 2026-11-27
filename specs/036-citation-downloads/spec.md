@@ -34,6 +34,10 @@ and specification 018 sets them:
 - a measurement names the people who made it, and the year it was set up. Its title carries its
   measurement type and the sample it was made on
 
+Anyone whose credit is switched off in the Reorder sheet of the Contributors tab
+(specification 022) is left out of the citation, in every format. A citation whose people are all
+switched off names the organizations, as a citation with no people does.
+
 Specification 018 lists exporting a citation among the capabilities that are not available yet
 (FR-016). The redesign of the pages (#672) moves the citation to a Cite panel at the head of the
 side column and drops that placeholder.
@@ -197,8 +201,8 @@ address of a private record as someone who may not see it, and of a record that 
   RIS and MUST NOT be offered for the text. (US1)
 - **FR-003**: The panel MUST remember in the reader's browser the format they last chose, and show
   it on the next record they open. (US1)
-- **FR-004**: BibTeX and RIS MUST be built from the record. They MUST give the same people in the
-  same order, year, title, publisher and DOI or address as the record's text citation, and MUST
+- **FR-004**: BibTeX and RIS MUST be built from the record. They MUST give the same people, left
+  out where a credit is switched off for the citation, in the same order, year, title, publisher and DOI or address as the record's text citation, and MUST
   cite a dataset with a data publication as that publication. (US1)
 - **FR-005**: A record with a DOI, or a sample with an IGSN, MUST give that identifier and its
   resolver's address in both formats. A record with neither MUST give its permalink as its address

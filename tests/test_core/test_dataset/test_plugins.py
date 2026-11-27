@@ -1253,6 +1253,74 @@ class TestOverviewCitation:
             "Oliveira, T., Keller, A. & Acme Lab ("
         )
 
+    def test_a_person_left_out_of_the_citation_is_not_named_in_any_format(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        for first, last in (("Anna", "Keller"), ("Tomas", "Oliveira")):
+            left_out = dataset.add_contributor(
+                PersonFactory(first_name=first, last_name=last, is_active=True),
+                with_roles=[f"{CONTRIBUTOR_ROLES}/creator"],
+            )
+        left_out.in_citation = False
+        left_out.save()
+
+        response = _page(client, dataset)
+
+        shown = response.context["citation"]["formats"]
+        formats = {f["key"]: f["value"] for f in shown}
+        assert self._citation(client, dataset).startswith("Keller, A. (")
+        assert "Oliveira" not in formats["bibtex"]
+        assert "Oliveira" not in formats["ris"]
+
+    def test_a_person_left_out_of_the_citation_is_still_in_the_header_and_people(
+        self, client
+    ):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        credit = dataset.add_contributor(
+            PersonFactory(first_name="Tomas", last_name="Oliveira", is_active=True),
+            with_roles=[f"{CONTRIBUTOR_ROLES}/creator"],
+        )
+        credit.in_citation = False
+        credit.save()
+
+        response = _page(client, dataset)
+
+        assert [p.pk for p in response.context["header_people"]] == [
+            credit.contributor_id
+        ]
+
+    def test_with_every_person_left_out_the_citation_names_the_organizations(
+        self, client
+    ):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        dataset.add_contributor(
+            OrganizationFactory(name="Acme Lab"),
+            with_roles=[f"{CONTRIBUTOR_ROLES}/creator"],
+        )
+        credit = dataset.add_contributor(
+            PersonFactory(first_name="Anna", last_name="Keller", is_active=True),
+            with_roles=[f"{CONTRIBUTOR_ROLES}/creator"],
+        )
+        credit.in_citation = False
+        credit.save()
+
+        assert self._citation(client, dataset).startswith("Acme Lab (")
+
+    def test_a_person_left_out_of_the_citation_is_not_a_schema_org_creator(
+        self, client
+    ):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        for first, last in (("Anna", "Keller"), ("Tomas", "Oliveira")):
+            left_out = dataset.add_contributor(
+                PersonFactory(first_name=first, last_name=last, is_active=True),
+                with_roles=[f"{CONTRIBUTOR_ROLES}/creator"],
+            )
+        left_out.in_citation = False
+        left_out.save()
+
+        data = _json_ld(_page(client, dataset).page)
+
+        assert [c["familyName"] for c in data["creator"]] == ["Keller"]
+
     def test_without_one_the_year_is_the_published_date(self, client):
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
         DatasetDateFactory(

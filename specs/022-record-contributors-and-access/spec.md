@@ -416,7 +416,9 @@ second manager and try again.
 A dataset is about to be cited in a paper, and the order of its authors matters to the people on
 it. The dataset's manager opens the Contributors tab and chooses Reorder. A sheet lists the people
 with a drag handle on each. They drag the lead author to the top and the supervisor to the end, and
-choose Save order. The citation on the overview now names the people in that order. The
+choose Save order. The citation on the overview now names the people in that order. Beside each
+name is an eye: on, the person appears in the citation, off, they are credited and listed on the
+tab but left out of formal citations. The order and the eyes are saved together. The
 organizations are not ordered by hand. They follow a fixed order derived from the people and from
 how each organization is credited, so the host institute of the lead author comes ahead of a
 funder.
@@ -451,6 +453,13 @@ the citation.
    **Then** they are refused and the order is unchanged.
 7. **Given** a manager reordering without a pointing device, **When** they focus a handle and use
    the arrow keys, **Then** they can move the person and save the order.
+8. **Given** the Reorder sheet, **When** a manager switches a person's eye off and chooses Save
+   order, **Then** the person is still credited and listed on the tab, and the record's citation,
+   its citation downloads and the creator lists of its metadata no longer name them. **When** they
+   switch the eye on again and save, **Then** the person is named again. A person credited for the
+   first time is named. Every eye is on until someone switches it off.
+9. **Given** a record whose people are all switched off, **When** its citation is written,
+   **Then** it names the organizations, as it does for a record with no people.
 
 ---
 
@@ -714,6 +723,13 @@ Manager, Developer and Portal Administrator accounts.
 - **FR-058**: Wherever a record names people, including its citation, those named MUST appear in
   the people's order. Where it names organizations as well, they MUST follow the people, in the
   organizations' fixed order.
+- **FR-058a**: Each person's credit MUST record whether the person is named in the record's
+  citation. The Reorder sheet MUST show this as a toggle between each person's name and their drag
+  handle, labelled with the person's name, and MUST save it together with the order. A person who
+  is switched off MUST stay credited and listed on the tab, and MUST be left out of the record's
+  citation, its citation downloads (specification 036) and the creator lists of its metadata. An
+  organization MUST always be named. A record whose people are all switched off MUST be cited with
+  its organizations.
 - **FR-059**: A newly added person MUST be placed last among the people. Removing or editing a
   contributor MUST NOT change the order of the others. The organizations MUST be listed in this
   fixed order: the affiliations of the people who lead the record, then organizations that lead it

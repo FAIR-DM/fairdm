@@ -202,17 +202,24 @@ class RecordOverviewPlugin(OverviewPlugin):
         return {role.uri for role in contribution.roles.all()}
 
     @staticmethod
-    def get_contributors_with_role(entries, role) -> list[Contributor]:
+    def get_contributors_with_role(
+        entries, role, *, cited_only=False
+    ) -> list[Contributor]:
         """Pick out the contributors credited with one role.
 
         Args:
             entries: The record's credits, from :meth:`get_credits`.
             role: The address of the role.
+            cited_only: Leave out anyone whose credit keeps them out of the citation.
 
         Returns:
             The contributors of every entry that holds it.
         """
-        return [entry["contributor"] for entry in entries if role in entry["roles"]]
+        return [
+            entry["contributor"]
+            for entry in entries
+            if role in entry["roles"] and (not cited_only or entry["cited"])
+        ]
 
     def get_credits(self) -> list[dict[str, Any]]:
         """List everyone credited on the record.
@@ -221,8 +228,9 @@ class RecordOverviewPlugin(OverviewPlugin):
         recorded on the credit itself, so a person credited with no organization has none.
 
         Returns:
-            One ``{"contributor", "roles": {address: label}, "affiliation"}`` entry per credit, in
-            the order of :meth:`get_contributions`.
+            One ``{"contributor", "roles": {address: label}, "affiliation", "cited"}``
+            entry per credit, in the order of :meth:`get_contributions`. ``cited`` is
+            False for a person the credit leaves out of the citation.
         """
         return [
             {
@@ -231,6 +239,7 @@ class RecordOverviewPlugin(OverviewPlugin):
                     role.uri: role.display_label() for role in credit.roles.all()
                 },
                 "affiliation": credit.affiliation,
+                "cited": credit.in_citation,
             }
             for credit in self.get_contributions()
         ]

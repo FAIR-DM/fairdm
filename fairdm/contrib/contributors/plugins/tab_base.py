@@ -113,6 +113,7 @@ class ContributorsBase(ContributionPage):
                 "credit": credit,
                 "person": credit.contributor,
                 "roles": list(credit.roles.all()),
+                "cited": credit.in_citation,
                 "edit_url": self.record_url("contribution-list-edit", pk=credit.pk),
                 "remove_url": self.record_url("contribution-list-remove", pk=credit.pk),
             }

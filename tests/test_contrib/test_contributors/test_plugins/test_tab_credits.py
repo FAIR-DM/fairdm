@@ -220,6 +220,60 @@ class TestReorder:
         ordered = list(record.contributors.people().values_list("pk", flat=True))
         assert ordered == wanted
 
+    def test_it_saves_who_is_left_out_of_the_citation_with_the_order(
+        self, record, manager, colleague
+    ):
+        manager_credit = record.contributors.get(contributor=manager)
+        wanted = [colleague.pk, manager_credit.pk]
+
+        response = browser_as(manager).post(
+            page_of(record, "reorder"),
+            {"order": wanted, "cited": [manager_credit.pk]},
+        )
+
+        assert response.status_code == 200
+        colleague.refresh_from_db()
+        manager_credit.refresh_from_db()
+        assert colleague.in_citation is False
+        assert manager_credit.in_citation is True
+
+    def test_a_person_switched_back_on_is_cited_again(self, record, manager, colleague):
+        Contribution.objects.filter(pk=colleague.pk).update(in_citation=False)
+        everyone = list(record.contributors.people().values_list("pk", flat=True))
+
+        browser_as(manager).post(
+            page_of(record, "reorder"), {"order": everyone, "cited": everyone}
+        )
+
+        colleague.refresh_from_db()
+        assert colleague.in_citation is True
+
+    def test_a_person_left_out_stays_credited_and_listed(
+        self, record, manager, colleague
+    ):
+        everyone = list(record.contributors.people().values_list("pk", flat=True))
+
+        browser_as(manager).post(page_of(record, "reorder"), {"order": everyone})
+
+        assert Contribution.objects.filter(pk=colleague.pk).exists()
+        assert colleague.pk in record.contributors.people().values_list("pk", flat=True)
+
+    def test_the_sheet_offers_each_person_a_toggle_set_to_their_state(
+        self, record, manager, colleague
+    ):
+        Contribution.objects.filter(pk=colleague.pk).update(in_citation=False)
+
+        response = browser_as(manager).get(page_of(record, "reorder"))
+
+        toggles = {
+            box["value"]: box
+            for box in soup_of(response).select('input[name="cited"]')
+        }
+        manager_credit = record.contributors.get(contributor=manager)
+        assert toggles[str(manager_credit.pk)].has_attr("checked")
+        assert not toggles[str(colleague.pk)].has_attr("checked")
+        assert colleague.contributor.name in toggles[str(colleague.pk)]["aria-label"]
+
     def test_an_order_naming_someone_not_credited_is_refused(
         self, record, manager, colleague
     ):

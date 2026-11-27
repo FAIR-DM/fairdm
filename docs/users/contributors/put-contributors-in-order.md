@@ -13,6 +13,10 @@ You need to manage the record, which means holding the **Can manage** level on i
 3. Drag a person by their handle to where they belong. With the keyboard, focus the handle and use the arrow keys.
 4. Choose **Save order**.
 
+## Leave a person out of the citation
+
+Each person in the sheet has an eye beside their name. With the eye open the person is named in the record's citation, in its citation downloads and in the creator lists of its metadata. Choose the eye to close it and the person is credited and listed on the Contributors tab but left out of formal citations. The eyes are saved with the order, and every eye is open until you close it. A person who is left out can be named again by opening the eye and saving. Organizations are always named. When every person is left out, the citation names the organizations.
+
 Organizations are shown in the order the people they are credited from lead the record, then those credited on their own, and are not reordered by hand.
 
 ## The result

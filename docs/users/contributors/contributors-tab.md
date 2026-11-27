@@ -91,7 +91,7 @@ ORCID and ROR searches are limited per person to a number a minute, and a regist
 
 ## Reorder
 
-**Reorder** opens the people in a list you can drag by its handle. With the keyboard, focus the handle and use the arrow keys. **Save order** keeps it. The order is the order the record names its people in, its citation included.
+**Reorder** opens the people in a list you can drag by its handle. With the keyboard, focus the handle and use the arrow keys. **Save order** keeps it. The order is the order the record names its people in, its citation included. The eye beside each name decides whether that person is named in the citation: closed, they are credited and listed but left out of formal citations. See [How to put contributors in order](put-contributors-in-order.md).
 
 ## What you can do here
 

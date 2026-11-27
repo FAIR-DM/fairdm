@@ -38,8 +38,8 @@ It holds what every record overview works out the same way. A portal changes one
 | `get_context_data(**kwargs)` | The context with `people_url` (the record's Contributors tab), `edit` (the [edit links](record-editing-pages.md#the-edit-links)), `record_kind` (the word for the record's kind) and `cover_image` (the record's image, or `None`) added. |
 | `get_contributions()` | The record's credits, people first and then organizations, each in the order set on the Contributors tab, each with its real contributor and roles loaded. |
 | `get_role_uris(contribution)` | The set of the addresses of the roles held on one credit. |
-| `get_contributors_with_role(entries, role)` | The contributors of every entry in `get_credits()` that holds the role, given by its address. |
-| `get_credits()` | One dictionary per credit, in the order of `get_contributions()`: `contributor`, `roles` (a dictionary of role address to label) and `affiliation` (the organization recorded on the credit, or `None`). |
+| `get_contributors_with_role(entries, role, *, cited_only=False)` | The contributors of every entry in `get_credits()` that holds the role, given by its address. With `cited_only`, anyone whose credit is left out of the citation is skipped. |
+| `get_credits()` | One dictionary per credit, in the order of `get_contributions()`: `contributor`, `roles` (a dictionary of role address to label) and `affiliation` (the organization recorded on the credit, or `None`) and `cited` (false for a person the Reorder sheet leaves out of the citation). |
 | `get_people(entries=None)` | What the People panel shows: `named` (up to `people_named` credits, each with `contributor`, its first two `roles`, `more_roles`, how many more it holds, and `affiliation`), `faces` (the next `people_faces` contributors), `more` (how many are left) and `total`. |
 | `get_identifiers()` | One dictionary per identifier: `type`, the identifier type's concept, `value` and `link`. |
 | `get_primary_identifier(identifiers)` | The first identifier from `get_identifiers()` with a `link`, the one a reader looks for first, or `None`. The project and dataset pages show it among the header's key facts. |

@@ -1074,6 +1074,14 @@ class TestOverviewCitation:
 
         assert self._citation(client, project).startswith("Keller, A. (")
 
+    def test_a_creator_left_out_of_the_citation_is_not_named(self, client):
+        project = self._project_with_creators(("Anna", "Keller"), ("Tomas", "Oliveira"))
+        project.contributors.filter(contributor__person__last_name="Oliveira").update(
+            in_citation=False
+        )
+
+        assert self._citation(client, project).startswith("Keller, A. (")
+
     def test_two_creators_are_joined_by_an_ampersand(self, client):
         project = self._project_with_creators(("Anna", "Keller"), ("Tomas", "Oliveira"))
 

@@ -239,6 +239,17 @@ class AffiliationManager(models.Manager.from_queryset(AffiliationQuerySet)):
 class ContributionQuerySet(OrderedModelQuerySet):
     """Contribution queryset with filters by role, entity and contributor."""
 
+    def cited(self):
+        """Filter contributions to those the record's citation and creator lists name.
+
+        An organization is always named, and a person is named unless their credit
+        leaves them out of the citation.
+
+        Returns:
+            Contributions whose ``in_citation`` is on.
+        """
+        return self.filter(in_citation=True)
+
     def by_role(self, role: str):
         """Filter contributions to those holding a role.
 
