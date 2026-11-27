@@ -13,7 +13,7 @@ A token lets a script use the API as you, without your password. You need one to
 
    If **API tokens** is not in the menu, your portal does not give tokens to your account. Ask your portal's administrator. Public records can still be read without a token.
 
-2. Choose **Create token**.
+2. Choose **Create token**. If you have not signed in recently, the portal asks for your password first, then opens the page.
 3. Under **Expires after**, choose how long the token should work: **7 days**, **30 days**, **90 days**, **1 year** or **Never expires**. A token that expires limits the harm if it leaks, so choose the shortest time your script needs.
 4. Choose **Create token** again. You return to the **API tokens** page, where **Your new token** shows the complete token.
 5. Choose **Copy**, and keep the token somewhere private, as you would a password. The portal shows it once. It keeps only the first characters, so it cannot show you the rest later.

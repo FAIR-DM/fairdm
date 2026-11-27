@@ -40,7 +40,7 @@ With no token, the card shows a key icon, the heading **You have no API tokens**
 
 ## The create screen
 
-Selecting **Create token** opens a screen headed **Create a token**, with a form that holds:
+Selecting **Create token** opens a screen headed **Create a token**. If you have not signed in recently, the portal first asks for your password to confirm it is you. The form holds:
 
 - **Expires after**, a menu with **7 days**, **30 days**, **90 days**, **1 year** and **Never expires**. **30 days** is chosen to begin with. Its help text reads **A token that expires limits the harm if it leaks. You can revoke any token sooner.**
 - the line **The token is shown once, on the next page. Have somewhere ready to keep it.**
