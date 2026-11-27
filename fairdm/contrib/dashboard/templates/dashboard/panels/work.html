@@ -1,0 +1,67 @@
+{% load i18n humanize %}
+{% comment %}
+  Your work: the datasets and projects the person holds access to, most recently changed first.
+  Each row carries one state mark, its visibility, and says what the person may do with it.
+{% endcomment %}
+{% with w=dash.work %}
+  <div class="dash-work" id="your-work">
+    <c-overview.panel title="{% translate 'Your datasets' %}" count="{% if w.dataset_count %}{{ w.dataset_count }}{% endif %}" more_url="{% if w.dataset_count > w.datasets|length %}{{ w.datasets_url }}{% endif %}" edit_url="{% if w.datasets %}{{ dash.start.create_dataset }}{% endif %}" edit_text="{% translate 'New dataset' %}" edit_icon="add">
+      {% if w.datasets %}
+        <ul class="ov-rows" aria-label="{% translate 'Your most recently changed datasets' %}">
+          {% for d in w.datasets %}
+            <li class="record-dataset">
+              <span class="ov-mark" aria-hidden="true"><c-icon name="dataset" only /></span>
+              <div class="ov-row__main">
+                <a href="{{ d.get_absolute_url }}" class="ov-row__title">{{ d.name }}</a>
+                <div class="ov-row__meta">
+                  {% if d.published %}<span class="ov-state ov-state--published">{% translate "Published" %}</span>
+                  {% elif d.visibility == 1 %}<span class="ov-state ov-state--public">{% translate "Public" %}</span>
+                  {% else %}<span class="ov-state">{% translate "Private" %}</span>{% endif %}
+                  <span>{{ d.access }}</span>
+                  <span>{% blocktranslate with when=d.modified|naturalday:"SHORT_DATE_FORMAT" %}Changed {{ when }}{% endblocktranslate %}</span>
+                </div>
+              </div>
+              <div class="ov-row__end">
+                <strong>{{ d.n_samples|intcomma }}</strong> {% blocktranslate count counter=d.n_samples %}sample{% plural %}samples{% endblocktranslate %}
+                <span class="ov-sub">{% blocktranslate count counter=d.n_measurements with n=d.n_measurements|intcomma %}{{ n }} measurement{% plural %}{{ n }} measurements{% endblocktranslate %}</span>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div class="ov-empty-block">
+          <p class="ov-empty">{% translate "A dataset holds samples and measurements, and is what others in the community find, cite and build on. Yours will be listed here." %}</p>
+          <c-button href="{{ dash.start.create_dataset }}" text="{% translate 'Create a dataset' %}" icon="add" size="sm" variant="primary" />
+        </div>
+      {% endif %}
+    </c-overview.panel>
+
+    <c-overview.panel title="{% translate 'Your projects' %}" count="{% if w.project_count %}{{ w.project_count }}{% endif %}" more_url="{% if w.project_count > w.projects|length %}{{ w.projects_url }}{% endif %}" edit_url="{% if w.projects %}{{ dash.start.create_project }}{% endif %}" edit_text="{% translate 'New project' %}" edit_icon="add">
+      {% if w.projects %}
+        <ul class="ov-rows" aria-label="{% translate 'Your most recently changed projects' %}">
+          {% for p in w.projects %}
+            <li class="record-project">
+              <span class="ov-mark" aria-hidden="true"><c-icon name="project" only /></span>
+              <div class="ov-row__main">
+                <a href="{{ p.get_absolute_url }}" class="ov-row__title">{{ p.name }}</a>
+                <div class="ov-row__meta">
+                  {% if p.visibility == 1 %}<span class="ov-state ov-state--public">{% translate "Public" %}</span>{% else %}<span class="ov-state">{% translate "Private" %}</span>{% endif %}
+                  <span>{{ p.access }}</span>
+                  <span>{% blocktranslate with when=p.modified|naturalday:"SHORT_DATE_FORMAT" %}Changed {{ when }}{% endblocktranslate %}</span>
+                </div>
+              </div>
+              <div class="ov-row__end">
+                <strong>{{ p.n_datasets|intcomma }}</strong> {% blocktranslate count counter=p.n_datasets %}dataset{% plural %}datasets{% endblocktranslate %}
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div class="ov-empty-block">
+          <p class="ov-empty">{% translate "A project gathers the datasets of one grant or collaboration under one name, with its team and funding. You don't need one to share a dataset." %}</p>
+          <c-button href="{{ dash.start.create_project }}" text="{% translate 'Start a project' %}" icon="add" size="sm" />
+        </div>
+      {% endif %}
+    </c-overview.panel>
+  </div>
+{% endwith %}

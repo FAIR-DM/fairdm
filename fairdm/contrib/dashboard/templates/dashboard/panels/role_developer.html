@@ -1,0 +1,29 @@
+{% load i18n %}
+{% comment %}
+  For a Developer: what building on the portal's API takes, the person's tokens, the API's
+  documentation, and the table schema of every registered type.
+{% endcomment %}
+<c-overview.panel title="{% translate 'Building on the API' %}" id="role-developer" class="dash-role"
+                  sub="{% blocktranslate with role=panel.role %}You hold the {{ role }} role.{% endblocktranslate %}">
+  <c-slot name="head"><span class="dash-role__chip"><c-icon name="api" aria-hidden="true" only />{{ panel.role }}</span></c-slot>
+  <div class="dash-dev">
+    <a href="{{ panel.tokens_url }}" class="dash-count">
+      <span class="dash-count__value">{{ panel.tokens }}</span>
+      <span class="dash-count__label">{% blocktranslate count counter=panel.tokens %}API token in use{% plural %}API tokens in use{% endblocktranslate %}</span>
+      <span class="dash-count__hint">{% translate "Create one for each script or service, so each can be revoked alone." %}</span>
+    </a>
+    <a href="{{ panel.docs_url }}" class="dash-count">
+      <span class="dash-count__value"><c-icon name="documentation" aria-hidden="true" only /></span>
+      <span class="dash-count__label">{% translate "API documentation" %}</span>
+      <span class="dash-count__hint">{% translate "Every endpoint, with a console to try it." %}</span>
+    </a>
+  </div>
+  {% if panel.types %}
+    <h3 class="dash-subhead">{% translate "Table schemas" %}</h3>
+    <ul class="dash-schemas">
+      {% for t in panel.types %}
+        <li><a href="{{ t.url }}" class="ov-link" download><c-icon name="download" aria-hidden="true" only />{{ t.name }}</a> <span class="dash-schemas__kind">{{ t.kind }}</span></li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+</c-overview.panel>

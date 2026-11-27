@@ -1,0 +1,48 @@
+{% load i18n humanize %}
+{% comment %}
+  The community: what happened across the portal this month, who joined, the people the person
+  works with, and the latest changes to datasets anyone may open.
+{% endcomment %}
+{% with c=dash.community %}
+  <c-overview.panel title="{% blocktranslate with name=c.name %}{{ name }} this month{% endblocktranslate %}" side id="community" class="dash-community">
+    <ul class="dash-pulse" aria-label="{% translate 'The last 30 days across the portal' %}">
+      {% for f in c.figures %}
+        <li>
+          <span class="dash-pulse__value">{{ f.value|intcomma }}</span>
+          <span class="dash-pulse__label">{{ f.label }}</span>
+          {% if f.change %}
+            <span class="dash-pulse__change dash-pulse__change--{{ f.direction }}">
+              {% if f.direction == "up" %}<c-icon name="arrow_up" aria-hidden="true" only /><span class="sr-only">{% translate "up" %}</span>{% elif f.direction == "down" %}<c-icon name="arrow_down" aria-hidden="true" only /><span class="sr-only">{% translate "down" %}</span>{% endif %}{{ f.change }}
+            </span>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+
+    {% if c.newcomers %}
+      <div class="dash-faces">
+        <h3 class="dash-subhead">{% translate "New members" %}</h3>
+        <c-contributor.stack :contributors="c.newcomers" max="6" total="{{ c.newcomer_count }}" more_url="{{ c.people_url }}" />
+      </div>
+    {% endif %}
+    {% if c.collaborators %}
+      <div class="dash-faces">
+        <h3 class="dash-subhead">{% translate "People you work with" %}</h3>
+        <c-contributor.stack :contributors="c.collaborators" max="6" />
+      </div>
+    {% endif %}
+
+    <div class="dash-feed">
+      <div class="dash-feed__head">
+        <h3 class="dash-subhead">{% translate "Latest across the portal" %}</h3>
+        <c-more-link href="{{ c.activity_url }}" text="{% translate 'See all' %}" only />
+      </div>
+      <c-mvp_community.activity.feed :actions="c.days" only />
+    </div>
+
+    <div class="dash-links">
+      <a href="{{ c.people_url }}" class="ov-link">{% translate "Browse people" %}</a>
+      <a href="{{ c.organizations_url }}" class="ov-link">{% translate "Browse organizations" %}</a>
+    </div>
+  </c-overview.panel>
+{% endwith %}

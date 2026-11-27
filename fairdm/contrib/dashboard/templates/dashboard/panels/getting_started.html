@@ -1,0 +1,41 @@
+{% load i18n %}
+{% comment %}
+  Getting started, for someone who has not yet shared a dataset: the steps from a profile to a
+  public dataset, each ticked from what is in the database, the next one marked. It goes away
+  once every step is done. Hidden, it leaves one line offering it back.
+{% endcomment %}
+{% with g=dash.getting_started %}
+  {% if g and not g.hidden %}
+    <c-overview.panel title="{% translate 'Getting started' %}" id="getting-started" class="dash-gs"
+                      sub="{% blocktranslate with done=g.done total=g.total %}{{ done }} of {{ total }} done. From your profile to a dataset anyone can find and cite.{% endblocktranslate %}">
+      <c-slot name="head">
+        <form method="post" action="{{ g.hide_url }}" class="dash-gs__hide">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-ghost btn-xs">{% translate "Hide" %}</button>
+        </form>
+      </c-slot>
+      <progress class="progress progress-primary dash-gs__bar" value="{{ g.done }}" max="{{ g.total }}" aria-label="{% translate 'Steps done' %}"></progress>
+      <ol class="dash-steps">
+        {% for step in g.steps %}
+          <li class="dash-step{% if step.done %} is-done{% elif step.current %} is-current{% endif %}">
+            <span class="dash-step__mark" aria-hidden="true">{% if step.done %}<c-icon name="confirm" only />{% else %}{{ forloop.counter }}{% endif %}</span>
+            <div class="dash-step__main">
+              {% if step.done %}
+                <span class="dash-step__label">{{ step.label }}</span>
+              {% else %}
+                <a href="{{ step.url }}" class="dash-step__label">{{ step.label }}</a>
+              {% endif %}
+              <span class="dash-step__hint">{{ step.hint }}</span>
+            </div>
+            <span class="dash-step__state">
+              {% if step.done %}<c-overview.status variant="success">{% translate "Done" %}</c-overview.status>
+              {% elif step.optional %}<c-overview.status>{% translate "Optional" %}</c-overview.status>
+              {% elif step.current %}<c-overview.status variant="info">{% translate "Next" %}</c-overview.status>
+              {% endif %}
+            </span>
+          </li>
+        {% endfor %}
+      </ol>
+    </c-overview.panel>
+  {% endif %}
+{% endwith %}

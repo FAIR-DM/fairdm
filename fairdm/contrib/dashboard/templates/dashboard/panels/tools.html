@@ -1,0 +1,36 @@
+{% load i18n %}
+{% comment %}
+  Tools: the places someone goes to work with the portal outside its pages, and the
+  getting-started list offered back when it was hidden before it was done.
+{% endcomment %}
+{% with t=dash.tools g=dash.getting_started %}
+  <c-overview.panel title="{% translate 'Tools' %}" side id="tools">
+    <ul class="dash-tools">
+      {% if g.hidden %}
+        <li>
+          <form method="post" action="{{ g.hide_url }}">
+            {% csrf_token %}
+            <input type="hidden" name="show" value="1" />
+            <button type="submit" class="dash-tool">
+              <c-icon name="lightbulb" aria-hidden="true" only />
+              <span><span class="dash-tool__label">{% translate "Show the getting-started list" %}</span><span class="dash-tool__hint">{% blocktranslate with done=g.done total=g.total %}{{ done }} of {{ total }} steps done{% endblocktranslate %}</span></span>
+            </button>
+          </form>
+        </li>
+      {% endif %}
+      {% if t.tokens_url %}
+        <li><a href="{{ t.tokens_url }}" class="dash-tool"><c-icon name="api" aria-hidden="true" only /><span><span class="dash-tool__label">{% translate "API tokens" %}</span><span class="dash-tool__hint">{% translate "For scripts that read or add data" %}</span></span></a></li>
+      {% endif %}
+      {% if t.docs_url %}
+        <li><a href="{{ t.docs_url }}" class="dash-tool"><c-icon name="documentation" aria-hidden="true" only /><span><span class="dash-tool__label">{% translate "API documentation" %}</span><span class="dash-tool__hint">{% translate "Every endpoint, with a console" %}</span></span></a></li>
+      {% endif %}
+      <li><a href="{{ t.guide_url }}" class="dash-tool"><c-icon name="help" aria-hidden="true" only /><span><span class="dash-tool__label">{% translate "User guide" %}</span><span class="dash-tool__hint">{% translate "How to describe, import and publish data" %}</span></span></a></li>
+      {% if t.account_url %}
+        <li><a href="{{ t.account_url }}" class="dash-tool"><c-icon name="preferences" aria-hidden="true" only /><span><span class="dash-tool__label">{% translate "Account settings" %}</span><span class="dash-tool__hint">{% translate "Sign-in, email and security" %}</span></span></a></li>
+      {% endif %}
+      {% if t.control_room_url %}
+        <li><a href="{{ t.control_room_url }}" class="dash-tool"><c-icon name="administration" aria-hidden="true" only /><span><span class="dash-tool__label">{% translate "Control room" %}</span><span class="dash-tool__hint">{% translate "Workers, caches and queues" %}</span></span></a></li>
+      {% endif %}
+    </ul>
+  </c-overview.panel>
+{% endwith %}

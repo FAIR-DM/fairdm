@@ -1,0 +1,45 @@
+{% load i18n humanize %}
+{% comment %}
+  For a Portal Administrator: how far the portal's own description is set up, which is what
+  visitors and harvesters read about it, and who holds each portal role.
+{% endcomment %}
+<c-overview.panel title="{% translate 'Running the portal' %}" id="role-administrator" class="dash-role"
+                  sub="{% blocktranslate with role=panel.role %}You hold the {{ role }} role.{% endblocktranslate %} {% if panel.registration %}{% translate 'Anyone may create an account.' %}{% else %}{% translate 'Accounts are by invitation only.' %}{% endif %}">
+  <c-slot name="head"><span class="dash-role__chip"><c-icon name="administration" aria-hidden="true" only />{{ panel.role }}</span></c-slot>
+  <div class="dash-admin">
+    <div class="dash-admin__setup">
+      <div class="ov-ready__top">
+        <div class="ov-ring{% if panel.setup.done == panel.setup.total %} ov-ring--done{% endif %}" style="--p: {{ panel.setup.percent }}" role="img" aria-label="{% blocktranslate with done=panel.setup.done total=panel.setup.total %}{{ done }} of {{ total }} in place{% endblocktranslate %}"><span>{{ panel.setup.done }}/{{ panel.setup.total }}</span></div>
+        <div>
+          <div class="ov-ready__summary">{% translate "The portal's own description" %}</div>
+          <p class="ov-ready__about">{% translate "What visitors, search engines and data harvesters read about this portal." %}</p>
+        </div>
+      </div>
+      <ul class="ov-todo">
+        {% for item in panel.setup.items %}
+          {% if not item.done %}
+            <li{% if not item.required %} class="is-optional"{% endif %}>
+              <span class="ov-todo__label">{{ item.label }}{% if not item.required %} <span class="ov-todo__optional">({% translate "recommended" %})</span>{% endif %}<span class="sr-only"> — {% translate "missing" %}</span></span>
+              {% if item.url %}<a href="{{ item.url }}">{% translate "Fix" %}</a>{% endif %}
+            </li>
+          {% endif %}
+        {% endfor %}
+      </ul>
+    </div>
+    <div class="dash-admin__roles">
+      <h3 class="dash-subhead">{% translate "Portal roles" %}</h3>
+      <ul class="ov-rows">
+        {% for role in panel.roles %}
+          <li class="record-portal">
+            <span class="ov-mark" aria-hidden="true"><c-icon name="permissions" only /></span>
+            <div class="ov-row__main">
+              {% if role.url %}<a href="{{ role.url }}" class="ov-row__title">{{ role.label }}</a>{% else %}<span class="ov-row__title">{{ role.label }}</span>{% endif %}
+            </div>
+            <div class="ov-row__end"><strong>{{ role.count }}</strong> {% blocktranslate count counter=role.count %}person{% plural %}people{% endblocktranslate %}</div>
+          </li>
+        {% endfor %}
+      </ul>
+      <p class="dash-admin__accounts">{% blocktranslate count counter=panel.accounts with n=panel.accounts|intcomma %}{{ n }} account in all{% plural %}{{ n }} accounts in all{% endblocktranslate %}</p>
+    </div>
+  </div>
+</c-overview.panel>

@@ -1,0 +1,29 @@
+{% load i18n %}
+{% comment %}
+  Your organizations: where the person works, their membership in each, and requests waiting
+  on the ones they run. Someone with none is offered the list to find theirs.
+{% endcomment %}
+<c-overview.panel title="{% translate 'Your organizations' %}" side id="organizations" more_url="{% if dash.organizations %}{{ dash.header.edit_url }}{% endif %}" more_text="{% translate 'Manage' %}">
+  {% if dash.organizations %}
+    <ul class="ov-rows">
+      {% for row in dash.organizations %}
+        <li class="record-portal">
+          <span class="ov-mark" aria-hidden="true"><c-mvp.avatar :for="row.organization" alt="" size="sm" shape="rounded" placeholder="{{ row.organization.name|slice:':1' }}" only /></span>
+          <div class="ov-row__main">
+            <a href="{{ row.organization.get_absolute_url }}" class="ov-row__title">{{ row.organization.name }}</a>
+            <div class="ov-row__meta">
+              <span>{{ row.type }}</span>
+              {% if row.primary %}<span>{% translate "Primary" %}</span>{% endif %}
+              {% if row.pending %}<a href="{{ row.members_url }}">{% blocktranslate count counter=row.pending %}{{ counter }} request{% plural %}{{ counter }} requests{% endblocktranslate %}</a>{% endif %}
+            </div>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <div class="ov-empty-block">
+      <p class="ov-empty">{% translate "Name the organization you work for, so your credit carries it and colleagues find you." %}</p>
+      <c-button href="{{ dash.community.organizations_url }}" text="{% translate 'Find your organization' %}" icon="organization" size="sm" />
+    </div>
+  {% endif %}
+</c-overview.panel>

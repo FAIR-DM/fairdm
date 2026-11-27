@@ -1817,3 +1817,164 @@ a.ov-row__title:hover { text-decoration: underline; }
 .ie-job__outcome { display: flex; gap: 0.5rem; align-items: center; flex: none; }
 .ie-panel--side .ie-job__link { flex-direction: column; align-items: flex-start; gap: 0.25rem; }
 
+
+/* ------------------------------------------------------------------------------------------------
+ * The signed-in dashboard: the overview page's anatomy, for a person rather than a record.
+ * The header band and every panel are the overview's own. What follows is only what a record
+ * page has no use for: the start choices, the getting-started steps, counts, and the community
+ * column's figures and tools.
+ * --------------------------------------------------------------------------------------------- */
+
+.record-portal {
+  --record: var(--color-primary);
+  --record-tint: color-mix(in oklch, var(--color-primary) 12%, transparent);
+}
+
+.dash-hero__face { overflow: hidden; padding: 0; background: var(--color-base-100); }
+.dash-hero__face .avatar, .dash-hero__face .avatar > div { width: 100%; height: 100%; }
+.dash-hero__face img { width: 100%; height: 100%; object-fit: cover; }
+
+.dash-hero__eyebrow {
+  font-size: 0.75rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--ov-muted);
+}
+
+.dash-orcid {
+  display: inline-grid; place-items: center; width: 1.1rem; height: 1.1rem; border-radius: 999px;
+  background: #a6ce39; color: #fff; font-size: 0.55rem; font-weight: 700; line-height: 1;
+}
+
+/* Start something new: three choices side by side, stacked on a phone. */
+
+.dash-start { display: flex; flex-direction: column; gap: 0.75rem; }
+.dash-start__grid { display: grid; gap: 0.75rem; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 767px) { .dash-start__grid { grid-template-columns: minmax(0, 1fr); } }
+
+.dash-start__card {
+  position: relative;
+  border: 1px solid var(--ov-line);
+  box-shadow: inset 0 3px 0 var(--record);
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+.dash-start__card:hover, .dash-start__card:focus-within { border-color: var(--record); background: color-mix(in oklch, var(--record-tint) 45%, var(--color-base-100)); }
+.dash-start__card .card-title > :first-child { color: var(--record); }
+.dash-start__card p { margin: 0; font-size: 0.8125rem; color: var(--ov-muted); }
+
+/* A button stretched over a card, for a card that opens a dialog rather than a page. */
+.dash-stretch { position: absolute; inset: 0; border-radius: inherit; cursor: pointer; background: transparent; }
+.dash-stretch:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+
+.dash-modal__lead { margin: 0 0 0.75rem; font-size: 0.875rem; color: var(--ov-muted); }
+.dash-pick { max-height: min(60vh, 26rem); overflow-y: auto; }
+.dash-pick > li { grid-template-columns: auto minmax(0, 1fr) auto; }
+
+/* Getting started: numbered steps, the next one marked. */
+
+.dash-gs { box-shadow: inset 3px 0 0 var(--color-primary); }
+.dash-gs__hide { margin-inline-start: auto; }
+.dash-gs__bar { height: 0.375rem; }
+
+.dash-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.dash-step {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 0.875rem;
+  padding: 0.75rem 0; border-top: 1px solid var(--ov-line);
+}
+.dash-step:first-child { border-top: 0; padding-top: 0.25rem; }
+.dash-step__mark {
+  display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: 999px;
+  border: 1.5px solid var(--color-base-300); font-size: 0.8125rem; font-weight: 650; color: var(--ov-muted);
+}
+.dash-step.is-done .dash-step__mark { background: var(--color-success); border-color: var(--color-success); color: var(--color-success-content); }
+.dash-step.is-current .dash-step__mark { border-color: var(--color-primary); color: var(--color-primary-text, var(--color-primary)); box-shadow: 0 0 0 3px color-mix(in oklch, var(--color-primary) 18%, transparent); }
+.dash-step__main { display: flex; flex-direction: column; gap: 0.125rem; min-width: 0; }
+.dash-step__label { font-weight: 560; color: inherit; text-decoration: none; }
+a.dash-step__label { color: var(--ov-link); }
+a.dash-step__label:hover { text-decoration: underline; }
+.dash-step.is-done .dash-step__label { color: var(--ov-muted); }
+.dash-step__hint { font-size: 0.8125rem; color: var(--ov-muted); }
+.dash-step.is-done .dash-step__hint { display: none; }
+
+/* Needs your attention, and every row with a readiness ring in place of its mark. */
+
+.dash-ring { width: 2.25rem; font-size: 0.625rem; }
+.dash-ring::before { inset: 4px; }
+.dash-task__go { flex: none; }
+@media (max-width: 639px) {
+  .dash-task__go { display: none; }
+}
+
+/* Role panels: the role named in the head, then counts that open their lists. */
+
+.dash-role { box-shadow: inset 3px 0 0 var(--color-secondary); }
+.dash-role__chip {
+  display: inline-flex; align-items: center; gap: 0.35rem; margin-inline-start: auto;
+  padding: 0.125rem 0.5rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600;
+  background: color-mix(in oklch, var(--color-secondary) 14%, transparent); color: var(--color-base-content);
+}
+.dash-role .ov-panel__head:has(.ov-panel__tools) .dash-role__chip { margin-inline-start: 0; }
+
+.dash-counts { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.75rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 639px) { .dash-counts { grid-template-columns: minmax(0, 1fr); } }
+.dash-count {
+  display: flex; flex-direction: column; gap: 0.125rem; height: 100%;
+  padding: 0.875rem 1rem; border: 1px solid var(--ov-line); border-radius: var(--radius-field, 0.5rem);
+  color: inherit; text-decoration: none;
+}
+a.dash-count:hover { border-color: var(--color-primary); }
+.dash-count__value { font-size: 1.5rem; font-weight: 650; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.dash-count__label { font-weight: 560; font-size: 0.875rem; }
+a.dash-count .dash-count__label { color: var(--ov-link); }
+.dash-count__hint { font-size: 0.75rem; color: var(--ov-muted); }
+
+.dash-subhead { margin: 0; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ov-faint); }
+
+.dash-admin { display: grid; gap: 1.25rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 767px) { .dash-admin { grid-template-columns: minmax(0, 1fr); } }
+.dash-admin__setup, .dash-admin__roles { display: flex; flex-direction: column; gap: 0.75rem; min-width: 0; }
+.dash-admin__accounts { margin: 0; font-size: 0.8125rem; color: var(--ov-muted); }
+
+.dash-dev { display: grid; gap: 0.75rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 639px) { .dash-dev { grid-template-columns: minmax(0, 1fr); } }
+.dash-schemas { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem; font-size: 0.875rem; }
+.dash-schemas a { display: inline-flex; align-items: center; gap: 0.35rem; }
+.dash-schemas__kind { font-size: 0.75rem; color: var(--ov-faint); }
+
+/* Your work: datasets and projects side by side on a wide screen. */
+
+.dash-work { display: grid; gap: 1.5rem; grid-template-columns: minmax(0, 1fr); scroll-margin-top: 5rem; }
+@media (min-width: 1536px) { .dash-work { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 639px) { .dash-work { gap: 1rem; } }
+.ov-state--public::before { background: var(--color-info); }
+
+/* Your data in use. */
+
+.dash-use { scroll-margin-top: 5rem; }
+.dash-use__stats { width: 100%; border: 1px solid var(--ov-line); }
+.dash-use__stats .stat { min-width: 0; }
+
+/* The community column. */
+
+.dash-pulse { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.5rem; }
+.dash-pulse li { display: flex; flex-direction: column; gap: 0.125rem; padding: 0.625rem 0.75rem; border-radius: var(--radius-field, 0.5rem); background: var(--color-base-200); min-width: 0; }
+.dash-pulse__value { font-size: 1.25rem; font-weight: 650; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.dash-pulse__label { font-size: 0.75rem; color: var(--ov-muted); }
+.dash-pulse__change { display: inline-flex; align-items: center; gap: 0.15rem; font-size: 0.75rem; font-weight: 600; }
+.dash-pulse__change--up { color: var(--color-success-text, var(--color-success)); }
+.dash-pulse__change--down { color: var(--color-error-text, var(--color-error)); }
+.dash-pulse__change--flat { color: var(--ov-muted); }
+
+.dash-faces { display: flex; flex-direction: column; gap: 0.5rem; }
+.dash-feed { display: flex; flex-direction: column; gap: 0.5rem; }
+.dash-feed__head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.dash-links { display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem; font-size: 0.875rem; padding-top: 0.75rem; border-top: 1px solid var(--ov-line); }
+
+.dash-tools { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.25rem; }
+.dash-tool {
+  display: flex; align-items: center; gap: 0.75rem; width: 100%; padding: 0.5rem; margin-inline: -0.5rem;
+  border-radius: var(--radius-field, 0.5rem); color: inherit; text-decoration: none; text-align: start; cursor: pointer; background: none;
+}
+.dash-tool:hover { background: var(--color-base-200); }
+.dash-tool > :first-child { flex: none; width: 1.25rem; color: var(--ov-muted); text-align: center; }
+.dash-tool > span { display: flex; flex-direction: column; min-width: 0; }
+.dash-tool__label { font-weight: 560; font-size: 0.875rem; }
+.dash-tool__hint { font-size: 0.75rem; color: var(--ov-muted); }

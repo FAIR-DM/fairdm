@@ -53,6 +53,13 @@ class FairDMHomeView(MVPHomeView):
     people_limit = 8
     organization_limit = 6
 
+    def get_dashboard_context(self, context):
+        """Add what the signed-in dashboard's panels read, from ``fairdm.contrib.dashboard``."""
+        from fairdm.contrib.dashboard.panels import dashboard_context
+
+        context.update(dashboard_context(self.request, self.get_portal_name()))
+        return context
+
     def get_landing_context(self, context):
         """Add what the landing page's sections read."""
         context.update(
@@ -229,11 +236,11 @@ class FairDMHomeView(MVPHomeView):
     def get_page_lead(self):
         """Greet a signed-in user by first name, falling back to the username."""
         if self.request.user.is_authenticated:
-            return f"Welcome, {self.request.user.first_name or self.request.user.username}!"
+            return ""
         return self.page_lead
 
     def get_page_title(self):
         """Title a signed-in user's page as their dashboard."""
         if self.request.user.is_authenticated:
-            return _("My Dashboard")
+            return _("Dashboard")
         return self.page_title

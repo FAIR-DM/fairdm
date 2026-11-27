@@ -1,0 +1,32 @@
+{% load i18n humanize %}
+{% comment %}
+  For a Data Curator: public datasets waiting to be published, longest waiting first, each with
+  how much of what a reuser needs is in place.
+{% endcomment %}
+<c-overview.panel title="{% translate 'Waiting to be published' %}" count="{{ panel.count }}" more_url="{% if panel.count > panel.rows|length %}{{ panel.more_url }}{% endif %}" id="role-curator" class="dash-role"
+                  sub="{% blocktranslate count counter=panel.published with role=panel.role %}You hold the {{ role }} role. {{ counter }} dataset was published in the last 30 days.{% plural %}You hold the {{ role }} role. {{ counter }} datasets were published in the last 30 days.{% endblocktranslate %}">
+  <c-slot name="head"><span class="dash-role__chip"><c-icon name="verified" aria-hidden="true" only />{{ panel.role }}</span></c-slot>
+  {% if panel.rows %}
+    <ul class="ov-rows">
+      {% for row in panel.rows %}
+        <li class="record-dataset">
+          <span class="ov-ring dash-ring{% if not row.ready.required_missing %} ov-ring--done{% endif %}" style="--p: {{ row.ready.percent }}" role="img" aria-label="{% blocktranslate with done=row.ready.done total=row.ready.total %}{{ done }} of {{ total }} in place{% endblocktranslate %}"><span>{{ row.ready.done }}/{{ row.ready.total }}</span></span>
+          <div class="ov-row__main">
+            <a href="{{ row.dataset.get_absolute_url }}" class="ov-row__title">{{ row.dataset.name }}</a>
+            <div class="ov-row__meta">
+              {% if row.ready.required_missing %}
+                <span>{% blocktranslate count counter=row.ready.required_missing|length %}{{ counter }} required item missing{% plural %}{{ counter }} required items missing{% endblocktranslate %}</span>
+              {% else %}
+                <span class="ov-state ov-state--published">{% translate "Ready to publish" %}</span>
+              {% endif %}
+              <span>{% blocktranslate with when=row.dataset.modified|naturaltime %}Changed {{ when }}{% endblocktranslate %}</span>
+            </div>
+          </div>
+          <a href="{{ row.dataset.get_absolute_url }}" class="btn btn-sm" tabindex="-1" aria-hidden="true">{% translate "Review" %}</a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="ov-empty">{% translate "No public dataset is waiting. Each one made public appears here until it is published." %}</p>
+  {% endif %}
+</c-overview.panel>

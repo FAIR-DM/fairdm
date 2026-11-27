@@ -1,0 +1,9 @@
+{% extends "page_view.html" %}
+{% comment %}
+  The latest changes to every dataset anyone may open, a page of lines grouped by day, in the
+  panel a record's activity page uses, with the record lists' pager below.
+{% endcomment %}
+{% block page.content %}
+  <c-overview.activity :days="days" />
+  <c-mvp.page.list.footer :page_obj="page_obj" size="sm" />
+{% endblock page.content %}

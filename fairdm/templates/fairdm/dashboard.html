@@ -1,1 +1,97 @@
 {% extends "page_view.html" %}
+{% load i18n static humanize %}
+{% comment %}
+  The signed-in home page: where a person's next piece of work starts.
+
+  Laid out like a record's overview page, so it reads as part of the same portal: a header band
+  with the person and their headline figures, then a wide column of their own work and a side
+  column of the community around it. Below `lg` the columns stack, work first.
+
+  The wide column runs from what to do next to what has happened: start something new, the
+  getting-started list for someone new, what needs them, one panel for each portal role they
+  hold, their datasets and projects, and how their public data is being used. The side column
+  holds the community, their organizations and the tools.
+
+  Every panel is one include under `dashboard/panels/`, reading one key of `dash` from
+  `fairdm.contrib.dashboard.panels.dashboard_context`. Override an include to change a panel.
+{% endcomment %}
+
+{% block page.title %}
+  {% with h=dash.header %}
+    <div class="ov ov--head record-portal">
+      <header class="ov-hero record-portal dash-hero">
+        <div class="ov-hero__top">
+          <div class="ov-hero__grid" aria-hidden="true"><c-background.grid size="2.5" intensity="0.2" flat only /></div>
+          <div class="ov-hero__inner">
+            <div class="ov-hero__media">
+              <a href="{{ h.profile_url }}" class="ov-tile dash-hero__face" aria-label="{% translate 'Your profile' %}">
+                <c-mvp.avatar :for="request.user" alt="" size="xxl" shape="rounded-xl" only />
+              </a>
+            </div>
+            <div class="ov-badges">
+              <span class="dash-hero__eyebrow">{% translate "Dashboard" %}</span>
+            </div>
+            <div class="ov-hero__text">
+              <h1 class="ov-title">{{ h.title }}</h1>
+              <ul class="ov-facts">
+                {% if h.affiliation %}
+                  <li><c-icon name="organization" aria-hidden="true" only /><a href="{{ h.affiliation.get_absolute_url }}" class="ov-link">{{ h.affiliation.name }}</a></li>
+                {% endif %}
+                {% if h.orcid %}
+                  <li><span class="dash-orcid" aria-hidden="true">iD</span><a href="https://orcid.org/{{ h.orcid }}" class="ov-link" rel="noopener">{{ h.orcid }}</a></li>
+                {% else %}
+                  <li><a href="{{ h.edit_url }}" class="ov-link">{% translate "Add your ORCID iD" %}</a></li>
+                {% endif %}
+              </ul>
+            </div>
+            <div class="ov-hero__actions">
+              <a href="{{ h.profile_url }}" class="btn btn-sm"><c-icon name="view" aria-hidden="true" only />{% translate "Your profile" %}</a>
+              <a href="{{ h.edit_url }}" class="btn btn-sm"><c-icon name="edit" aria-hidden="true" only />{% translate "Edit profile" %}</a>
+            </div>
+          </div>
+        </div>
+        {% if h.returning %}
+          <div class="ov-figures" aria-label="{% translate 'Your work at a glance' %}" role="group">
+            {% for f in h.figures %}
+              <c-overview.figure value="{{ f.value|intcomma }}" label="{{ f.label }}" href="{{ f.href }}" record="{{ f.record|default:'' }}" />
+            {% endfor %}
+          </div>
+        {% endif %}
+      </header>
+    </div>
+  {% endwith %}
+{% endblock page.title %}
+
+{% block page.content %}
+  <div class="ov record-portal dash">
+    <div class="ov-body">
+      <div class="ov-main">
+        {% include "dashboard/panels/start.html" %}
+        {% include "dashboard/panels/getting_started.html" %}
+        {% include "dashboard/panels/attention.html" %}
+        {% for kind, panel in dash.roles %}
+          {% include "dashboard/panels/role_"|add:kind|add:".html" %}
+        {% endfor %}
+        {% include "dashboard/panels/work.html" %}
+        {% include "dashboard/panels/in_use.html" %}
+      </div>
+      <aside class="ov-side" aria-label="{% translate 'The community' %}">
+        {% include "dashboard/panels/community.html" %}
+        {% include "dashboard/panels/organizations.html" %}
+        {% include "dashboard/panels/tools.html" %}
+      </aside>
+    </div>
+  </div>
+{% endblock page.content %}
+
+{% block extra_js %}
+  {{ block.super }}
+  {% if has_charts %}
+    <script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"
+            integrity="sha384-C2iskrW/uPW46KzOjrvJIQo4YkV8lkD+QS0CrDN18IIPIpT/g2USu8bTP3nvmIAD"
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer"></script>
+    <script src="{% static 'js/chart-theme.js' %}"></script>
+    <script defer src="{% static 'mvp_charts/js/mvp-charts.js' %}"></script>
+  {% endif %}
+{% endblock extra_js %}

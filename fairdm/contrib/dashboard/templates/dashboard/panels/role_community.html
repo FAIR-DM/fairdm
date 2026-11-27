@@ -1,0 +1,20 @@
+{% load i18n humanize %}
+{% comment %}
+  For a Community Manager: the people side of the portal, as four counts that each open the list
+  behind them.
+{% endcomment %}
+<c-overview.panel title="{% translate 'The people in the portal' %}" id="role-community" class="dash-role"
+                  sub="{% blocktranslate with role=panel.role %}You hold the {{ role }} role. Keep profiles accurate and welcome the people who join.{% endblocktranslate %}">
+  <c-slot name="head"><span class="dash-role__chip"><c-icon name="member" aria-hidden="true" only />{{ panel.role }}</span></c-slot>
+  <ul class="dash-counts">
+    {% for row in panel.rows %}
+      <li>
+        {% if row.url %}<a href="{{ row.url }}" class="dash-count">{% else %}<div class="dash-count">{% endif %}
+          <span class="dash-count__value">{{ row.value|intcomma }}</span>
+          <span class="dash-count__label">{{ row.label }}</span>
+          <span class="dash-count__hint">{{ row.hint }}</span>
+        {% if row.url %}</a>{% else %}</div>{% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+</c-overview.panel>

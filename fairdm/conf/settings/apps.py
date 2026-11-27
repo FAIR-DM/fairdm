@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     "fairdm.core.sample",
     "fairdm.core.measurement",
     "fairdm.contrib.activity",
+    "fairdm.contrib.dashboard",
     "fairdm.contrib.autocomplete",
     "fairdm.contrib.collections",
     "fairdm.contrib.contributors",
@@ -130,6 +131,7 @@ MIDDLEWARE = [
     # django-tomselect's model widgets read the current request through it.
     "django_tomselect.middleware.TomSelectMiddleware",
     "hijack.middleware.HijackUserMiddleware",
+    "fairdm.contrib.dashboard.middleware.RecordUseMiddleware",
 ]
 
 TEMPLATES = [

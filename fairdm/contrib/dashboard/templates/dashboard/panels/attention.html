@@ -1,0 +1,29 @@
+{% load i18n humanize %}
+{% comment %}
+  Needs your attention: each row is one task, named by what to do, opening the page where it is
+  done. Imports waiting on the person, requests to join an organization they run, and their
+  datasets still missing what a reuser needs, or ready and still private.
+{% endcomment %}
+{% if dash.attention %}
+  <c-overview.panel title="{% translate 'Needs your attention' %}" count="{{ dash.attention|length }}" id="attention" class="dash-attention">
+    <ul class="ov-rows">
+      {% for row in dash.attention %}
+        <li class="dash-task dash-task--{{ row.kind }}{% if row.kind == 'readiness' or row.kind == 'public' %} record-dataset{% else %} record-portal{% endif %}">
+          {% if row.ring %}
+            <span class="ov-ring dash-ring{% if not row.ring.required_missing %} ov-ring--done{% endif %}" style="--p: {{ row.ring.percent }}" role="img" aria-label="{% blocktranslate with done=row.ring.done total=row.ring.total %}{{ done }} of {{ total }} in place{% endblocktranslate %}"><span>{{ row.ring.done }}/{{ row.ring.total }}</span></span>
+          {% else %}
+            <span class="ov-mark" aria-hidden="true"><c-icon name="{{ row.icon }}" only /></span>
+          {% endif %}
+          <div class="ov-row__main">
+            <a href="{{ row.url }}" class="ov-row__title">{{ row.label }}</a>
+            <div class="ov-row__meta">
+              <span>{{ row.sub }}</span>
+              {% if row.when %}<span>{{ row.when|naturaltime }}</span>{% endif %}
+            </div>
+          </div>
+          <a href="{{ row.url }}" class="btn btn-sm dash-task__go" tabindex="-1" aria-hidden="true">{% if row.kind == 'members' %}{% translate "Answer" %}{% elif row.kind == 'public' %}{% translate "Make public" %}{% elif row.kind == 'import' %}{% translate "Open" %}{% else %}{% translate "Fix" %}{% endif %}</a>
+        </li>
+      {% endfor %}
+    </ul>
+  </c-overview.panel>
+{% endif %}

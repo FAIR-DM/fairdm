@@ -1,0 +1,39 @@
+{% load i18n humanize %}
+{% comment %}
+  Your data in use: how often the person's public datasets were opened and downloaded by
+  others, against the 30 days before, week by week, and which were opened most. Visits by the
+  dataset's own team are not counted. Shown once the person holds a public dataset; before
+  that, a line on what will appear and the step that makes it.
+{% endcomment %}
+{% with u=dash.use %}
+  {% if u %}
+    <c-overview.panel title="{% translate 'Your data in use' %}" id="in-use" class="dash-use"
+                      sub="{% blocktranslate count counter=u.public_count %}Opens and downloads of your {{ counter }} public dataset by people outside its team.{% plural %}Opens and downloads of your {{ counter }} public datasets by people outside their teams.{% endblocktranslate %}">
+      <div class="stats stats-vertical sm:stats-horizontal dash-use__stats">
+        <c-stats.trend title="{% translate 'Opens, last 30 days' %}" value="{{ u.views|intcomma }}" change="{{ u.views_change.change }}" direction="{{ u.views_change.direction }}" desc="{% translate 'on the 30 days before' %}" icon="visible" />
+        <c-stats.trend title="{% translate 'Downloads, last 30 days' %}" value="{{ u.exports|intcomma }}" change="{{ u.exports_change.change }}" direction="{{ u.exports_change.direction }}" desc="{% translate 'on the 30 days before' %}" icon="download" />
+      </div>
+      <c-chart :chart="u.chart" id="dash-use-chart" height="15rem" name="{% translate 'Opens and downloads each week' %}"
+               caption="{% translate 'Each pair of bars is one week, oldest on the left. Hover over a week to read its counts.' %}"
+               description="{{ u.chart_text }}" />
+      {% if u.most %}
+        <h3 class="dash-subhead">{% translate "Most opened in the last 30 days" %}</h3>
+        <ul class="ov-rows">
+          {% for m in u.most %}
+            <li class="record-dataset">
+              <span class="ov-mark" aria-hidden="true"><c-icon name="dataset" only /></span>
+              <div class="ov-row__main"><a href="{{ m.dataset.get_absolute_url }}" class="ov-row__title">{{ m.dataset.name }}</a></div>
+              <div class="ov-row__end"><strong>{{ m.views|intcomma }}</strong> {% blocktranslate count counter=m.views %}open{% plural %}opens{% endblocktranslate %}<span class="ov-sub">{% blocktranslate count counter=m.exports with n=m.exports|intcomma %}{{ n }} download{% plural %}{{ n }} downloads{% endblocktranslate %}</span></div>
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </c-overview.panel>
+  {% elif dash.work.datasets %}
+    <c-overview.panel title="{% translate 'Your data in use' %}" id="in-use" class="dash-use">
+      <div class="ov-empty-block">
+        <p class="ov-empty">{% translate "Once one of your datasets is public, this shows how often others open it and download its data, week by week." %}</p>
+      </div>
+    </c-overview.panel>
+  {% endif %}
+{% endwith %}

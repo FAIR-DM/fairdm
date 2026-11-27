@@ -1,0 +1,48 @@
+{% load i18n %}
+{% comment %}
+  Start something new: the three ways work begins, each with one line on when to pick it.
+  Importing asks which dataset first, from a dialog listing the ones the person can edit.
+{% endcomment %}
+{% with s=dash.start %}
+  <section class="dash-start" aria-labelledby="dash-start-heading">
+    <h2 class="ov-panel__title" id="dash-start-heading">{% translate "Start something new" %}</h2>
+    <div class="dash-start__grid">
+      <c-mvp.card title="{% translate 'New project' %}" icon="project" href="{{ s.create_project }}" class="dash-start__card record-project">
+        <p>{% translate "For a grant, campaign or collaboration that will gather several datasets under one name." %}</p>
+      </c-mvp.card>
+      <c-mvp.card title="{% translate 'New dataset' %}" icon="dataset" href="{{ s.create_dataset }}" class="dash-start__card record-dataset">
+        <p>{% translate "For one body of samples and measurements you will share, cite and publish." %}</p>
+      </c-mvp.card>
+      {% if s.editable %}
+        <c-mvp.card title="{% translate 'Import a file' %}" icon="import" class="dash-start__card record-sample">
+          <p>{% translate "For a spreadsheet of samples or measurements, added to a dataset you can edit." %}</p>
+          <button type="button" class="dash-stretch" onclick="document.getElementById('dash-import').showModal()" aria-haspopup="dialog">
+            <span class="sr-only">{% translate "Choose a dataset to import into" %}</span>
+          </button>
+        </c-mvp.card>
+      {% else %}
+        <c-mvp.card title="{% translate 'Import a file' %}" icon="import" href="{{ s.create_dataset }}" class="dash-start__card record-sample">
+          <p>{% translate "Files are imported into a dataset. Create one first, then bring in your spreadsheet." %}</p>
+        </c-mvp.card>
+      {% endif %}
+    </div>
+  </section>
+
+  {% if s.editable %}
+    <c-modal id="dash-import" title="{% translate 'Import into which dataset?' %}" closable>
+      <p class="dash-modal__lead">{% translate "The datasets you can edit, most recently changed first. The next page asks for the file and matches its columns." %}</p>
+      <ul class="ov-rows dash-pick">
+        {% for d in s.editable %}
+          <li class="record-dataset">
+            <span class="ov-mark" aria-hidden="true"><c-icon name="dataset" only /></span>
+            <div class="ov-row__main">
+              <a href="{{ d.url }}" class="ov-row__title">{{ d.name }}</a>
+              {% if d.project %}<div class="ov-row__meta"><span>{{ d.project.name }}</span></div>{% endif %}
+            </div>
+            <c-icon name="chevron_right" aria-hidden="true" only />
+          </li>
+        {% endfor %}
+      </ul>
+    </c-modal>
+  {% endif %}
+{% endwith %}

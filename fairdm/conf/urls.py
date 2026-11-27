@@ -21,6 +21,7 @@ urlpatterns = [
     # The search behind every concept field's form control.
     path("vocabularies/", include("controlled_vocabularies.urls")),
     path("", FairDMHomeView.as_view(), name="home"),
+    path("", include("fairdm.contrib.dashboard.urls")),
     path("", include("fairdm.core.urls")),
     path("", include("fairdm.contrib.collections.urls")),
     path("", include("fairdm.contrib.contributors.urls")),
