@@ -100,7 +100,7 @@ def unreachable_services(settings):
 
 @pytest.fixture
 def reload_urls(settings, monkeypatch):
-    """Return a function that rebuilds the admin URLs, and rebuild them as they were after the test."""
+    """Return a function that rebuilds the admin URLs; they are restored after."""
 
     def reload():
         importlib.reload(admin_urls)
@@ -116,7 +116,7 @@ def reload_urls(settings, monkeypatch):
 
 @pytest.fixture
 def role_name():
-    """One role that carries rights: which role it is makes no difference to the check."""
+    """One role that carries rights; which role it is makes no difference."""
     return PortalRoles.rights_carrying()[0]
 
 
@@ -233,7 +233,7 @@ class TestControlRoomUnderAnotherAdminAddress:
 
 
 def without_apps(monkeypatch, labels):
-    """Make the URL configuration see the apps as not installed, as in a process that never had them."""
+    """Make the URL configuration see the apps as not installed."""
     is_installed = django_apps.is_installed
     monkeypatch.setattr(
         django_apps,

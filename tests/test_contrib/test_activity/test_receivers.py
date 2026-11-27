@@ -103,7 +103,7 @@ class TestRecordEdits:
 
         assert recorded(EDITED) == []
 
-    def test_saving_or_deleting_each_kind_of_related_record_records_an_edit_on_its_record(
+    def test_saving_or_deleting_a_related_record_records_an_edit_on_its_record(
         self, clean_slate
     ):
         wrong = []

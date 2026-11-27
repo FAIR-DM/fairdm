@@ -20,7 +20,7 @@ pytestmark = pytest.mark.django_db
 
 
 def mounted(plugin_class, user=None, **kwargs):
-    """Return an instance of ``plugin_class`` set up the way a request would leave it."""
+    """Return an instance of ``plugin_class`` set up as a request leaves it."""
     plugin = plugin_class()
     plugin.registered_model = Sample
     plugin.kwargs = kwargs
@@ -63,7 +63,7 @@ class TestPluginGetObject:
 
 
 class TestPluginHasPermission:
-    """The permission rules are tested in test_access; these check the plugin is wired to them."""
+    """Permission rules are tested in test_access; these check the wiring."""
 
     def test_has_permission_without_permission_attribute(self, sample):
         class PublicPlugin(Plugin, TemplateView):

@@ -67,7 +67,7 @@ def statuses(client, url, times, **headers):
     return answers
 
 
-#: The limits are one mixin shared by every address, so the behaviour is tested on one of them.
+#: The limits are one mixin shared by every address, so one is tested.
 ADDRESS = "autocomplete:project-view"
 
 #: Addresses that are not a record kind at a scope, each of which takes the limits too.
@@ -82,24 +82,25 @@ OTHER_ADDRESSES = [
 
 
 @pytest.mark.django_db
-def test_every_address_refuses_a_caller_over_the_burst_rate(
-    client, set_rates, counting_cache, monkeypatch
-):
-    from fairdm.contrib.contributors.services.registries import Ror
+class TestEveryAddressIsThrottled:
+    def test_every_address_refuses_a_caller_over_the_burst_rate(
+        self, client, set_rates, counting_cache, monkeypatch
+    ):
+        from fairdm.contrib.contributors.services.registries import Ror
 
-    monkeypatch.setattr(
-        Ror, "search", lambda self, term: {"results": [], "more": False}
-    )
-    set_rates(autocomplete_anon_burst="1/minute")
+        monkeypatch.setattr(
+            Ror, "search", lambda self, term: {"results": [], "more": False}
+        )
+        set_rates(autocomplete_anon_burst="1/minute")
 
-    not_limited = []
-    for address in [*every_address(), *OTHER_ADDRESSES]:
-        counting_cache.clear()
-        answers = statuses(client, reverse(address), 3)
-        if answers != [200, 429]:
-            not_limited.append((address, answers))
+        not_limited = []
+        for address in [*every_address(), *OTHER_ADDRESSES]:
+            counting_cache.clear()
+            answers = statuses(client, reverse(address), 3)
+            if answers != [200, 429]:
+                not_limited.append((address, answers))
 
-    assert not_limited == []
+        assert not_limited == []
 
 
 @pytest.mark.django_db

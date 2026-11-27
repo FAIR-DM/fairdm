@@ -1352,7 +1352,7 @@ class TestSampleMeasurements:
         assert response.context["sections"] == []
 
     def test_each_table_pages_on_its_own(self, client, rock, monkeypatch):
-        # Three XRF runs and two ICP-MS runs: at two rows a page, only the XRF table has a second.
+        # Three XRF and two ICP-MS runs: at two rows a page only XRF has a second.
         monkeypatch.setattr(SampleMeasurements, "paginate_by", 2)
         icp = registry.get_for_model(ICP_MS_Measurement).get_slug()
         xrf = registry.get_for_model(XRFMeasurement).get_slug()

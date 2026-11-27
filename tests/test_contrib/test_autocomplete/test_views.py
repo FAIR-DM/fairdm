@@ -492,20 +492,21 @@ def every_address():
     return [(kind, scope) for kind in urls.RECORD_VIEWS for scope in urls.SCOPES]
 
 
-#: One address for each base class of the record views: the project and dataset views share one
-#: base, the sample and measurement views another that allows filters of its own.
+#: One address for each base class of the record views: project and dataset
+#: views share one, sample and measurement views another with its own filters.
 ONE_PER_BASE = [("project", "edit"), ("sample", "view")]
 
 
 @pytest.mark.django_db
-def test_every_record_address_answers_a_visitor(client):
-    refused = [
-        (kind, scope)
-        for kind, scope in every_address()
-        if client.get(reverse(f"autocomplete:{kind}-{scope}")).status_code != 200
-    ]
+class TestEveryRecordAddress:
+    def test_every_record_address_answers_a_visitor(self, client):
+        refused = [
+            (kind, scope)
+            for kind, scope in every_address()
+            if client.get(reverse(f"autocomplete:{kind}-{scope}")).status_code != 200
+        ]
 
-    assert refused == []
+        assert refused == []
 
 
 @pytest.mark.django_db
