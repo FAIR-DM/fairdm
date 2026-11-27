@@ -155,6 +155,7 @@ class TestMatchingFollowsTheList:
 
         assert dataset.get_absolute_url() in urls(groups["datasets"])
 
+    @pytest.mark.slow
     def test_what_the_list_page_returns_the_kind_returns_too(self):
         make_everything()
         client = Client()

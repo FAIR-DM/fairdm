@@ -98,6 +98,7 @@ class TestSeedOverviewsRefusesOutsideDevelopment:
         assert not Person.objects.filter(email__in=EXAMPLE_ACCOUNT_EMAILS).exists()
         assert not _seeded_projects().exists()
 
+    @pytest.mark.slow
     def test_it_runs_in_development(self):
         _seed()
 

@@ -197,6 +197,7 @@ class TestDemoRegistrations:
         assert config.get_table_class() is CustomSampleTable
         assert issubclass(config.get_table_class(), Table)
 
+    @pytest.mark.slow
     def test_every_registered_model_has_an_admin_add_page_that_loads(self):
         user = User.objects.create_superuser(
             email="admin@test.com", password="testpass123"

@@ -265,6 +265,7 @@ class TestNonProductionBoot:
         assert "fairdm.E" not in result.stderr
 
 
+@pytest.mark.slow
 @pytest.mark.django_db
 class TestPortalRolesReconciliation:
     def test_migrate_installs_the_four_roles(self, disconnect_shipped_role_guard):

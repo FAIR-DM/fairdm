@@ -506,6 +506,7 @@ class TestParlerLanguagesChecks:
 
 
 # The full check run includes the vocabulary checks, which read the database.
+@pytest.mark.slow
 @pytest.mark.django_db
 class TestCheckCommandIntegration:
     @override_settings(SECRET_KEY="")
