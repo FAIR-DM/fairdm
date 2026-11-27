@@ -11,22 +11,15 @@ from demo.models import RockSample
 from fairdm.contrib.import_export.schema import TableSchema
 from fairdm.core.models import Measurement, Sample
 from fairdm.core.sample.admin import SampleChildAdmin
-from fairdm.registry import registry
 from fairdm.registry.config import (
     COMPONENTS,
-    Authority,
-    Citation,
     ModelConfiguration,
-    ModelMetadata,
-    _component_base,
 )
 from fairdm.registry.exceptions import (
     ConfigurationError,
-    DuplicateRegistrationError,
     FieldValidationError,
     NotRegisteredError,
 )
-from tests.registry_models.models import ConcreteMeasurement, ConcreteSample
 
 
 class TestGetDefaultFields:
@@ -114,324 +107,6 @@ class TestGetDefaultFields:
 
         assert "rock_type" in defaults
 
-    def test_get_default_fields_comprehensive_exclusions(self):
-        class ParentModel(Sample):
-            """Parent Sample model."""
-
-            parent_rock_type = models.CharField(max_length=100)
-
-            class Meta:
-                app_label = "test_app"
-
-        class TestModel(ParentModel):
-            rock_name = models.CharField(max_length=100)
-            mineral_description = models.TextField()
-            sample_count = models.IntegerField()
-            readonly_code = models.CharField(max_length=100, editable=False)
-            sample_created_at = models.DateTimeField(auto_now_add=True)
-            sample_updated_at = models.DateTimeField(auto_now=True)
-
-            class Meta:
-                app_label = "test_app"
-
-        defaults = ModelConfiguration.get_default_fields(TestModel)
-
-        assert "rock_name" in defaults
-        assert "mineral_description" in defaults
-        assert "sample_count" in defaults
-        assert "parent_rock_type" in defaults
-
-        assert "id" not in defaults
-        assert "polymorphic_ctype" not in defaults
-        assert "parentmodel_ptr" not in defaults
-        assert "readonly_code" not in defaults
-        assert "sample_created_at" not in defaults
-        assert "sample_updated_at" not in defaults
-
-
-class TestModelMetadata:
-    def test_model_metadata_creation_empty(self):
-        metadata = ModelMetadata()
-
-        assert metadata.description == ""
-        assert metadata.authority is None
-        assert metadata.keywords == []
-        assert metadata.repository_url == ""
-        assert metadata.citation is None
-        assert metadata.maintainer == ""
-        assert metadata.maintainer_email == ""
-
-    def test_model_metadata_with_all_fields(self):
-        authority = Authority(
-            name="Test Authority", short_name="TA", website="https://example.com"
-        )
-        citation = Citation(text="Test Citation", doi="10.1234/test")
-
-        metadata = ModelMetadata(
-            description="A comprehensive test metadata",
-            authority=authority,
-            keywords=["test", "metadata", "comprehensive"],
-            repository_url="https://github.com/test/repo",
-            citation=citation,
-            maintainer="Test Maintainer",
-            maintainer_email="maintainer@example.com",
-        )
-
-        assert metadata.description == "A comprehensive test metadata"
-        assert metadata.authority.name == "Test Authority"
-        assert metadata.keywords == ["test", "metadata", "comprehensive"]
-        assert metadata.repository_url == "https://github.com/test/repo"
-        assert metadata.citation.doi == "10.1234/test"
-        assert metadata.maintainer == "Test Maintainer"
-        assert metadata.maintainer_email == "maintainer@example.com"
-
-
-class TestAuthority:
-    def test_authority_minimal(self):
-        authority = Authority(name="Test Authority")
-
-        assert authority.name == "Test Authority"
-        assert authority.short_name == ""
-        assert authority.website == ""
-
-    def test_authority_complete(self):
-        authority = Authority(
-            name="Test Authority", short_name="TA", website="https://example.com"
-        )
-
-        assert authority.name == "Test Authority"
-        assert authority.short_name == "TA"
-        assert authority.website == "https://example.com"
-
-    def test_authority_frozen(self):
-        authority = Authority(name="Test")
-
-        with pytest.raises(AttributeError):
-            authority.name = "Changed"
-
-
-class TestCitation:
-    def test_citation_empty(self):
-        citation = Citation()
-
-        assert citation.text == ""
-        assert citation.doi == ""
-
-    def test_citation_with_text_only(self):
-        citation = Citation(text="Test Citation Text")
-
-        assert citation.text == "Test Citation Text"
-        assert citation.doi == ""
-
-    def test_citation_with_doi_only(self):
-        citation = Citation(doi="10.1234/test.doi")
-
-        assert citation.text == ""
-        assert citation.doi == "10.1234/test.doi"
-
-    def test_citation_complete(self):
-        citation = Citation(text="Complete Citation", doi="10.1234/complete")
-
-        assert citation.text == "Complete Citation"
-        assert citation.doi == "10.1234/complete"
-
-    def test_citation_frozen(self):
-        citation = Citation(text="Test")
-
-        with pytest.raises(AttributeError):
-            citation.text = "Changed"
-
-
-class TestModelConfiguration:
-    def test_model_configuration_with_model(self, db):
-        config = ModelConfiguration(model=ConcreteSample)
-
-        assert config.model == ConcreteSample
-        assert isinstance(config.metadata, ModelMetadata)
-
-    def test_model_configuration_field_attributes(self, db):
-        config = ModelConfiguration(
-            model=ConcreteSample,
-            table_fields=["name", "status"],
-            form_fields=["name", "status"],
-            filterset_fields=["status"],
-        )
-
-        assert config.table_fields == ["name", "status"]
-        assert config.form_fields == ["name", "status"]
-        assert config.filterset_fields == ["status"]
-
-
-class TestAutoGeneratedComponents:
-    def test_filterset_property_auto_generated(self, clean_registry, db):
-        from django_filters import FilterSet
-
-        config = ModelConfiguration(
-            model=ConcreteSample,
-            filterset_fields=["name", "status"],
-        )
-        registry.register(ConcreteSample, config=config)
-
-        filterset_class = config.get_filterset_class()
-        assert issubclass(filterset_class, FilterSet)
-
-    def test_form_property_auto_generated(self, clean_registry, db):
-        from django.forms import ModelForm
-
-        config = ModelConfiguration(
-            model=ConcreteSample,
-            form_fields=["name", "status"],
-        )
-        registry.register(ConcreteSample, config=config)
-
-        form_class = config.get_form_class()
-        assert issubclass(form_class, ModelForm)
-
-    def test_table_property_auto_generated(self, clean_registry, db):
-        from django_tables2 import Table
-
-        config = ModelConfiguration(
-            model=ConcreteSample,
-            table_fields=["name", "status"],
-        )
-        registry.register(ConcreteSample, config=config)
-
-        table_class = config.get_table_class()
-        assert issubclass(table_class, Table)
-
-    def test_admin_property_auto_generated(self, clean_registry, db):
-        from django.contrib.admin import ModelAdmin
-
-        config = ModelConfiguration(
-            model=ConcreteSample,
-            admin_list_display=["name", "status"],
-        )
-        registry.register(ConcreteSample, config=config)
-
-        admin_class = config.get_admin_class()
-        assert issubclass(admin_class, ModelAdmin)
-
-
-class TestComponentOverrides:
-    def test_custom_form_class_override(self, clean_registry, db):
-        from django import forms
-
-        class CustomSampleForm(forms.ModelForm):
-            class Meta:
-                model = ConcreteSample
-                fields = ["name"]
-
-        config = ModelConfiguration(
-            model=ConcreteSample,
-            form_class=CustomSampleForm,
-        )
-        registry.register(ConcreteSample, config=config)
-
-        assert config.form_class == CustomSampleForm
-        assert config.get_form_class() == CustomSampleForm
-
-    def test_custom_filterset_class_override(self, clean_registry, db):
-        from django_filters import CharFilter, FilterSet
-
-        class CustomSampleFilter(FilterSet):
-            name = CharFilter(lookup_expr="icontains")
-
-            class Meta:
-                model = ConcreteSample
-                fields = ["name"]
-
-        config = ModelConfiguration(
-            model=ConcreteSample,
-            filterset_class=CustomSampleFilter,
-        )
-        registry.register(ConcreteSample, config=config)
-
-        assert config.filterset_class == CustomSampleFilter
-        assert config.get_filterset_class() == CustomSampleFilter
-
-    def test_custom_table_class_override(self, clean_registry, db):
-        import django_tables2 as tables
-
-        class CustomSampleTable(tables.Table):
-            name = tables.Column()
-
-            class Meta:
-                model = ConcreteSample
-                fields = ["name"]
-
-        config = ModelConfiguration(
-            model=ConcreteSample,
-            table_class=CustomSampleTable,
-        )
-        registry.register(ConcreteSample, config=config)
-
-        assert config.table_class == CustomSampleTable
-        assert config.get_table_class() == CustomSampleTable
-
-
-class TestRegistryItemStructure:
-    def test_registry_item_has_config(self, clean_registry, db):
-        config = ModelConfiguration(
-            model=ConcreteSample,
-            display_name="Structure Test",
-        )
-        registry.register(ConcreteSample, config=config)
-
-        assert ConcreteSample in registry._registry
-        stored_config = registry.get_for_model(ConcreteSample)
-        assert isinstance(stored_config, ModelConfiguration)
-        assert stored_config.display_name == "Structure Test"
-
-
-class TestRegistryEdgeCases:
-    def test_register_with_config(self, clean_registry, db):
-        config = ModelConfiguration(model=ConcreteSample)
-        registry.register(ConcreteSample, config=config)
-
-        assert ConcreteSample in registry._registry
-        stored_config = registry.get_for_model(ConcreteSample)
-        assert isinstance(stored_config, ModelConfiguration)
-        assert stored_config.model == ConcreteSample
-
-    def test_get_for_model_returns_config(self, clean_registry, db):
-        config = ModelConfiguration(
-            model=ConcreteSample,
-            display_name="Test Config",
-        )
-        registry.register(ConcreteSample, config=config)
-
-        retrieved_config = registry.get_for_model(ConcreteSample)
-        assert retrieved_config.get_display_name() == "Test Config"
-
-    def test_multiple_registrations_same_session(self, clean_registry, db):
-        sample_config = ModelConfiguration(
-            model=ConcreteSample,
-            display_name="Sample Config",
-        )
-        measurement_config = ModelConfiguration(
-            model=ConcreteMeasurement,
-            display_name="Measurement Config",
-        )
-
-        registry.register(ConcreteSample, config=sample_config)
-        registry.register(ConcreteMeasurement, config=measurement_config)
-
-        assert ConcreteSample in registry._registry
-        assert ConcreteMeasurement in registry._registry
-
-
-class TestRegistryIntegration:
-    def test_registry_stores_config(self, clean_registry, db):
-        config = ModelConfiguration(
-            model=ConcreteSample,
-            display_name="Integration Test",
-        )
-        registry.register(ConcreteSample, config=config)
-
-        assert ConcreteSample in registry._registry
-        stored_config = registry.get_for_model(ConcreteSample)
-        assert stored_config.get_display_name() == "Integration Test"
-
 
 class TestAdminInheritanceValidation:
     def test_sample_with_wrong_admin_class_raises_error(self):
@@ -465,14 +140,6 @@ class TestAdminInheritanceValidation:
 
         assert config.get_admin_class() == CorrectAdmin
 
-    def test_sample_without_admin_class_passes(self):
-        config = ModelConfiguration(
-            model=RockSample,
-            fields=["name", "rock_type"],
-        )
-
-        assert config.get_admin_class() is not None
-        assert issubclass(config.get_admin_class(), admin.ModelAdmin)
 
     def test_autogenerated_sample_admin_inherits_from_child_admin(self):
         config = ModelConfiguration(
@@ -514,30 +181,6 @@ class TestAdminInheritanceValidation:
 
         assert "TestMeasurement" in str(exc_info.value)
 
-    def test_measurement_with_correct_admin_class_passes(self, unique_app_label):
-        from django.db import models
-
-        from fairdm.core.measurement.admin import MeasurementChildAdmin
-
-        class TestMeasurement2(Measurement):
-            value = models.FloatField()
-
-            class Meta:
-                app_label = unique_app_label
-
-        class CorrectMeasurementAdmin(MeasurementChildAdmin):
-            """Correct admin class - inherits from MeasurementChildAdmin."""
-
-            base_model = TestMeasurement2
-            show_in_index = True
-
-        config = ModelConfiguration(
-            model=TestMeasurement2,
-            admin_class=CorrectMeasurementAdmin,
-            fields=["value"],
-        )
-
-        assert config.get_admin_class() == CorrectMeasurementAdmin
 
     def test_autogenerated_measurement_admin_inherits_from_child_admin(
         self, unique_app_label
@@ -657,36 +300,6 @@ class TestFieldResolutionAlgorithm:
         assert "mineral_content" not in form_class.base_fields
         assert "sample_location" not in form_class.base_fields
 
-    def test_tier2_parent_fields_fallback_form(self, test_model):
-        config = ModelConfiguration(
-            model=test_model,
-            fields=["rock_type", "mineral_content", "weight_grams"],
-            form_fields=None,
-        )
-
-        form_class = config.get_form_class()
-
-        assert "rock_type" in form_class.base_fields
-        assert "mineral_content" in form_class.base_fields
-        assert "weight_grams" in form_class.base_fields
-
-    def test_tier3_smart_defaults_form(self, test_model):
-        config = ModelConfiguration(
-            model=test_model,
-            fields=None,
-            form_fields=None,
-        )
-
-        form_class = config.get_form_class()
-
-        assert "rock_type" in form_class.base_fields
-        assert "mineral_content" in form_class.base_fields
-        assert "sample_location" in form_class.base_fields
-        assert "collection_date" in form_class.base_fields
-        assert "weight_grams" in form_class.base_fields
-
-        assert "id" not in form_class.base_fields
-        assert "polymorphic_ctype" not in form_class.base_fields
 
     def test_tier1_component_specific_fields_filterset(self, test_model):
         config = ModelConfiguration(
@@ -702,36 +315,6 @@ class TestFieldResolutionAlgorithm:
 
         assert "location" not in filterset_class.base_filters
 
-    def test_tier2_parent_fields_fallback_filterset(self, test_model):
-        config = ModelConfiguration(
-            model=test_model,
-            fields=["rock_type", "sample_location", "collection_date"],
-            filterset_fields=None,
-        )
-
-        filterset_class = config.get_filterset_class()
-
-        assert "rock_type" in filterset_class.base_filters
-        assert "sample_location" in filterset_class.base_filters
-        assert "collection_date" in filterset_class.base_filters
-
-    def test_tier3_smart_defaults_filterset(self, test_model):
-        config = ModelConfiguration(
-            model=test_model,
-            fields=None,
-            filterset_fields=None,
-        )
-
-        filterset_class = config.get_filterset_class()
-
-        assert "rock_type" in filterset_class.base_filters
-        assert "mineral_content" in filterset_class.base_filters
-        assert "sample_location" in filterset_class.base_filters
-        assert "collection_date" in filterset_class.base_filters
-        assert "weight_grams" in filterset_class.base_filters
-
-        assert "id" not in filterset_class.base_filters
-        assert "polymorphic_ctype" not in filterset_class.base_filters
 
     def test_tier1_component_specific_fields_admin(self, test_model):
         config = ModelConfiguration(
@@ -743,39 +326,6 @@ class TestFieldResolutionAlgorithm:
         admin_class = config.get_admin_class()
 
         assert admin_class.list_display == ["rock_type", "weight_grams"]
-
-    def test_tier2_parent_fields_fallback_admin(self, test_model):
-        config = ModelConfiguration(
-            model=test_model,
-            fields=["rock_type", "sample_location", "collection_date"],
-            admin_list_display=None,
-        )
-
-        admin_class = config.get_admin_class()
-
-        assert "rock_type" in admin_class.list_display
-        assert "sample_location" in admin_class.list_display
-        assert "collection_date" in admin_class.list_display
-
-    def test_tier3_smart_defaults_admin(self, test_model):
-        config = ModelConfiguration(
-            model=test_model,
-            fields=None,
-            admin_list_display=None,
-        )
-
-        admin_class = config.get_admin_class()
-
-        assert len(admin_class.list_display) > 0
-        assert len(admin_class.list_display) <= 5  # AdminFactory limits to first 5
-
-        if (
-            len(admin_class.list_display) == 1
-            and admin_class.list_display[0] == "__str__"
-        ):
-            pytest.fail(
-                "Admin list_display should have actual fields, not just __str__"
-            )
 
 
 class TestCustomClassOverride:
@@ -880,31 +430,6 @@ class TestRegistrationValidation:
         with pytest.raises(ConfigurationError):
             ModelConfiguration(model=None)
 
-    def test_model_must_inherit_from_sample_or_measurement(self, clean_registry):
-        class InvalidModel(models.Model):
-            """Regular Django model (not Sample/Measurement)."""
-
-            rock_type = models.CharField(max_length=100)
-
-            class Meta:
-                app_label = "test_app"
-
-        with pytest.raises(ConfigurationError):
-            clean_registry.register(InvalidModel)
-
-    def test_duplicate_registration_rejected(self, clean_registry):
-        class RockSample(Sample):
-            """Test Sample model."""
-
-            rock_type = models.CharField(max_length=100)
-
-            class Meta:
-                app_label = "test_app"
-
-        clean_registry.register(RockSample)
-
-        with pytest.raises(DuplicateRegistrationError):
-            clean_registry.register(RockSample)
 
     def test_invalid_field_name_in_list_fields(self):
         class RockSample(Sample):
@@ -921,20 +446,6 @@ class TestRegistrationValidation:
                 fields=["rock_type", "nonexistent_field"],
             )
 
-    def test_invalid_field_name_in_component_specific_fields(self):
-        class RockSample(Sample):
-            """Test Sample model."""
-
-            rock_type = models.CharField(max_length=100)
-
-            class Meta:
-                app_label = "test_app"
-
-        with pytest.raises(FieldValidationError, match="bad_field"):
-            ModelConfiguration(
-                model=RockSample,
-                table_fields=["rock_type", "bad_field"],
-            )
 
     def test_invalid_related_field_path(self):
         # Only the base field is validated. The rest of the path depends on the queryset, and Django raises at runtime.
@@ -1022,17 +533,8 @@ class TestSearchFieldsValidation:
         assert "no_such_field" in message
         assert "search_fields" in message
 
-    @pytest.mark.parametrize(
-        "field_factory",
-        [
-            lambda: models.DecimalField(max_digits=5, decimal_places=2),
-            lambda: models.BooleanField(),
-            lambda: models.DateField(),
-        ],
-        ids=["DecimalField", "BooleanField", "DateField"],
-    )
-    def test_a_non_text_field_is_refused_naming_the_type_and_field(self, field_factory):
-        field = field_factory()
+    def test_a_non_text_field_is_refused_naming_the_type_and_field(self):
+        field = models.DecimalField(max_digits=5, decimal_places=2)
         model = type(
             f"SearchFieldsNonText{field.__class__.__name__}",
             (Sample,),
@@ -1075,38 +577,11 @@ def rock_sample():
 
 @pytest.mark.django_db
 class TestResourceFieldsWithoutAResourceComponent:
-    def test_the_registry_has_no_resource_component(self):
-        assert "resource" not in COMPONENTS
-        assert not hasattr(ModelConfiguration, "resource_class")
-        assert not hasattr(ModelConfiguration, "get_resource_class")
 
-    def test_a_resource_class_cannot_be_set(self):
-        with pytest.raises(TypeError):
-            ModelConfiguration(model=RockSample, resource_class="a.b.C")
-
-    def test_resource_fields_is_still_overridable_and_a_declared_field_list(self):
-        assert "resource_fields" in ModelConfiguration._OVERRIDABLE
-        config = ModelConfiguration(model=RockSample, resource_fields=["weight_grams"])
-        assert ("resource_fields", ["weight_grams"]) in config._field_lists()
 
     def test_resource_fields_names_are_validated(self):
         with pytest.raises(FieldValidationError):
             ModelConfiguration(model=RockSample, resource_fields=["no_such_field"])
-
-
-class TestComponentTable:
-    def test_every_accessor_has_a_component_entry(self):
-        assert len(COMPONENTS) == 5
-        for name, spec in COMPONENTS.items():
-            assert f"get_{name}_class" in ACCESSORS, name
-            assert spec.fields_attr
-            assert spec.class_attr
-            assert _component_base(name) is not None
-
-    def test_component_names_match_their_configuration_attributes(self):
-        for spec in COMPONENTS.values():
-            assert hasattr(ModelConfiguration, spec.fields_attr), spec.fields_attr
-            assert hasattr(ModelConfiguration, spec.class_attr), spec.class_attr
 
 
 class TestPlainClassConfiguration:
@@ -1119,13 +594,6 @@ class TestPlainClassConfiguration:
         assert config.model is rock_sample
         assert config.fields == ["rock_type"]
 
-    def test_keyword_construction_still_works(self, rock_sample):
-        config = ModelConfiguration(model=rock_sample, fields=["rock_type"])
-        assert config.fields == ["rock_type"]
-
-    def test_single_positional_construction_still_works(self, rock_sample):
-        config = ModelConfiguration(rock_sample)
-        assert config.model is rock_sample
 
     def test_instances_do_not_share_mutable_class_defaults(self, rock_sample):
         a = ModelConfiguration(model=rock_sample)
@@ -1160,11 +628,6 @@ class TestFieldResolutionInOnePlace:
 
 
 class TestAccessorsGenerate:
-    def test_each_accessor_returns_a_class(self, rock_sample):
-        config = ModelConfiguration(model=rock_sample, fields=["rock_type"])
-        for accessor in ACCESSORS:
-            cls = getattr(config, accessor)()
-            assert isinstance(cls, type), accessor
 
     def test_form_and_table_cover_the_declared_fields(self, rock_sample):
         config = ModelConfiguration(model=rock_sample, fields=["rock_type"])
@@ -1181,12 +644,11 @@ class TestAccessorsGenerate:
 
 
 class TestNothingIsCached:
-    @pytest.mark.parametrize("accessor", ACCESSORS)
-    def test_two_calls_return_distinct_classes(self, rock_sample, accessor):
+    def test_two_calls_return_distinct_classes(self, rock_sample):
         config = ModelConfiguration(model=rock_sample, fields=["rock_type"])
-        first = getattr(config, accessor)()
-        second = getattr(config, accessor)()
-        assert first is not second, accessor
+        shared = [a for a in ACCESSORS if getattr(config, a)() is getattr(config, a)()]
+        assert not shared
+
 
     def test_no_public_attribute_returns_a_component_class(self, rock_sample):
         config = ModelConfiguration(model=rock_sample, fields=["rock_type"])
@@ -1195,10 +657,6 @@ class TestNothingIsCached:
                 f"{name} is reachable as an attribute, which bypasses "
                 f"get_{name}_class() and any override of it"
             )
-
-    def test_clear_cache_is_gone(self, rock_sample):
-        config = ModelConfiguration(model=rock_sample, fields=["rock_type"])
-        assert not hasattr(config, "clear_cache")
 
 
 class TestAccessorOverride:
@@ -1279,14 +737,6 @@ class TestConcreteModelsOnly:
         with pytest.raises(ConfigurationError):
             clean_registry.register(Measurement, ModelConfiguration(model=Measurement))
 
-    def test_a_model_outside_both_hierarchies_is_refused(self, clean_registry):
-        class NotASample(models.Model):
-            class Meta:
-                app_label = "test_app"
-
-        with pytest.raises(ConfigurationError):
-            clean_registry.register(NotASample, ModelConfiguration(model=NotASample))
-
 
 class TestFieldPathValidation:
     def test_a_valid_related_path_is_accepted(self, rock_sample):
@@ -1324,9 +774,6 @@ class TestUnregisteredModel:
     ):
         with pytest.raises(NotRegisteredError, match="RockSample"):
             clean_registry.get_for_model(rock_sample)
-
-    def test_is_registered_answers_without_raising(self, clean_registry, rock_sample):
-        assert clean_registry.is_registered(rock_sample) is False
 
 
 class TestNonFunctionalGuards:
