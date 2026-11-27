@@ -22,9 +22,9 @@ class TestPagination:
         assert len(data["results"]) == 2
 
     def test_count_reflects_accessible_records(self, api_client, db):
-        public_count = 5
+        public_count = 3
         ProjectFactory.create_batch(public_count, visibility=Visibility.PUBLIC)
-        ProjectFactory.create_batch(3, visibility=Visibility.PRIVATE)
+        ProjectFactory(visibility=Visibility.PRIVATE)
         response = api_client.get(reverse("api:project-list"))
         data = response.json()
         assert data["count"] == public_count

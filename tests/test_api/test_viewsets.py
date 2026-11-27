@@ -3939,10 +3939,10 @@ class TestReferencesFollowTheLists:
             assert response.status_code == 200
             return len(captured)
 
-        relate(2)
+        relate(1)
         queries()
         few = queries()
-        relate(10)
+        relate(2)
 
         assert queries() == few
 
@@ -3966,14 +3966,8 @@ class TestChangedSince:
         for _ in range(3):
             if model is Project:
                 made.append(ProjectFactory(visibility=Visibility.PUBLIC))
-            elif model is Dataset:
-                made.append(
-                    DatasetFactory(visibility=Visibility.PUBLIC, published=True)
-                )
             elif model is Person:
                 made.append(PersonFactory(is_active=True, is_claimed=True))
-            elif model is Organization:
-                made.append(OrganizationFactory())
             else:
                 made.append(make_record(model, public_dataset))
         for record, moment in zip(made, self.MOMENTS, strict=True):

@@ -47,6 +47,16 @@ class TestVisibilityFilterProjects:
         uuids = [p["uuid"] for p in resp.json()["results"]]
         assert str(proj.uuid) in uuids
 
+    def test_a_stored_guardian_row_alone_does_not_list_a_private_project(self):
+        from fairdm.core.utils import assign_perm
+
+        user = UserFactory()
+        proj = ProjectFactory(visibility=Visibility.PRIVATE)
+        assign_perm("view_project", user, proj)
+        resp = make_token_client(user).get(reverse("api:project-list"))
+        uuids = [p["uuid"] for p in resp.json()["results"]]
+        assert str(proj.uuid) not in uuids
+
     def test_mixed_queryset_no_duplicates(self):
         user = UserFactory()
         pub = ProjectFactory(visibility=Visibility.PUBLIC)
@@ -530,8 +540,9 @@ class TestOrganizationFilters:
         assert university.uuid not in found
 
     def test_identifier_returns_the_holder_given_the_full_address(self):
-        sent = "https://ror.org/03yrm5c26"
         from fairdm.factories import ContributorIdentifierFactory, OrganizationFactory
+
+        sent = "https://ror.org/03yrm5c26"
 
         holder = OrganizationFactory()
         ContributorIdentifierFactory(
