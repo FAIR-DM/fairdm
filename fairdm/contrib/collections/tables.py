@@ -94,9 +94,9 @@ class BaseTable(tables.Table):
         for bound_col in self.columns:
             col = getattr(bound_col, "column", bound_col)
 
-            # A dotted accessor such as 'sample.location.x' looks up its first part.
+            # An accessor such as 'sample__location__x' looks up its first part.
             fname = getattr(col, "accessor", None) or getattr(col, "name", "")
-            field_name_for_lookup = fname.split(".")[0] if fname else ""
+            field_name_for_lookup = fname.split("__")[0] if fname else ""
 
             db_field = None
             field_type = "CharField"
@@ -141,12 +141,12 @@ class SampleTable(BaseTable):
     """Listing table for samples."""
 
     name = tables.Column(linkify=True)
-    # A geometry field has no `location__y` lookup to order by.
+    # A geometry field has no `y` lookup to order by.
     latitude = tables.Column(
-        accessor="location.y", verbose_name=_("Latitude"), orderable=False
+        accessor="location__y", verbose_name=_("Latitude"), orderable=False
     )
     longitude = tables.Column(
-        accessor="location.x", verbose_name=_("Longitude"), orderable=False
+        accessor="location__x", verbose_name=_("Longitude"), orderable=False
     )
 
     class Meta:
@@ -166,10 +166,10 @@ class MeasurementTable(BaseTable):
     # The queryset carries `effective_location` from `with_effective_location(user)`: the
     # measurement's own point, else its sample's for a viewer who may open the sample.
     latitude = tables.Column(
-        accessor="effective_location.y", verbose_name=_("Latitude"), orderable=False
+        accessor="effective_location__y", verbose_name=_("Latitude"), orderable=False
     )
     longitude = tables.Column(
-        accessor="effective_location.x", verbose_name=_("Longitude"), orderable=False
+        accessor="effective_location__x", verbose_name=_("Longitude"), orderable=False
     )
 
     class Meta:
