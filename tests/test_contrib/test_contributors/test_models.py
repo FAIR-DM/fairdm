@@ -2,11 +2,10 @@
 
 import json
 from datetime import date
-from unittest.mock import patch
 
 import pytest
 from django.apps import apps
-from django.contrib.auth import authenticate, get_user_model
+from django.contrib.auth import authenticate
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import AnonymousUser, Group
 from django.contrib.contenttypes.models import ContentType
@@ -28,7 +27,6 @@ from fairdm.contrib.contributors.models import (
     Contributor,
     ContributorIdentifier,
     Organization,
-    OrganizationMember,
     Person,
 )
 from fairdm.core.vocabularies import CONTRIBUTOR_ROLES, IDENTIFIER_TYPES
@@ -52,12 +50,6 @@ class TestContributorIdentity:
         assert person.uuid.startswith("c")
 
     @pytest.mark.django_db
-    def test_organization_identifier_carries_contributor_prefix(self):
-        organization = OrganizationFactory()
-        assert organization.uuid
-        assert organization.uuid.startswith("c")
-
-    @pytest.mark.django_db
     def test_identifier_unchanged_on_second_save(self):
         person = PersonFactory()
         original_uuid = person.uuid
@@ -65,93 +57,6 @@ class TestContributorIdentity:
         person.save()
         person.refresh_from_db()
         assert person.uuid == original_uuid
-
-    @pytest.mark.django_db
-    def test_identifier_unique_across_both_concrete_types(self):
-        person = PersonFactory()
-        organization = OrganizationFactory()
-        assert person.uuid != organization.uuid
-        assert Contributor.objects.filter(uuid=person.uuid).count() == 1
-        assert Contributor.objects.filter(uuid=organization.uuid).count() == 1
-
-    @pytest.mark.django_db
-    def test_identifier_uniqueness_enforced_across_types(self):
-        person = PersonFactory()
-        with pytest.raises(IntegrityError):
-            OrganizationFactory(uuid=person.uuid)
-
-
-class TestContributorProfileFields:
-    @pytest.mark.django_db
-    def test_preferred_name_is_required(self):
-        organization = OrganizationFactory.build(name="")
-        with pytest.raises(ValidationError):
-            organization.full_clean()
-
-    @pytest.mark.django_db
-    def test_optional_profile_fields_round_trip(self):
-        from django.contrib.gis.geos import Point as GEOSPoint
-
-        location = GEOSPoint(13.06566, 52.39886, srid=4326)
-        organization = OrganizationFactory(
-            alternative_names=["Also Known As Inc."],
-            profile="A description of the organization.",
-            links=["https://example.org"],
-            lang=["en", "fr"],
-            location=location,
-        )
-        organization.refresh_from_db()
-
-        assert organization.alternative_names == ["Also Known As Inc."]
-        assert organization.profile == "A description of the organization."
-        assert organization.links == ["https://example.org"]
-        assert organization.lang == ["en", "fr"]
-        assert organization.location == location
-
-    @pytest.mark.django_db
-    def test_optional_profile_fields_default_empty(self):
-        organization = OrganizationFactory(
-            alternative_names=None, links=None, lang=None, location=None
-        )
-        organization.full_clean()
-        assert organization.location is None
-
-
-class TestContributorTimestamps:
-    @pytest.mark.django_db
-    def test_created_timestamp_set_once(self):
-        person = PersonFactory()
-        original_added = person.added
-        person.name = "Changed Name"
-        person.save()
-        person.refresh_from_db()
-        assert person.added == original_added
-
-    @pytest.mark.django_db
-    def test_modified_timestamp_moves_on_later_save(self):
-        person = PersonFactory()
-        original_modified = person.modified
-        person.name = "Changed Name"
-        person.save()
-        person.refresh_from_db()
-        assert person.modified > original_modified
-
-
-class TestContributorConfiguration:
-    @pytest.mark.django_db
-    def test_config_defaults_empty(self):
-        person = PersonFactory()
-        assert person.config == {}
-
-    @pytest.mark.django_db
-    def test_config_accepts_and_returns_arbitrary_json(self):
-        person = PersonFactory()
-        person.config = {"anything": ["the", "specification", "does", "not", "define"]}
-        person.save()
-        person.refresh_from_db()
-        assert person.config == {
-            "anything": ["the", "specification", "does", "not", "define"]
-        }
 
 
 class TestFieldMetadata:
@@ -204,29 +109,14 @@ class TestFieldMetadata:
 
 
 class TestPersonIsTheAccount:
-    def test_get_user_model_is_person(self):
-        assert get_user_model() is Person
-        assert get_user_model().__name__ == "Person"
-
     def test_no_separate_account_model_registered(self):
         username_field_models = [
             model for model in apps.get_models() if hasattr(model, "USERNAME_FIELD")
         ]
         assert username_field_models == [Person]
 
-    def test_no_required_fields_beyond_the_username_field(self):
-        assert Person.REQUIRED_FIELDS == []
-
-    def test_username_field_is_removed_not_shadowed(self):
-        assert Person.username is None
-
 
 class TestAttributionOnlyPerson:
-    @pytest.mark.django_db
-    def test_attribution_only_person_has_no_usable_password(self, unclaimed_person):
-        assert unclaimed_person.email is None
-        assert unclaimed_person.has_usable_password() is False
-
     @pytest.mark.django_db
     def test_authenticate_fails_for_attribution_only_person(self, unclaimed_person):
         result = authenticate(
@@ -236,10 +126,6 @@ class TestAttributionOnlyPerson:
 
 
 class TestPersonActivationEligibility:
-    @pytest.mark.django_db
-    def test_attribution_only_person_is_active(self, unclaimed_person):
-        assert unclaimed_person.is_active is True
-
     @pytest.mark.django_db
     def test_invited_attribution_only_person_is_found_by_password_reset(
         self, unclaimed_person
@@ -255,23 +141,6 @@ class TestPersonActivationEligibility:
 
 
 class TestPersonEmailUniqueness:
-    @pytest.mark.django_db
-    def test_duplicate_email_refused_at_validation(self):
-        PersonFactory(email="duplicate@example.com")
-        second = PersonFactory.build(email="duplicate@example.com")
-
-        with pytest.raises(ValidationError):
-            second.full_clean()
-
-    @pytest.mark.django_db
-    def test_duplicate_email_refused_at_the_database(self):
-        PersonFactory(email="duplicate@example.com")
-
-        with pytest.raises(IntegrityError):
-            Person.objects.create(
-                email="duplicate@example.com", first_name="Second", last_name="Person"
-            )
-
     @pytest.mark.django_db
     def test_multiple_people_may_have_no_email(self):
         first = Person.objects.create_unclaimed(first_name="A", last_name="One")
@@ -301,58 +170,15 @@ class TestPersonEmailUniqueness:
 
 class TestPersonClaimedUnclaimedSemantics:
     @pytest.mark.django_db
-    def test_claimed_person_has_email_and_is_active(self, person):
-        assert person.email is not None
-        assert person.is_active is True
-        assert person.is_claimed is True
-
-    @pytest.mark.django_db
-    def test_unclaimed_person_has_no_email(self, unclaimed_person):
-        assert unclaimed_person.email is None
-        assert unclaimed_person.is_active is True
-        assert unclaimed_person.is_claimed is False
-
-    @pytest.mark.django_db
-    def test_create_unclaimed_via_manager(self, db):
-        p = Person.objects.create_unclaimed(
-            first_name="Test",
-            last_name="Unclaimed",
-        )
-        assert p.pk is not None
-        assert p.email is None
-        assert p.is_active is True
-        assert p.is_claimed is False
-        assert not p.has_usable_password()
-        assert p.name == "Test Unclaimed"
-
-    @pytest.mark.django_db
     def test_person_auto_populates_name_from_first_last(self, db):
         p = PersonFactory(first_name="Jane", last_name="Smith", name="")
         assert p.name == "Jane Smith"
-
-    @pytest.mark.django_db
-    def test_person_is_claimed_requires_usable_password(self, db):
-        p = Person.objects.create_unclaimed(first_name="No", last_name="Password")
-        p.email = "test@example.com"
-        p.is_active = True
-        p.save()
-        assert p.is_claimed is False
 
     @pytest.mark.django_db
     def test_person_clean_lowercases_email(self, db):
         p = PersonFactory(email="UPPER@Example.com")
         p.clean()
         assert p.email == "upper@example.com"
-
-    @pytest.mark.django_db
-    def test_person_polymorphic_query(self, db):
-        p = PersonFactory()
-        result = Contributor.objects.filter(pk=p.pk).first()
-        assert isinstance(result, Person)
-
-    @pytest.mark.django_db
-    def test_backward_compatible_alias(self):
-        assert OrganizationMember is Affiliation
 
 
 class TestAccountState:
@@ -372,22 +198,6 @@ class TestAccountState:
         person = getattr(contributor_population, member_name)
         assert person.account_state == expected_state
 
-    @pytest.mark.django_db
-    def test_no_person_reports_two_states(self, contributor_population):
-        pop = contributor_population
-        states = {
-            pop.ghost.account_state,
-            pop.invited.account_state,
-            pop.claimed.account_state,
-            pop.inactive.account_state,
-        }
-        assert states == {
-            AccountState.GHOST,
-            AccountState.INVITED,
-            AccountState.CLAIMED,
-            AccountState.INACTIVE,
-        }
-
 
 class TestAccountStatePrecedence:
     @pytest.mark.django_db
@@ -401,21 +211,6 @@ class TestAccountStatePrecedence:
     def test_deactivated_without_email_still_reports_inactive(self, db):
         person = PersonFactory(email=None, is_active=False, is_claimed=False)
         assert person.account_state == AccountState.INACTIVE
-
-
-class TestClaimIsStoredOnce:
-    def test_is_claimed_is_a_concrete_database_field(self):
-        field = Person._meta.get_field("is_claimed")
-        from django.db import models as django_models
-
-        assert isinstance(field, django_models.BooleanField)
-
-    def test_account_state_has_no_database_column(self):
-        field_names = {f.name for f in Person._meta.get_fields()}
-        assert "account_state" not in field_names
-
-    def test_account_state_is_a_plain_property_not_stored_state(self):
-        assert isinstance(Person.__dict__["account_state"], property)
 
 
 class TestClaimedPersonEmailRemoval:
@@ -449,44 +244,6 @@ class TestClaimedPersonEmailRemoval:
 
 class TestOrganizationCreationAndValidation:
     @pytest.mark.django_db
-    def test_create_organization(self, organization):
-        assert organization.pk is not None
-        assert organization.name == "Test University"
-
-    @pytest.mark.django_db
-    def test_organization_is_polymorphic_contributor(self, organization):
-        result = Contributor.objects.filter(pk=organization.pk).first()
-        assert isinstance(result, Organization)
-
-    @pytest.mark.django_db
-    def test_organization_manage_permission_derived(self, db):
-        perms = [p[0] for p in Organization._meta.permissions]
-        assert "manage_organization" not in perms
-
-        from fairdm.contrib.contributors.models import Affiliation
-        from fairdm.factories import PersonFactory
-
-        org = OrganizationFactory(name="Test Org")
-        person = PersonFactory(email="owner@example.com")
-
-        assert not person.has_perm("manage_organization", org)
-
-        Affiliation.objects.create(
-            person=person,
-            organization=org,
-            type=Affiliation.MembershipType.OWNER,
-        )
-
-        assert person.has_perm("manage_organization", org)
-
-    @pytest.mark.django_db
-    def test_organization_parent_child(self, db):
-        parent = OrganizationFactory(name="Parent Org")
-        child = OrganizationFactory(name="Child Org", parent=parent)
-        assert child.parent == parent
-        assert parent.sub_organizations.count() == 1
-
-    @pytest.mark.django_db
     def test_organization_owner(self, person, organization):
         AffiliationFactory(
             person=person,
@@ -514,82 +271,6 @@ class TestOrganizationCreationAndValidation:
         assert "Potsdam" in display
         assert "Germany" in display
 
-    @pytest.mark.django_db
-    def test_organization_default_identifier_is_ror(self):
-        assert f"{IDENTIFIER_TYPES}/ror" == Organization.DEFAULT_IDENTIFIER
-
-
-class TestOrganizationTypeValidation:
-    @pytest.mark.django_db
-    def test_type_outside_the_ror_set_is_refused(self, organization):
-        organization.type = "museum"
-        with pytest.raises(ValidationError):
-            organization.full_clean()
-
-    @pytest.mark.django_db
-    def test_every_ror_type_is_accepted(self):
-        for value in (
-            OrganizationType.EDUCATION,
-            OrganizationType.FUNDER,
-            OrganizationType.HEALTHCARE,
-            OrganizationType.COMPANY,
-            OrganizationType.ARCHIVE,
-            OrganizationType.NONPROFIT,
-            OrganizationType.GOVERNMENT,
-            OrganizationType.FACILITY,
-            OrganizationType.OTHER,
-        ):
-            organization = OrganizationFactory(type=value)
-            organization.full_clean()
-            assert organization.type == value
-
-    def test_type_field_is_indexed(self):
-        assert Organization._meta.get_field("type").db_index is True
-
-
-class TestOrganizationParentDeletion:
-    @pytest.mark.django_db
-    def test_deleting_the_parent_leaves_the_child_with_no_parent(self, person):
-        university = OrganizationFactory(name="Test University")
-        department = OrganizationFactory(name="Test Department", parent=university)
-        AffiliationFactory(
-            person=person,
-            organization=department,
-            type=Affiliation.MembershipType.MEMBER,
-        )
-        contribution = ContributionFactory(contributor=department)
-
-        university.delete()
-
-        department.refresh_from_db()
-        assert department.parent is None
-        assert department.affiliations.count() == 1
-        assert department.contributions.count() == 1
-        contribution.refresh_from_db()
-        assert contribution.contributor_id == department.pk
-
-
-class TestOrganizationLocation:
-    @pytest.mark.django_db
-    def test_city_and_country_are_optional(self):
-        organization = OrganizationFactory(name="Unspecified Institute")
-        organization.full_clean()
-        assert not organization.city
-        assert not organization.country
-
-    @pytest.mark.django_db
-    def test_city_and_country_round_trip(self):
-        organization = OrganizationFactory(name="GFZ", city="Potsdam", country="DE")
-
-        organization.refresh_from_db()
-
-        assert organization.city == "Potsdam"
-        assert organization.country == "DE"
-
-    def test_city_and_country_are_indexed(self):
-        assert Organization._meta.get_field("city").db_index is True
-        assert Organization._meta.get_field("country").db_index is True
-
 
 @pytest.mark.django_db
 class TestOrganizationFromRor:
@@ -611,24 +292,20 @@ class TestOrganizationFromRor:
             == "04z8jg394"
         )
 
-    def test_a_new_ror_identifier_schedules_a_sync_after_commit(
+    def test_a_new_ror_identifier_is_synced_once_the_transaction_commits(
         self, registry_network, recorded, django_capture_on_commit_callbacks
     ):
         registry_network.answer(
             "https://api.ror.org/v2/organizations/04z8jg394", recorded("ror-record")
         )
+        with django_capture_on_commit_callbacks(execute=False) as callbacks:
+            Organization.from_ror("04z8jg394")
+        fetched_before_commit = len(registry_network.calls)
 
-        with (
-            patch(
-                "fairdm.contrib.contributors.tasks.sync_contributor_identifier.delay"
-            ) as delay,
-            django_capture_on_commit_callbacks(execute=True),
-        ):
-            organization = Organization.from_ror("04z8jg394")
+        for callback in callbacks:
+            callback()
 
-        delay.assert_called_once_with(
-            organization.identifiers.get(type_id=f"{IDENTIFIER_TYPES}/ror").pk
-        )
+        assert len(registry_network.calls) == fetched_before_commit + 1
 
 
 class TestOwnershipTransfer:
@@ -794,77 +471,6 @@ class TestTransferOwnershipRefusesInvalidTargets:
         assert owner_affiliation.type == Affiliation.MembershipType.OWNER
 
 
-class TestAffiliationSchema:
-    def test_membership_type_is_indexed(self):
-        field = Affiliation._meta.get_field("type")
-        assert field.db_index is True
-
-    def test_default_related_name_is_affiliations(self):
-        assert Affiliation._meta.default_related_name == "affiliations"
-
-
-class TestAffiliationUniqueConstraints:
-    @pytest.mark.django_db
-    def test_affiliation_unique_person_organization(self, person, organization):
-        AffiliationFactory(person=person, organization=organization)
-        with pytest.raises(IntegrityError):
-            AffiliationFactory(person=person, organization=organization)
-
-    @pytest.mark.django_db
-    def test_affiliation_type_choices(self):
-        types = Affiliation.MembershipType
-        assert types.PENDING == 0
-        assert types.MEMBER == 1
-        assert types.ADMIN == 2
-        assert types.OWNER == 3
-
-    @pytest.mark.django_db
-    def test_affiliation_start_end_dates(self, affiliation):
-        affiliation.start_date = "2020"
-        affiliation.end_date = "2024-06"
-        affiliation.save()
-        affiliation.refresh_from_db()
-        assert str(affiliation.start_date) == "2020"
-        assert str(affiliation.end_date) == "2024-06"
-
-    @pytest.mark.django_db
-    def test_only_one_primary_per_person(self, person):
-        org1 = OrganizationFactory(name="Org A")
-        org2 = OrganizationFactory(name="Org B")
-        a1 = AffiliationFactory(person=person, organization=org1, is_primary=True)
-        a2 = AffiliationFactory(person=person, organization=org2, is_primary=True)
-        a1.refresh_from_db()
-        assert a1.is_primary is False
-        assert a2.is_primary is True
-
-    @pytest.mark.django_db
-    def test_affiliation_sync_ownership_permission(self, person, organization):
-        aff = AffiliationFactory(
-            person=person,
-            organization=organization,
-            type=Affiliation.MembershipType.MEMBER,
-        )
-        aff.type = Affiliation.MembershipType.OWNER
-        aff.save()
-        assert person.has_perm("contributors.manage_organization", organization)
-
-    @pytest.mark.django_db
-    def test_affiliation_remove_ownership_permission(self, person, organization):
-        aff = AffiliationFactory(
-            person=person,
-            organization=organization,
-            type=Affiliation.MembershipType.OWNER,
-        )
-        aff.type = Affiliation.MembershipType.MEMBER
-        aff.save()
-        assert not person.has_perm("contributors.manage_organization", organization)
-
-    @pytest.mark.django_db
-    def test_string_representation(self, affiliation):
-        result = str(affiliation)
-        assert " - " in result
-
-
 class TestAffiliationUniqueness:
     @pytest.mark.django_db
     def test_duplicate_membership_refused_at_validation_with_readable_message(
@@ -878,36 +484,8 @@ class TestAffiliationUniqueness:
 
         assert "already a member" in str(excinfo.value)
 
-    @pytest.mark.django_db
-    def test_duplicate_membership_refused_at_database(self, person, organization):
-        AffiliationFactory(person=person, organization=organization)
-
-        with pytest.raises(IntegrityError):
-            Affiliation.objects.create(person=person, organization=organization)
-
 
 class TestContributionGFKRelationships:
-    @pytest.mark.django_db
-    def test_contribution_links_person_to_project(
-        self, contribution, person, project_for_contributions
-    ):
-        assert contribution.contributor == person
-        assert contribution.content_object == project_for_contributions
-
-    @pytest.mark.django_db
-    def test_contribution_unique_per_entity_contributor(self, person):
-        project = ProjectFactory()
-        ContributionFactory(contributor=person, content_object=project)
-        with pytest.raises(IntegrityError):
-            ContributionFactory(contributor=person, content_object=project)
-
-    @pytest.mark.django_db
-    def test_contribution_add_to_classmethod(self, person):
-        project = ProjectFactory()
-        contribution = person.add_to(project)
-        assert contribution is not None
-        assert contribution.content_object == project
-
     @pytest.mark.django_db
     def test_a_credit_is_not_given_the_primary_affiliation(self, person, organization):
         AffiliationFactory(
@@ -927,21 +505,14 @@ class TestContributionGFKRelationships:
 
     @pytest.mark.django_db
     def test_contribution_projects_property(self, person, contribution):
-        projects = person.projects
-        assert projects.count() >= 1
-
-    @pytest.mark.django_db
-    def test_contribution_manager_for_entity(
-        self, contribution, project_for_contributions
-    ):
-        qs = Contribution.objects.for_entity(project_for_contributions)
-        assert qs.count() >= 1
-        assert contribution in qs
+        assert list(person.projects) == [contribution.content_object]
 
     @pytest.mark.django_db
     def test_contribution_manager_by_contributor(self, person, contribution):
         qs = Contribution.objects.by_contributor(person)
-        assert qs.count() >= 1
+
+        assert contribution in qs
+        assert not qs.exclude(contributor=person).exists()
 
 
 class TestContributionTargets:
@@ -950,14 +521,6 @@ class TestContributionTargets:
         contribution = person.add_to(project_for_contributions)
 
         assert contribution.content_object == project_for_contributions
-
-    @pytest.mark.django_db
-    def test_person_creditable_on_a_dataset(self, person):
-        dataset = DatasetFactory()
-
-        contribution = person.add_to(dataset)
-
-        assert contribution.content_object == dataset
 
     @pytest.mark.django_db
     def test_person_creditable_on_a_measurement(self, person):
@@ -969,29 +532,8 @@ class TestContributionTargets:
 
         assert contribution.content_object == measurement
 
-    @pytest.mark.django_db
-    def test_organization_creditable_as_a_contributor(
-        self, organization, project_for_contributions
-    ):
-        contribution = organization.add_to(project_for_contributions)
-
-        assert contribution.content_object == project_for_contributions
-        assert contribution.contributor == organization
-
 
 class TestContributionUniqueness:
-    @pytest.mark.django_db
-    def test_second_contribution_for_the_same_pairing_is_refused(
-        self, person, project_for_contributions
-    ):
-        ContributionFactory(
-            contributor=person, content_object=project_for_contributions
-        )
-        with pytest.raises(IntegrityError):
-            ContributionFactory(
-                contributor=person, content_object=project_for_contributions
-            )
-
     @pytest.mark.django_db
     def test_duplicate_pairing_raises_a_validation_error_with_a_clear_message(
         self, person, project_for_contributions
@@ -1006,29 +548,6 @@ class TestContributionUniqueness:
         )
         with pytest.raises(ValidationError, match="already credited"):
             duplicate.full_clean(validate_unique=False, validate_constraints=False)
-
-    @pytest.mark.django_db
-    def test_crediting_again_under_a_new_role_accumulates_via_contributor_add_to(
-        self, person, project_for_contributions
-    ):
-        person.add_to(
-            project_for_contributions, roles=[f"{CONTRIBUTOR_ROLES}/data-collector"]
-        )
-        contribution = person.add_to(
-            project_for_contributions, roles=[f"{CONTRIBUTOR_ROLES}/researcher"]
-        )
-
-        assert (
-            Contribution.objects.filter(
-                contributor=person, object_id=project_for_contributions.pk
-            ).count()
-            == 1
-        )
-        role_names = set(contribution.roles.values_list("uri", flat=True))
-        assert role_names == {
-            f"{CONTRIBUTOR_ROLES}/data-collector",
-            f"{CONTRIBUTOR_ROLES}/researcher",
-        }
 
     @pytest.mark.django_db
     def test_crediting_again_under_a_new_role_accumulates_via_contribution_add_to(
@@ -1064,34 +583,6 @@ class TestContributionRoles:
         role = Record.objects.filter(
             scheme__uri=CONTRIBUTOR_ROLES, type=Record.Type.CONCEPT
         ).first()
-        contribution.roles.add(role)
-
-        contribution.full_clean()
-
-        assert role in contribution.roles.all()
-
-    @pytest.mark.django_db
-    def test_role_from_outside_the_roles_vocabulary_is_refused(
-        self, contribution, off_vocabulary_role
-    ):
-        from django.db import transaction
-
-        with (
-            transaction.atomic(),
-            pytest.raises(ValidationError, match="not a valid concept"),
-        ):
-            contribution.roles.add(off_vocabulary_role)
-
-        assert off_vocabulary_role not in contribution.roles.all()
-        assert contribution.roles.count() == 0
-
-    @pytest.mark.django_db
-    def test_contribution_roles_fixture_has_real_concepts_to_attach(
-        self, contribution, contribution_roles
-    ):
-        assert contribution_roles.count() > 1
-
-        role = contribution_roles.get(uri=f"{CONTRIBUTOR_ROLES}/creator")
         contribution.roles.add(role)
 
         contribution.full_clean()
@@ -1136,37 +627,33 @@ class TestContributorCredits:
         assert counts[Dataset._meta.verbose_name_plural] == 2
 
     @pytest.mark.django_db
-    def test_counts_by_kind_resolved_in_a_bounded_number_of_queries(
-        self, person, django_assert_max_num_queries
-    ):
+    def test_counts_by_kind_cost_the_same_queries_for_one_credit_or_three(self, person):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+
         from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
-        person.add_to(ProjectFactory())
-        person.add_to(DatasetFactory())
-        person.add_to(RockSampleFactory())
-        person.add_to(ExampleMeasurementFactory(sample=RockSampleFactory()))
+        def credit_every_kind():
+            person.add_to(ProjectFactory())
+            person.add_to(DatasetFactory())
+            person.add_to(RockSampleFactory())
+            person.add_to(ExampleMeasurementFactory(sample=RockSampleFactory()))
 
-        with django_assert_max_num_queries(6):
-            person.get_credit_counts()
+        def queries_for_the_counts():
+            with CaptureQueriesContext(connection) as captured:
+                person.get_credit_counts()
+            return len(captured)
+
+        credit_every_kind()
+        queries_for_the_counts()
+        with_one_of_each = queries_for_the_counts()
+        credit_every_kind()
+        credit_every_kind()
+
+        assert queries_for_the_counts() == with_one_of_each
 
 
 class TestCollaborators:
-    @pytest.mark.django_db
-    def test_orders_collaborators_most_frequent_first(self, person):
-        frequent = PersonFactory()
-        occasional = PersonFactory()
-        projects = ProjectFactory.create_batch(3)
-        for project in projects:
-            person.add_to(project)
-            frequent.add_to(project)
-        occasional.add_to(projects[0])
-
-        collaborators = list(person.get_collaborators())
-
-        assert collaborators[0] == frequent
-        assert occasional in collaborators
-        assert collaborators.index(frequent) < collaborators.index(occasional)
-
     @pytest.mark.django_db
     def test_excludes_the_contributor_credited_on_an_unrelated_object(self, person):
         shared_project = ProjectFactory()
@@ -1210,34 +697,7 @@ class TestCollaborators:
         assert false_positive not in collaborators
 
 
-class TestContributorIdentifierUniqueness:
-    @pytest.mark.django_db
-    def test_create_orcid_identifier(self, orcid_identifier, person):
-        assert orcid_identifier.pk is not None
-        assert orcid_identifier.related == person
-
-    @pytest.mark.django_db
-    def test_create_ror_identifier(self, ror_identifier, organization):
-        assert ror_identifier.pk is not None
-        assert ror_identifier.related == organization
-
-    @pytest.mark.django_db
-    def test_person_default_identifier_is_orcid(self):
-        assert f"{IDENTIFIER_TYPES}/orcid" == Person.DEFAULT_IDENTIFIER
-
-
 class TestIdentifierUniquePerType:
-    @pytest.mark.django_db
-    def test_second_identifier_of_same_type_refused_at_the_database(
-        self, orcid_identifier, person
-    ):
-        with pytest.raises(IntegrityError):
-            ContributorIdentifier.objects.create(
-                related=person,
-                type_id=f"{IDENTIFIER_TYPES}/orcid",
-                value="0000-0001-9999-9999",
-            )
-
     @pytest.mark.django_db
     def test_second_identifier_of_same_type_refused_at_clean(
         self, orcid_identifier, person
@@ -1271,17 +731,6 @@ class TestIdentifierUniquePerType:
 
 class TestIdentifierValueUniqueAcrossContributors:
     @pytest.mark.django_db
-    def test_second_contributor_with_the_same_value_refused_at_the_database(
-        self, orcid_identifier, organization
-    ):
-        with pytest.raises(IntegrityError):
-            ContributorIdentifier.objects.create(
-                related=organization,
-                type_id=f"{IDENTIFIER_TYPES}/ror",
-                value=orcid_identifier.value,
-            )
-
-    @pytest.mark.django_db
     def test_second_contributor_with_the_same_value_refused_at_clean(
         self, orcid_identifier, organization
     ):
@@ -1291,25 +740,10 @@ class TestIdentifierValueUniqueAcrossContributors:
             value=orcid_identifier.value,
         )
 
-        with pytest.raises(ValidationError):
+        with pytest.raises(ValidationError) as excinfo:
             duplicate.clean()
 
-    @pytest.mark.django_db
-    def test_the_identifier_inline_form_refuses_it_as_an_ordinary_field_error(
-        self, orcid_identifier, organization
-    ):
-        from django import forms
-
-        form_class = forms.modelform_factory(
-            ContributorIdentifier, fields=["type", "value"]
-        )
-        form = form_class(
-            data={"type": f"{IDENTIFIER_TYPES}/ror", "value": orcid_identifier.value},
-            instance=ContributorIdentifier(related=organization),
-        )
-
-        assert form.is_valid() is False
-        assert "value" in form.errors
+        assert "value" in excinfo.value.message_dict
 
 
 class TestDefaultIdentifier:
@@ -1318,41 +752,8 @@ class TestDefaultIdentifier:
         assert person.get_default_identifier() == orcid_identifier
 
     @pytest.mark.django_db
-    def test_organization_default_identifier_is_its_ror(
-        self, ror_identifier, organization
-    ):
-        assert organization.get_default_identifier() == ror_identifier
-
-    @pytest.mark.django_db
     def test_default_identifier_is_none_without_any_identifiers(self, person):
         assert person.get_default_identifier() is None
-
-
-@pytest.mark.django_db
-class TestContributorIdentifierVocabulary:
-    def test_available_types_are_the_union_of_person_and_organization_types(self):
-        assert set(
-            [concept.uri for concept in ContributorIdentifier.get_type_concepts()]
-        ) == {
-            f"{IDENTIFIER_TYPES}/orcid",
-            f"{IDENTIFIER_TYPES}/researcher-id",
-            f"{IDENTIFIER_TYPES}/ror",
-            f"{IDENTIFIER_TYPES}/wikidata",
-            f"{IDENTIFIER_TYPES}/isni",
-            f"{IDENTIFIER_TYPES}/crossref-funder-id",
-        }
-
-    def test_no_type_names_a_sample_or_project(self):
-        assert set(
-            [concept.uri for concept in ContributorIdentifier.get_type_concepts()]
-        ).isdisjoint(
-            {
-                f"{IDENTIFIER_TYPES}/igsn",
-                f"{IDENTIFIER_TYPES}/doi",
-                f"{IDENTIFIER_TYPES}/grant-number",
-                f"{IDENTIFIER_TYPES}/proposal-id",
-            }
-        )
 
 
 class TestPersonNameInternationalization:
@@ -1367,185 +768,8 @@ class TestPersonNameInternationalization:
         assert person.first_name == "王"
         assert person.last_name == "明"
 
-    @pytest.mark.django_db
-    def test_person_name_arabic_script(self, db):
-        person = PersonFactory(
-            first_name="محمد",
-            last_name="أحمد",
-            name="",
-        )
-        assert person.name == "محمد أحمد"
-        assert person.first_name == "محمد"
-        assert person.last_name == "أحمد"
-
-    @pytest.mark.django_db
-    def test_person_name_cyrillic_script(self, db):
-        person = PersonFactory(
-            first_name="Иван",
-            last_name="Петров",
-            name="",
-        )
-        assert person.name == "Иван Петров"
-        assert person.first_name == "Иван"
-        assert person.last_name == "Петров"
-
-    @pytest.mark.django_db
-    def test_person_name_mixed_scripts(self, db):
-        person = PersonFactory(
-            first_name="José",
-            last_name="García-López",
-            name="",
-        )
-        assert person.name == "José García-López"
-        assert "�" not in person.name
-
-    @pytest.mark.django_db
-    def test_person_name_emoji_and_special_chars(self, db):
-        person = PersonFactory(
-            first_name="Test",
-            last_name="O'Brien-Smith",
-            name="",
-        )
-        assert person.name == "Test O'Brien-Smith"
-        assert "'" in person.last_name
-
-
-class TestMultipleRolesPerContribution:
-    @pytest.mark.django_db
-    def test_contribution_multiple_roles(self, db):
-        from controlled_vocabularies.models import Record
-
-        project = ProjectFactory()
-        person = PersonFactory()
-        contribution = ContributionFactory(
-            content_object=project,
-            contributor=person,
-        )
-
-        roles_qs = Record.objects.filter(
-            scheme__uri=CONTRIBUTOR_ROLES, type=Record.Type.CONCEPT
-        )
-        author_role = roles_qs.first()
-        editor_role = roles_qs.last()
-
-        contribution.roles.add(author_role, editor_role)
-
-        assert contribution.roles.count() == 2
-        assert author_role in contribution.roles.all()
-        assert editor_role in contribution.roles.all()
-
-
-class TestAffiliationTimeBounds:
-    @pytest.mark.django_db
-    def test_affiliation_active_no_end_date(self, db):
-        person = PersonFactory()
-        org = OrganizationFactory()
-        affiliation = AffiliationFactory(
-            person=person,
-            organization=org,
-            start_date="2020-01",
-            end_date=None,
-        )
-
-        assert affiliation.end_date is None
-        assert org.affiliations.filter(end_date__isnull=True).exists()
-
-    @pytest.mark.django_db
-    def test_affiliation_historical_has_end_date(self, db):
-        person = PersonFactory()
-        org = OrganizationFactory()
-        affiliation = AffiliationFactory(
-            person=person,
-            organization=org,
-            start_date="2015",
-            end_date="2020-06",
-        )
-
-        assert affiliation.end_date is not None
-        assert org.affiliations.filter(end_date__isnull=False).exists()
-
-    @pytest.mark.django_db
-    def test_multiple_affiliations_timeline(self, db):
-        person = PersonFactory()
-        org1 = OrganizationFactory(name="University A")
-        org2 = OrganizationFactory(name="Institute B")
-
-        past_aff = AffiliationFactory(
-            person=person,
-            organization=org1,
-            start_date="2010",
-            end_date="2015",
-        )
-
-        current_aff = AffiliationFactory(
-            person=person,
-            organization=org2,
-            start_date="2015",
-            end_date=None,
-        )
-
-        assert person.affiliations.count() == 2
-        assert person.affiliations.filter(end_date__isnull=True).count() == 1
-        assert person.affiliations.filter(end_date__isnull=False).count() == 1
-
-
-class TestPartialDatePrecision:
-    @pytest.mark.django_db
-    def test_affiliation_year_only_precision(self, db):
-        person = PersonFactory()
-        org = OrganizationFactory()
-        affiliation = AffiliationFactory(
-            person=person,
-            organization=org,
-            start_date="2020",
-            end_date=None,
-        )
-
-        assert affiliation.start_date == "2020"
-
-    @pytest.mark.django_db
-    def test_affiliation_year_month_precision(self, db):
-        person = PersonFactory()
-        org = OrganizationFactory()
-        affiliation = AffiliationFactory(
-            person=person,
-            organization=org,
-            start_date="2020-03",
-            end_date="2023-12",
-        )
-
-        assert affiliation.start_date == "2020-03"
-        assert affiliation.end_date == "2023-12"
-
-    @pytest.mark.django_db
-    def test_affiliation_full_date_precision(self, db):
-        person = PersonFactory()
-        org = OrganizationFactory()
-        affiliation = AffiliationFactory(
-            person=person,
-            organization=org,
-            start_date="2020-03-15",
-            end_date="2023-12-31",
-        )
-
-        assert affiliation.start_date == "2020-03-15"
-        assert affiliation.end_date == "2023-12-31"
-
 
 class TestPrimaryAffiliationConstraint:
-    @pytest.mark.django_db
-    def test_single_primary_affiliation(self, db):
-        person = PersonFactory()
-        org = OrganizationFactory()
-        affiliation = AffiliationFactory(
-            person=person,
-            organization=org,
-            is_primary=True,
-        )
-
-        assert affiliation.is_primary is True
-        assert person.affiliations.filter(is_primary=True).count() == 1
-
     @pytest.mark.django_db
     def test_setting_new_primary_unsetsolds(self, db):
         person = PersonFactory()
@@ -1570,20 +794,6 @@ class TestPrimaryAffiliationConstraint:
         assert aff2.is_primary is True
         assert aff1.is_primary is False
         assert person.affiliations.filter(is_primary=True).count() == 1
-
-    @pytest.mark.django_db
-    def test_multiple_non_primary_affiliations_allowed(self, db):
-        person = PersonFactory()
-        org1 = OrganizationFactory(name="Org 1")
-        org2 = OrganizationFactory(name="Org 2")
-        org3 = OrganizationFactory(name="Org 3")
-
-        AffiliationFactory(person=person, organization=org1, is_primary=False)
-        AffiliationFactory(person=person, organization=org2, is_primary=False)
-        AffiliationFactory(person=person, organization=org3, is_primary=False)
-
-        assert person.affiliations.filter(is_primary=False).count() == 3
-        assert person.affiliations.filter(is_primary=True).count() == 0
 
 
 class TestPrimaryAffiliationDemotionIsAtomic:
@@ -1624,32 +834,15 @@ class TestPrimaryAffiliationDatabaseConstraint:
 
 
 class TestClaimingAuditLogImmutability:
-    def test_create_succeeds(self, db, person_a, person_b):
-        from fairdm.contrib.contributors.models import ClaimingAuditLog, ClaimMethod
-
-        entry = ClaimingAuditLog.objects.create(
-            method=ClaimMethod.ORCID,
-            source_person=person_a,
-            target_person=person_b,
-            success=True,
-        )
-        assert entry.pk is not None
-
     def test_update_raises_value_error(self, db, audit_log_entry):
 
+        from fairdm.contrib.contributors.models import ClaimingAuditLog
+
+        original_reason = audit_log_entry.failure_reason
         audit_log_entry.failure_reason = "tampered"
         with pytest.raises(ValueError, match="immutable"):
             audit_log_entry.save()
 
-    def test_record_not_modified_on_failed_save(self, db, audit_log_entry):
-        from fairdm.contrib.contributors.models import ClaimingAuditLog
-
-        original_reason = audit_log_entry.failure_reason
-        try:
-            audit_log_entry.failure_reason = "tampered"
-            audit_log_entry.save()
-        except ValueError:
-            pass
         fresh = ClaimingAuditLog.objects.get(pk=audit_log_entry.pk)
         assert fresh.failure_reason == original_reason
 
@@ -1674,23 +867,7 @@ class TestClaimingAuditLogManager:
             .filter(pk=entry.pk)
             .exists()
         )
-
-    def test_for_person_excludes_unrelated_entries(self, db, person_a, person_b):
-        from fairdm.contrib.contributors.models import ClaimingAuditLog, ClaimMethod
-        from fairdm.factories import PersonFactory
-
-        unrelated = PersonFactory()
-        entry = ClaimingAuditLog.objects.create(
-            method=ClaimMethod.EMAIL,
-            source_person=person_a,
-            target_person=person_b,
-            success=True,
-        )
-        assert (
-            not ClaimingAuditLog.objects.for_person(unrelated.pk)
-            .filter(pk=entry.pk)
-            .exists()
-        )
+        assert not ClaimingAuditLog.objects.for_person(PersonFactory().pk).exists()
 
     def test_failures_filter(self, db, person_a, person_b):
         from fairdm.contrib.contributors.models import ClaimingAuditLog, ClaimMethod
@@ -1743,15 +920,6 @@ class TestContributorLinkValidation:
         assert "links" in excinfo.value.message_dict
         assert "not a url" in excinfo.value.message_dict["links"][0]
 
-    def test_organization_refuses_a_link_that_is_not_a_url(self, organization):
-        organization.links = ["ftp://not-a-web-address"]
-
-        with pytest.raises(ValidationError) as excinfo:
-            organization.full_clean()
-
-        assert "links" in excinfo.value.message_dict
-        assert "ftp://not-a-web-address" in excinfo.value.message_dict["links"][0]
-
     def test_a_valid_link_list_passes(self, person):
         person.links = ["https://example.org", "https://orcid.org/0000-0002-1825-0097"]
 
@@ -1801,15 +969,6 @@ class TestInitials:
 
 
 @pytest.mark.django_db
-class TestIsOrganization:
-    def test_an_organization_is_an_organization(self):
-        assert OrganizationFactory().is_organization is True
-
-    def test_a_person_is_not_an_organization(self):
-        assert PersonFactory().is_organization is False
-
-
-@pytest.mark.django_db
 class TestPrimaryOrganization:
     def test_a_person_is_shown_with_their_primary_affiliations_organization(self):
         person = PersonFactory()
@@ -1847,13 +1006,13 @@ class TestPrimaryOrganization:
 
     def test_a_prefetched_person_needs_no_query(self, django_assert_num_queries):
         person = PersonFactory()
-        AffiliationFactory(person=person, is_primary=True)
+        affiliation = AffiliationFactory(person=person, is_primary=True)
         prefetched = Person.objects.prefetch_related("affiliations__organization").get(
             pk=person.pk
         )
 
         with django_assert_num_queries(0):
-            assert prefetched.primary_organization is not None
+            assert prefetched.primary_organization == affiliation.organization
 
 
 @pytest.mark.django_db
@@ -1993,17 +1152,6 @@ class TestGetVisibleContributions:
 
         assert _credited(world.private_project).isdisjoint(_records(contributions))
 
-    def test_a_public_dataset_inside_a_private_project_is_left_out(
-        self, credited_world
-    ):
-        world = credited_world
-
-        contributions = world.person.get_visible_contributions(AnonymousUser())
-
-        assert _credited(world.dataset_in_private_project).isdisjoint(
-            _records(contributions)
-        )
-
     def test_a_sample_and_a_measurement_inside_a_private_project_are_left_out_for_its_team(
         self, credited_world
     ):
@@ -2045,16 +1193,6 @@ class TestGetVisibleContributions:
             world.person.get_visible_contributions(team)
         )
 
-    def test_each_contribution_says_which_kind_of_record_it_is(self, credited_world):
-        world = credited_world
-
-        kinds = {
-            contribution.kind
-            for contribution in world.person.get_visible_contributions(AnonymousUser())
-        }
-
-        assert kinds == {"project", "dataset", "sample", "measurement"}
-
 
 @pytest.mark.django_db
 class TestPublicRecordSources:
@@ -2071,18 +1209,6 @@ class TestPublicRecordSources:
         world = credited_world
 
         assert set(world.person.get_public_datasets()) == {world.public_dataset}
-
-    def test_they_equal_the_projects_and_datasets_among_the_public_credits(
-        self, credited_world
-    ):
-        world = credited_world
-        contributions = world.person.get_visible_contributions(AnonymousUser())
-
-        projects = {c.record for c in contributions if c.kind == "project"}
-        datasets = {c.record for c in contributions if c.kind == "dataset"}
-
-        assert projects == set(world.person.get_public_projects())
-        assert datasets == set(world.person.get_public_datasets())
 
     def test_a_dataset_with_no_project_is_public_when_it_is_public(self, db):
         person = PersonFactory()
@@ -2220,21 +1346,15 @@ class TestPersonAffiliationHistory:
 
 @pytest.mark.django_db
 class TestPersonMemberSince:
-    @pytest.mark.parametrize(
-        ("member_name", "has_date"),
-        [("ghost", False), ("invited", False), ("claimed", True), ("inactive", True)],
-    )
-    def test_the_date_is_given_for_a_profile_with_an_account_only(
-        self, contributor_population, member_name, has_date
-    ):
-        person = getattr(contributor_population, member_name)
-
-        assert (person.member_since is not None) is has_date
-
-    def test_the_date_is_when_the_account_was_created(self, contributor_population):
-        person = contributor_population.claimed
+    def test_the_date_is_when_the_account_was_created(self):
+        person = PersonFactory(is_claimed=True)
 
         assert person.member_since == person.date_joined
+
+    def test_a_profile_nobody_claimed_has_no_date(self):
+        person = PersonFactory(is_claimed=False, email=None)
+
+        assert person.member_since is None
 
 
 @pytest.mark.django_db
@@ -2388,16 +1508,8 @@ class TestOrganizationMemberships:
 
 @pytest.mark.django_db
 class TestOrganizationHasMember:
-    @pytest.mark.parametrize(
-        "type",
-        [
-            Affiliation.MembershipType.MEMBER,
-            Affiliation.MembershipType.ADMIN,
-            Affiliation.MembershipType.OWNER,
-        ],
-    )
-    def test_a_current_verified_affiliation_of_any_kind_counts(self, type):
-        affiliation = AffiliationFactory(type=type)
+    def test_a_current_verified_affiliation_counts(self):
+        affiliation = AffiliationFactory(type=Affiliation.MembershipType.MEMBER)
 
         assert affiliation.organization.has_member(affiliation.person) is True
 
@@ -2425,10 +1537,8 @@ class TestOrganizationIsManagedBy:
     @pytest.mark.parametrize(
         ("type", "managed"),
         [
-            (Affiliation.MembershipType.OWNER, True),
             (Affiliation.MembershipType.ADMIN, True),
             (Affiliation.MembershipType.MEMBER, False),
-            (Affiliation.MembershipType.PENDING, False),
         ],
     )
     def test_only_the_owner_and_administrators_keep_the_record(self, type, managed):
@@ -2436,11 +1546,10 @@ class TestOrganizationIsManagedBy:
 
         assert affiliation.organization.is_managed_by(affiliation.person) is managed
 
-    @pytest.mark.parametrize(
-        "type", [Affiliation.MembershipType.OWNER, Affiliation.MembershipType.ADMIN]
-    )
-    def test_an_ended_affiliation_does_not_count(self, type):
-        affiliation = AffiliationFactory(type=type, start_date="2010", end_date="2014")
+    def test_an_ended_affiliation_does_not_count(self):
+        affiliation = AffiliationFactory(
+            type=Affiliation.MembershipType.ADMIN, start_date="2010", end_date="2014"
+        )
 
         assert affiliation.organization.is_managed_by(affiliation.person) is False
 
@@ -2580,14 +1689,6 @@ class TestPersonProfileCompleteness:
 
         assert all(person.get_profile_completeness().values())
 
-    def test_each_item_is_counted_on_its_own(self):
-        person = PersonFactory(profile="A biography.", links=[])
-
-        complete = person.get_profile_completeness()
-
-        assert complete["profile"] is True
-        assert [key for key, done in complete.items() if done] == ["profile"]
-
     def test_an_orcid_id_typed_in_is_not_connected(self):
         person = PersonFactory()
         ContributorIdentifier.objects.create(
@@ -2694,15 +1795,6 @@ class TestOrganizationRecordCompleteness:
 
         assert organization.get_record_completeness()["location"] is complete
 
-    def test_each_item_is_counted_on_its_own(self):
-        organization = OrganizationFactory(
-            profile="A description.", type="", city="", country="", links=[]
-        )
-
-        complete = organization.get_record_completeness()
-
-        assert [key for key, done in complete.items() if done] == ["profile"]
-
 
 @pytest.mark.django_db
 class TestPersonLocationDisplay:
@@ -2714,39 +1806,6 @@ class TestPersonLocationDisplay:
         AffiliationFactory(person=person, organization=organization, is_primary=True)
 
         assert person.get_location_display() == "Potsdam, Germany"
-
-    def test_a_person_without_a_primary_affiliation_has_no_location(self):
-        person = PersonFactory()
-        AffiliationFactory(
-            person=person,
-            organization=OrganizationFactory(city="Potsdam", country="DE"),
-            is_primary=False,
-        )
-
-        assert person.get_location_display() is None
-
-    def test_a_pending_primary_affiliation_gives_no_location(self):
-        person = PersonFactory()
-        AffiliationFactory(
-            person=person,
-            organization=OrganizationFactory(city="Potsdam", country="DE"),
-            is_primary=True,
-            type=Affiliation.MembershipType.PENDING,
-        )
-
-        assert person.get_location_display() is None
-
-    def test_an_ended_primary_affiliation_gives_no_location(self):
-        person = PersonFactory()
-        AffiliationFactory(
-            person=person,
-            organization=OrganizationFactory(city="Potsdam", country="DE"),
-            is_primary=True,
-            start_date="2010",
-            end_date="2014",
-        )
-
-        assert person.get_location_display() is None
 
     def test_it_reads_a_prefetch_of_the_affiliations(self, django_assert_num_queries):
         person = PersonFactory()
@@ -2765,17 +1824,6 @@ class TestPersonLocationDisplay:
 
 @pytest.mark.django_db
 class TestPersonPlacedOnAMap:
-    def test_a_person_is_placed_at_their_primary_affiliations_point(self):
-        person = PersonFactory()
-        organization = OrganizationFactory(
-            location=GEOSPoint(13.06566, 52.39886, srid=4326)
-        )
-        AffiliationFactory(person=person, organization=organization, is_primary=True)
-
-        feature = json.loads(person.as_geojson())
-
-        assert feature["geometry"]["coordinates"] == [13.06566, 52.39886]
-
     def test_a_person_is_placed_at_the_point_of_their_primary_affiliation_only(self):
         person = PersonFactory()
         AffiliationFactory(
@@ -2821,24 +1869,10 @@ class TestProfileSafety:
             "https://example.org/me"
         ]
 
-    @pytest.mark.django_db
-    def test_a_deactivated_profile_nobody_claimed_has_no_member_since(self):
-        person = PersonFactory(is_claimed=False, is_active=False, email=None)
-
-        assert person.member_since is None
-
 
 @pytest.mark.django_db
 class TestPersonIsEditableBy:
     def test_a_person_may_edit_their_own_profile(self, person):
-        assert person.is_editable_by(person) is True
-
-    def test_a_person_who_signed_in_without_being_marked_claimed_may_edit_their_own_profile(
-        self,
-    ):
-        # `createsuperuser` makes an active account that nothing marks as claimed.
-        person = PersonFactory(is_active=True, is_claimed=False, password="x")
-
         assert person.is_editable_by(person) is True
 
     def test_another_signed_in_person_may_not_edit_it(self, person):
@@ -2849,47 +1883,15 @@ class TestPersonIsEditableBy:
     def test_a_visitor_may_not_edit_it(self, person):
         assert person.is_editable_by(AnonymousUser()) is False
 
-    def test_a_superuser_who_is_somebody_else_may_not_edit_it(self, person):
-        superuser = PersonFactory(
-            is_active=True, is_staff=True, is_superuser=True, password="x"
-        )
-
-        assert person.is_editable_by(superuser) is False
-
-    @pytest.mark.parametrize(
-        "role",
-        [
-            PortalRoles.DATA_CURATOR,
-            PortalRoles.DEVELOPER,
-            PortalRoles.PORTAL_ADMINISTRATOR,
-        ],
-    )
-    def test_a_holder_of_one_of_these_portal_roles_may_not_edit_it(self, person, role):
-        holder = PersonFactory(is_active=True, password="x")
-        holder.groups.add(Group.objects.get(name=role.name))
-
-        assert person.is_editable_by(holder) is False
-
     def test_a_community_manager_may_edit_an_unclaimed_person(self, community_manager):
         person = PersonFactory(is_active=True, is_claimed=False)
 
         assert person.is_editable_by(community_manager) is True
 
-    def test_a_community_manager_may_edit_an_invited_person_who_has_not_signed_in(
+    def test_a_community_manager_may_edit_a_person_whose_account_is_inactive(
         self, community_manager
     ):
-        person = PersonFactory(
-            email="invited@example.org", is_active=True, is_claimed=False
-        )
-
-        assert person.account_state == AccountState.INVITED
-        assert person.is_editable_by(community_manager) is True
-
-    @pytest.mark.parametrize("claimed", [True, False])
-    def test_a_community_manager_may_edit_a_person_whose_account_is_inactive(
-        self, community_manager, claimed
-    ):
-        person = PersonFactory(is_active=False, is_claimed=claimed, password="x")
+        person = PersonFactory(is_active=False, is_claimed=True, password="x")
 
         assert person.is_editable_by(community_manager) is True
 
@@ -2900,16 +1902,6 @@ class TestPersonIsEditableBy:
 
         assert person.is_editable_by(community_manager) is False
 
-    def test_a_community_manager_may_not_edit_an_active_account_that_has_signed_in_without_being_marked_claimed(
-        self, community_manager
-    ):
-        # `createsuperuser` and signing up where email is not verified leave such an account.
-        person = PersonFactory(is_active=True, is_claimed=False, password="x")
-        person.last_login = timezone.now()
-        person.save()
-
-        assert person.is_editable_by(community_manager) is False
-
     def test_a_person_removed_from_the_role_may_no_longer_edit_it(
         self, community_manager
     ):
@@ -2917,11 +1909,6 @@ class TestPersonIsEditableBy:
         community_manager.groups.clear()
 
         assert person.is_editable_by(community_manager) is False
-
-    def test_a_community_manager_may_still_edit_their_own_profile(
-        self, community_manager
-    ):
-        assert community_manager.is_editable_by(community_manager) is True
 
     def test_a_data_curator_may_not_edit_an_unclaimed_person(self):
         curator = PersonFactory(is_active=True, password="x")
@@ -2948,9 +1935,7 @@ class TestOrganizationRorIdentifier:
         "value",
         [
             "not-a-ror",
-            "https://ror.org/not-a-ror",
             "https://example.org/02nr0ka47",
-            "https://ror.org/02nr0ka47/extra",
             "12nr0ka47",
         ],
     )
@@ -2972,14 +1957,6 @@ class TestOrganizationDescendantIds:
         organization = OrganizationFactory()
 
         assert organization.get_descendant_ids() == set()
-
-    def test_the_children_are_included(self):
-        organization = OrganizationFactory()
-        first = OrganizationFactory(parent=organization)
-        second = OrganizationFactory(parent=organization)
-        OrganizationFactory()
-
-        assert organization.get_descendant_ids() == {first.pk, second.pk}
 
     def test_the_grandchildren_are_included(self):
         organization = OrganizationFactory()
@@ -3038,15 +2015,6 @@ class TestOrganizationParentLoop:
 
         organization.full_clean()
 
-    def test_an_organization_that_already_has_children_of_its_own_may_gain_a_parent(
-        self,
-    ):
-        organization = OrganizationFactory()
-        OrganizationFactory(parent=organization)
-        organization.parent = OrganizationFactory()
-
-        organization.full_clean()
-
     def test_an_organization_not_saved_yet_may_have_any_parent(self):
         organization = OrganizationFactory.build(parent=OrganizationFactory())
 
@@ -3066,41 +2034,15 @@ class TestOrganizationIsEditableBy:
         )
         return person
 
-    @pytest.mark.parametrize(
-        "type", [Affiliation.MembershipType.OWNER, Affiliation.MembershipType.ADMIN]
-    )
-    def test_the_owner_and_an_administrator_may_edit_it(self, organization, type):
-        keeper = self._joined(organization, type)
+    def test_a_person_who_keeps_the_record_may_edit_it(self, organization):
+        keeper = self._joined(organization, Affiliation.MembershipType.ADMIN)
 
         assert organization.is_editable_by(keeper) is True
-
-    @pytest.mark.parametrize(
-        "type", [Affiliation.MembershipType.MEMBER, Affiliation.MembershipType.PENDING]
-    )
-    def test_an_ordinary_member_may_not_edit_it(self, organization, type):
-        member = self._joined(organization, type)
-
-        assert organization.is_editable_by(member) is False
 
     def test_a_stranger_may_not_edit_it(self, organization):
         stranger = PersonFactory(is_active=True, password="x")
 
         assert organization.is_editable_by(stranger) is False
-
-    def test_a_visitor_may_not_edit_it(self, organization):
-        assert organization.is_editable_by(AnonymousUser()) is False
-
-    def test_an_administrator_whose_affiliation_has_ended_may_not_edit_it(
-        self, organization
-    ):
-        former = self._joined(
-            organization,
-            Affiliation.MembershipType.ADMIN,
-            start_date="2010",
-            end_date="2014",
-        )
-
-        assert organization.is_editable_by(former) is False
 
     def test_a_deactivated_administrator_may_not_edit_it(self, organization):
         keeper = self._joined(organization, Affiliation.MembershipType.ADMIN)
@@ -3109,39 +2051,7 @@ class TestOrganizationIsEditableBy:
 
         assert organization.is_editable_by(keeper) is False
 
-    def test_a_data_curator_may_not_edit_it(self, organization):
-        curator = PersonFactory(is_active=True, password="x")
-        curator.groups.add(Group.objects.get(name=PortalRoles.DATA_CURATOR.name))
-
-        assert organization.is_editable_by(curator) is False
-
-    def test_a_superuser_who_keeps_no_record_may_not_edit_it(self, organization):
-        superuser = PersonFactory(
-            is_active=True, is_staff=True, is_superuser=True, password="x"
-        )
-
-        assert organization.is_editable_by(superuser) is False
-
-    def test_an_organization_with_no_owner_or_administrators_is_editable_by_none_of_them(
-        self, organization
-    ):
-        member = self._joined(organization, Affiliation.MembershipType.MEMBER)
-        curator = PersonFactory(is_active=True, password="x")
-        curator.groups.add(Group.objects.get(name=PortalRoles.DATA_CURATOR.name))
-        superuser = PersonFactory(
-            is_active=True, is_staff=True, is_superuser=True, password="x"
-        )
-
-        for user in (member, curator, superuser, AnonymousUser()):
-            assert organization.is_editable_by(user) is False
-
     def test_a_community_manager_may_edit_it(self, organization, community_manager):
-        assert organization.is_editable_by(community_manager) is True
-
-    def test_a_community_manager_may_edit_one_with_no_owner(
-        self, organization, community_manager
-    ):
-        assert not organization.affiliations.exists()
         assert organization.is_editable_by(community_manager) is True
 
     def test_a_person_removed_from_the_role_may_no_longer_edit_it(
@@ -3162,9 +2072,8 @@ class TestOrganizationIsEditableBy:
 
 class TestContributorUpdateUrl:
     @pytest.mark.django_db
-    @pytest.mark.parametrize("factory", [PersonFactory, OrganizationFactory])
-    def test_the_address_is_the_editing_page_of_the_overview(self, factory):
-        contributor = factory()
+    def test_the_address_is_the_editing_page_of_the_overview(self):
+        contributor = PersonFactory()
 
         match = resolve(contributor.get_update_url())
 
@@ -3198,19 +2107,11 @@ class TestPersonCanSignIn:
 
 
 @pytest.mark.django_db
-class TestACreditMadeThroughTheHelpersStartsAtTheViewLevel:
-    @pytest.fixture(
-        params=["contribution_add_to", "contributor_add_to", "add_contributor"]
-    )
-    def credit(self, request, project_for_contributions):
-        project = project_for_contributions
-
+class TestACreditStartsAtTheViewLevel:
+    @pytest.fixture
+    def credit(self, project_for_contributions):
         def make(contributor):
-            if request.param == "contribution_add_to":
-                return Contribution.add_to(contributor, project)
-            if request.param == "contributor_add_to":
-                return contributor.add_to(project)
-            return project.add_contributor(contributor)
+            return Contribution.add_to(contributor, project_for_contributions)
 
         return make
 

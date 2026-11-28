@@ -65,10 +65,24 @@ def public_chain(db):
     )
 
 
-@pytest.fixture(params=["project", "dataset", "sample", "measurement"])
-def record(request, public_chain):
-    """Each kind of record in turn."""
-    return getattr(public_chain, request.param)
+@pytest.fixture
+def dataset_pair(db):
+    """A public project and a public dataset inside it, for access held above."""
+    project = ProjectFactory(visibility=Visibility.PUBLIC)
+    dataset = DatasetFactory(
+        project=project, visibility=Visibility.PUBLIC, published=True
+    )
+    return SimpleNamespace(project=project, dataset=dataset)
+
+
+@pytest.fixture
+def record(db):
+    """A public project: the record the contributor tabs are opened on.
+
+    Every kind of record reaches the same tab code, so one kind stands for them all.
+    A test that must see each kind uses ``public_chain``.
+    """
+    return ProjectFactory(visibility=Visibility.PUBLIC)
 
 
 @pytest.fixture

@@ -31,20 +31,9 @@ class TestFindDuplicateCandidates:
         )
 
         candidates = find_duplicate_candidates(john_a_smith)
-        result_persons = [c["person"] for c in candidates]
-        assert john_smith in result_persons
 
-    def test_similar_name_score_above_threshold(self, db, john_smith, john_a_smith):
-        from fairdm.contrib.contributors.services.matching import (
-            find_duplicate_candidates,
-        )
-
-        candidates = find_duplicate_candidates(john_a_smith)
-        john_smith_entry = next(
-            (c for c in candidates if c["person"] == john_smith), None
-        )
-        assert john_smith_entry is not None
-        assert john_smith_entry["score"] >= 0.85
+        assert [c["person"] for c in candidates] == [john_smith]
+        assert candidates[0]["score"] >= 0.85
 
     def test_dissimilar_names_excluded(self, db, john_a_smith, alice_brown):
         from fairdm.contrib.contributors.services.matching import (
@@ -84,8 +73,9 @@ class TestFindDuplicateCandidates:
 
         PersonFactory(name="John Smith")
         PersonFactory(name="J. Smith")
-        candidates = find_duplicate_candidates(john_a_smith)
+        candidates = find_duplicate_candidates(john_a_smith, threshold=0.5)
         scores = [c["score"] for c in candidates]
+        assert len(scores) == 2
         assert scores == sorted(scores, reverse=True)
 
     def test_custom_threshold_respected(self, db, john_smith, alice_brown):
@@ -93,9 +83,11 @@ class TestFindDuplicateCandidates:
             find_duplicate_candidates,
         )
 
+        assert find_duplicate_candidates(john_smith) == []
+
         candidates = find_duplicate_candidates(john_smith, threshold=0.0)
-        result_persons = [c["person"] for c in candidates]
-        assert len(candidates) >= 1
+
+        assert [c["person"] for c in candidates] == [alice_brown]
 
     def test_empty_results_when_no_matches(self, db):
         from fairdm.contrib.contributors.services.matching import (

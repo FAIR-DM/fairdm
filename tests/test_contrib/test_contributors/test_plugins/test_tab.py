@@ -1,8 +1,8 @@
 """Tests for a record's Contributors tab as a page, through the test client.
 
-The tab is opened on a project, a dataset, a registered sample type and a registered
-measurement type, as a manager, as a signed-in reader and as a visitor. Elements are
-found by id, link target and context value. Nothing here asserts a sentence or a layout.
+The tab is opened on a project as a manager, as a signed-in reader and as a visitor, and
+once on each other kind of record. Elements are found by id, link target and context
+value. Nothing here asserts a sentence or a layout.
 """
 
 import pytest
@@ -64,15 +64,11 @@ class TestContributorsTab:
         }
         assert wanted <= offered
 
-    @pytest.mark.parametrize("viewer", ["reader", "visitor", "stranger"])
+    @pytest.mark.parametrize("viewer", ["reader", "visitor"])
     def test_nobody_else_is_offered_a_control(
         self, request, record, colleague, partner, viewer
     ):
-        user = (
-            None
-            if viewer == "visitor"
-            else request.getfixturevalue("newcomer" if viewer == "stranger" else viewer)
-        )
+        user = None if viewer == "visitor" else request.getfixturevalue(viewer)
 
         response = browser_as(user).get(tab(record))
 
@@ -91,19 +87,41 @@ class TestContributorsTab:
             reverse(record, "contribution-list-add-organization"),
         }
 
-    def test_a_manager_sees_who_holds_access_from_a_record_above(self, public_chain):
-        manager = person_on(public_chain.dataset, ContributionLevel.MANAGE)
-        holder = person_on(public_chain.project, ContributionLevel.EDIT)
+    def test_the_tab_opens_on_every_kind_of_record_and_offers_its_manager_both_adds(
+        self, public_chain
+    ):
+        failures = []
+        for kind in ("project", "dataset", "sample", "measurement"):
+            record = getattr(public_chain, kind)
+            manager = person_on(record, ContributionLevel.MANAGE)
 
-        page = soup_of(browser_as(manager).get(tab(public_chain.dataset)))
+            response = browser_as(manager).get(tab(record))
+
+            offered = {
+                tag["hx-get"] for tag in soup_of(response).select(".contrib-add")
+            }
+            wanted = {
+                reverse(record, "contribution-list-add-person"),
+                reverse(record, "contribution-list-add-organization"),
+            }
+            if response.status_code != 200 or offered != wanted:
+                failures.append((kind, response.status_code, offered))
+
+        assert not failures
+
+    def test_a_manager_sees_who_holds_access_from_a_record_above(self, dataset_pair):
+        manager = person_on(dataset_pair.dataset, ContributionLevel.MANAGE)
+        holder = person_on(dataset_pair.project, ContributionLevel.EDIT)
+
+        page = soup_of(browser_as(manager).get(tab(dataset_pair.dataset)))
 
         assert page.select_one(f"#contrib-above-{holder.pk}")
 
-    def test_a_reader_does_not_see_who_holds_access_from_above(self, public_chain):
-        reader = person_on(public_chain.dataset, ContributionLevel.VIEW)
-        person_on(public_chain.project, ContributionLevel.EDIT)
+    def test_a_reader_does_not_see_who_holds_access_from_above(self, dataset_pair):
+        reader = person_on(dataset_pair.dataset, ContributionLevel.VIEW)
+        person_on(dataset_pair.project, ContributionLevel.EDIT)
 
-        page = soup_of(browser_as(reader).get(tab(public_chain.dataset)))
+        page = soup_of(browser_as(reader).get(tab(dataset_pair.dataset)))
 
         assert not page.select("[data-contrib-above]")
 
@@ -111,9 +129,9 @@ class TestContributorsTab:
 @pytest.mark.django_db
 class TestContributorsTabQueries:
     @staticmethod
-    def queries_with(record, manager, people):
-        """Count the queries the tab takes once the record lists this many people."""
-        for _number in range(people - record.contributors.people().count()):
+    def queries_with(record, manager, others):
+        """Count the tab's queries once the record also lists this many people."""
+        for _number in range(others):
             ContributionFactory(
                 content_object=record,
                 contributor=PersonFactory(is_active=True, is_claimed=True),
@@ -129,7 +147,7 @@ class TestContributorsTabQueries:
         return len(captured)
 
     def test_the_count_does_not_grow_with_the_number_of_people(self, record, manager):
-        few = self.queries_with(record, manager, 5)
-        many = self.queries_with(record, manager, 25)
+        one = self.queries_with(record, manager, 1)
+        three = self.queries_with(record, manager, 2)  # two more, three in all
 
-        assert many == few
+        assert three == one

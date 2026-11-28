@@ -2,7 +2,7 @@
 
 import pytest
 
-from fairdm.contrib.contributors.models import Organization
+from fairdm.contrib.contributors.models import ContributorIdentifier, Organization
 from fairdm.contrib.contributors.utils.transforms import (
     CSLJSONTransform,
     DataCiteTransform,
@@ -11,6 +11,7 @@ from fairdm.contrib.contributors.utils.transforms import (
     SchemaOrgTransform,
 )
 from fairdm.core.vocabularies import IDENTIFIER_TYPES
+from fairdm.factories import AffiliationFactory
 
 
 @pytest.mark.django_db
@@ -19,27 +20,28 @@ class TestDataCitePersonExport:
         transform = DataCiteTransform()
         datacite_data = transform.export(person)
 
-        assert "name" in datacite_data
         assert datacite_data["name"] == person.name
-        assert "nameType" in datacite_data
         assert datacite_data["nameType"] == "Personal"
 
     def test_datacite_export_person_with_orcid(self, person, orcid_identifier):
         transform = DataCiteTransform()
         datacite_data = transform.export(person)
 
-        assert "nameIdentifiers" in datacite_data
-        assert len(datacite_data["nameIdentifiers"]) > 0
-        orcid_id = datacite_data["nameIdentifiers"][0]
+        (orcid_id,) = datacite_data["nameIdentifiers"]
         assert orcid_id["nameIdentifier"] == orcid_identifier.value
         assert orcid_id["nameIdentifierScheme"] == "ORCID"
 
-    def test_datacite_export_person_with_affiliation(self, person, affiliation):
-        transform = DataCiteTransform()
-        datacite_data = transform.export(person)
+    def test_datacite_export_person_with_affiliation(
+        self, person, organization, ror_identifier
+    ):
+        AffiliationFactory(person=person, organization=organization, is_primary=True)
 
-        assert "name" in datacite_data
-        assert datacite_data["nameType"] == "Personal"
+        datacite_data = DataCiteTransform().export(person)
+
+        (affiliation,) = datacite_data["affiliation"]
+        assert affiliation["name"] == organization.name
+        assert affiliation["affiliationIdentifier"] == ror_identifier.value
+        assert affiliation["affiliationIdentifierScheme"] == "ROR"
 
     def test_datacite_import_creates_person(self):
         transform = DataCiteTransform()
@@ -113,8 +115,13 @@ class TestORCIDRoundTrip:
         transform = ORCIDTransform()
         orcid_data = transform.export(person)
 
-        assert "person" in orcid_data
-        assert "name" in orcid_data["person"]
+        assert orcid_data["orcid-identifier"]["path"] == orcid_identifier.value
+        assert orcid_data["person"]["name"]["given-names"] == {
+            "value": person.first_name
+        }
+        assert orcid_data["person"]["name"]["family-name"] == {
+            "value": person.last_name
+        }
 
     def test_orcid_import_person(self):
         transform = ORCIDTransform()
@@ -135,12 +142,17 @@ class TestORCIDRoundTrip:
 
 @pytest.mark.django_db
 class TestRORRoundTrip:
-    def test_ror_export_organization(self, organization, ror_identifier):
-        transform = RORTransform()
-        ror_data = transform.export(organization)
+    def test_ror_export_organization(self, organization):
+        ContributorIdentifier.objects.create(
+            related=organization,
+            type_id=f"{IDENTIFIER_TYPES}/ror",
+            value="04z8jg394",
+        )
 
-        assert "name" in ror_data
+        ror_data = RORTransform().export(organization)
+
         assert ror_data["name"] == organization.name
+        assert ror_data["id"] == "https://ror.org/04z8jg394"
 
     def test_ror_import_organization(self, recorded):
         org = RORTransform().import_data(recorded("ror-record"))
@@ -209,20 +221,8 @@ class TestRORRoundTrip:
 
 @pytest.mark.django_db
 class TestTransformValidation:
-    def test_datacite_validates_correct_structure(self):
+    def test_a_mapping_is_valid_and_anything_else_is_not(self):
         transform = DataCiteTransform()
-        valid_data = {
-            "name": "Doe, Jane",
-            "nameType": "Personal",
-        }
 
-        assert transform.validate(valid_data) is True
-
-    def test_schema_org_validates_correct_structure(self):
-        transform = SchemaOrgTransform()
-        valid_data = {
-            "@type": "Organization",
-            "name": "Test Org",
-        }
-
-        assert transform.validate(valid_data) is True
+        assert transform.validate({"name": "Doe, Jane", "nameType": "Personal"}) is True
+        assert transform.validate(["Doe, Jane"]) is False

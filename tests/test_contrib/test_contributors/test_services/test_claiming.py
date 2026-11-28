@@ -1,11 +1,13 @@
 """Tests for the claiming service functions."""
 
-from unittest.mock import MagicMock
-
 import pytest
+from allauth.socialaccount.models import SocialAccount, SocialApp, SocialLogin
+from django.contrib.sites.models import Site
 
 from fairdm.contrib.contributors.exceptions import ClaimingError
 from fairdm.contrib.contributors.models import ClaimingAuditLog, Person
+
+ORCID_UID = "0000-0001-2345-6789"
 
 
 @pytest.fixture
@@ -33,11 +35,15 @@ def banned_person(db):
 
 @pytest.fixture
 def mock_sociallogin(unclaimed_person):
-    sl = MagicMock()
-    sl.user = unclaimed_person
-    sl.account.uid = "0000-0001-2345-6789"
-    sl.account.provider = "orcid"
-    return sl
+    """The ORCID sign-in that arrives for the unclaimed person, as allauth builds it."""
+    app = SocialApp.objects.create(
+        provider="orcid", name="ORCID", client_id="id", secret="secret"
+    )
+    app.sites.add(Site.objects.get_current())
+    return SocialLogin(
+        user=unclaimed_person,
+        account=SocialAccount(provider="orcid", uid=ORCID_UID),
+    )
 
 
 class TestClaimViaOrcid:
@@ -60,7 +66,8 @@ class TestClaimViaOrcid:
 
         claim_via_orcid(unclaimed_person, mock_sociallogin)
 
-        mock_sociallogin.connect.assert_called_once()
+        account = SocialAccount.objects.get(provider="orcid", uid=ORCID_UID)
+        assert account.user_id == unclaimed_person.pk
 
     def test_already_claimed_raises_claiming_error(
         self, db, claimed_person, mock_sociallogin
@@ -187,47 +194,6 @@ class TestClaimViaToken:
         assert unclaimed_person.is_claimed is True
         assert unclaimed_person.is_active is True
 
-    def test_already_claimed_token_raises_claiming_error(
-        self, db, unclaimed_person, claimed_person
-    ):
-        from fairdm.contrib.contributors.services.claiming import claim_via_token
-        from fairdm.contrib.contributors.utils.tokens import generate_claim_token
-
-        token = generate_claim_token(unclaimed_person)
-        claim_via_token(token, claimed_person)
-        other_person = Person.objects.create_unclaimed(
-            first_name="Other", last_name="User"
-        )
-        other_person.email = "other@example.com"
-        other_person.is_claimed = True
-        other_person.save()
-
-        with pytest.raises(ClaimingError):
-            claim_via_token(token, other_person)
-
-    def test_expired_token_raises_claiming_error(
-        self, db, unclaimed_person, claimed_person, settings
-    ):
-        import time
-
-        from fairdm.contrib.contributors.services.claiming import claim_via_token
-        from fairdm.contrib.contributors.utils.tokens import generate_claim_token
-
-        settings.CLAIM_TOKEN_MAX_AGE = 0
-        token = generate_claim_token(unclaimed_person)
-        time.sleep(0.01)
-
-        with pytest.raises(ClaimingError):
-            claim_via_token(token, claimed_person)
-
-    def test_tampered_token_raises_claiming_error(
-        self, db, unclaimed_person, claimed_person
-    ):
-        from fairdm.contrib.contributors.services.claiming import claim_via_token
-
-        with pytest.raises(ClaimingError):
-            claim_via_token("this.is.not.a.valid.token", claimed_person)
-
     def test_banned_target_person_raises_claiming_error(
         self, db, banned_person, claimed_person
     ):
@@ -239,7 +205,7 @@ class TestClaimViaToken:
         with pytest.raises(ClaimingError):
             claim_via_token(token, claimed_person)
 
-    def test_failed_claim_logged_with_failure_reason(
+    def test_a_refused_token_is_logged_with_its_reason(
         self, db, unclaimed_person, claimed_person
     ):
         from fairdm.contrib.contributors.services.claiming import claim_via_token

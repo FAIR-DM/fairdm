@@ -1,75 +1,65 @@
 """Tests for the email_confirmed signal handler."""
 
-from unittest.mock import MagicMock, patch
-
 import pytest
+from allauth.account.models import EmailAddress
+from allauth.account.signals import email_confirmed
+
+from fairdm.contrib.contributors.models import Person
+
+EMAIL = "signal_test@example.com"
 
 
 @pytest.fixture
 def unclaimed_person_with_email(db):
-    from fairdm.contrib.contributors.models import Person
-
     person = Person.objects.create_unclaimed(first_name="Signal", last_name="Test")
-    person.email = "signal_test@example.com"
+    person.email = EMAIL
     person.save()
     return person
 
 
-class TestHandleEmailConfirmed:
-    def test_email_confirmed_triggers_claim_when_mandatory(
-        self, db, unclaimed_person_with_email, settings
-    ):
-        from allauth.account.models import EmailAddress
-        from allauth.account.signals import email_confirmed
+def confirm(email):
+    address = EmailAddress(email=email)
+    email_confirmed.send(sender=EmailAddress, request=None, email_address=address)
 
+
+class TestHandleEmailConfirmed:
+    def test_confirming_an_unclaimed_persons_email_claims_them(
+        self, unclaimed_person_with_email, settings
+    ):
         settings.ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 
-        email_address = MagicMock(spec=EmailAddress)
-        email_address.email = "signal_test@example.com"
+        confirm(EMAIL)
 
-        with patch("fairdm.contrib.contributors.signals.claim_via_email") as mock_claim:
-            mock_claim.return_value = unclaimed_person_with_email
-            email_confirmed.send(
-                sender=EmailAddress,
-                request=MagicMock(),
-                email_address=email_address,
-            )
-            mock_claim.assert_called_once_with(unclaimed_person_with_email)
+        unclaimed_person_with_email.refresh_from_db()
+        assert unclaimed_person_with_email.is_claimed is True
 
-    def test_email_confirmed_no_op_when_not_mandatory(
-        self, db, unclaimed_person_with_email, settings
+    def test_confirming_an_email_claims_nobody_when_verification_is_not_mandatory(
+        self, unclaimed_person_with_email, settings
     ):
-        from allauth.account.models import EmailAddress
-        from allauth.account.signals import email_confirmed
-
         settings.ACCOUNT_EMAIL_VERIFICATION = "optional"
 
-        email_address = MagicMock(spec=EmailAddress)
-        email_address.email = "signal_test@example.com"
+        confirm(EMAIL)
 
-        with patch("fairdm.contrib.contributors.signals.claim_via_email") as mock_claim:
-            email_confirmed.send(
-                sender=EmailAddress,
-                request=MagicMock(),
-                email_address=email_address,
-            )
-            mock_claim.assert_not_called()
+        unclaimed_person_with_email.refresh_from_db()
+        assert unclaimed_person_with_email.is_claimed is False
 
-    def test_email_confirmed_no_op_when_no_matching_unclaimed_person(
-        self, db, settings
+    def test_confirming_an_unknown_email_leaves_other_people_unclaimed(
+        self, unclaimed_person_with_email, settings
     ):
-        from allauth.account.models import EmailAddress
-        from allauth.account.signals import email_confirmed
-
         settings.ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 
-        email_address = MagicMock(spec=EmailAddress)
-        email_address.email = "no_such_person@example.com"
+        confirm("no_such_person@example.com")
 
-        with patch("fairdm.contrib.contributors.signals.claim_via_email") as mock_claim:
-            email_confirmed.send(
-                sender=EmailAddress,
-                request=MagicMock(),
-                email_address=email_address,
-            )
-            mock_claim.assert_not_called()
+        unclaimed_person_with_email.refresh_from_db()
+        assert unclaimed_person_with_email.is_claimed is False
+
+    def test_a_claim_that_fails_is_swallowed_and_leaves_the_person_unclaimed(
+        self, unclaimed_person_with_email, settings
+    ):
+        settings.ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+        Person.objects.filter(pk=unclaimed_person_with_email.pk).update(is_active=False)
+
+        confirm(EMAIL)
+
+        unclaimed_person_with_email.refresh_from_db()
+        assert unclaimed_person_with_email.is_claimed is False

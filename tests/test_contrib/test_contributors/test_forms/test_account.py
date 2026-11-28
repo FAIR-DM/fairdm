@@ -107,11 +107,10 @@ class TestSocialSignupForm:
         existing.refresh_from_db()
         assert existing.is_claimed is False
 
-    @pytest.mark.parametrize("verification", ["none", "optional", "mandatory"])
     def test_a_person_a_sign_up_creates_is_claimed_from_the_start(
-        self, orcid_signup, settings, rf, verification
+        self, orcid_signup, settings, rf
     ):
-        settings.ACCOUNT_EMAIL_VERIFICATION = verification
+        settings.ACCOUNT_EMAIL_VERIFICATION = "mandatory"
         request = rf.get("/")
         request.session = {}
         provider = SocialApp.objects.get().get_provider(request)

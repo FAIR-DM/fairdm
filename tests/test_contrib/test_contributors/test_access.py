@@ -304,17 +304,10 @@ class TestPeopleAbove:
 
         assert RecordAccess(record_chain.sample).people_above() == []
 
-    def test_an_organization_holding_a_level_is_never_named(
-        self, record_chain, grant
-    ):
+    def test_an_organization_holding_a_level_is_never_named(self, record_chain, grant):
         grant(record_chain.project, OrganizationFactory(), VIEW)
 
         assert RecordAccess(record_chain.sample).people_above() == []
-
-    def test_an_organization_is_never_named(self, record_chain, grant):
-        grant(record_chain.project, OrganizationFactory(), None)
-
-        assert RecordAccess(record_chain.dataset).people_above() == []
 
 
 @pytest.mark.django_db

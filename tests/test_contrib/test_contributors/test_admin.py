@@ -9,65 +9,19 @@ from django.test import RequestFactory
 from django.urls import reverse
 
 from fairdm.contrib.contributors.models import Affiliation, Organization, Person
-from fairdm.core.vocabularies import IDENTIFIER_TYPES
-
-
-@pytest.mark.django_db
-class TestPersonAdminChangelist:
-    def test_person_admin_changelist_loads(
-        self, admin_client, person, unclaimed_person
-    ):
-        url = reverse("admin:contributors_person_changelist")
-        response = admin_client.get(url)
-
-        assert response.status_code == 200
-        content = response.content.decode()
-
-        assert person.name in content or person.email in content
-        assert unclaimed_person.name in content
-
-    def test_person_admin_change_view_loads(self, admin_client, person):
-        url = reverse("admin:contributors_person_change", args=[person.pk])
-        response = admin_client.get(url)
-
-        assert response.status_code == 200
-        content = response.content.decode()
-
-        assert person.email in content
-        assert person.first_name in content
 
 
 @pytest.mark.django_db
 class TestPersonAdminClaimFilter:
-    def test_person_admin_claim_filter_exists(self, admin_client):
-        url = reverse("admin:contributors_person_changelist")
-        response = admin_client.get(url)
-
-        assert response.status_code == 200
-
-    def test_person_admin_filter_claimed_only(
-        self, admin_client, person, unclaimed_person
-    ):
-        url = reverse("admin:contributors_person_changelist")
-        response = admin_client.get(url, {"is_claimed": "claimed"})
-
-        assert response.status_code == 200
-        content = response.content.decode()
-
-        assert person.name in content or person.email in content
-        assert unclaimed_person.name not in content or "0 persons" in content.lower()
-
-    def test_person_admin_filter_unclaimed_only(
+    def test_the_changelist_is_narrowed_by_the_claim_filter(
         self, admin_client, person, unclaimed_person
     ):
         url = reverse("admin:contributors_person_changelist")
         response = admin_client.get(url, {"is_claimed": "unclaimed"})
 
-        assert response.status_code == 200
-        content = response.content.decode()
-
-        assert unclaimed_person.name in content
-        assert person.email not in content or "0 persons" in content.lower()
+        listed = {listed.pk for listed in response.context["cl"].result_list}
+        assert unclaimed_person.pk in listed
+        assert person.pk not in listed
 
 
 @pytest.mark.django_db
@@ -138,154 +92,23 @@ class TestClaimStatusFilter:
 
 
 @pytest.mark.django_db
-class TestPersonAdminInlineAffiliations:
-    def test_person_admin_affiliation_inline_present(self, admin_client, person):
-        url = reverse("admin:contributors_person_change", args=[person.pk])
-        response = admin_client.get(url)
-
-        assert response.status_code == 200
-
-    def test_person_admin_affiliation_inline_shows_existing(
-        self, admin_client, person, affiliation
-    ):
-        url = reverse("admin:contributors_person_change", args=[person.pk])
-        response = admin_client.get(url)
-
-        assert response.status_code == 200
-        content = response.content.decode()
-
-        assert affiliation.organization.name in content
-
-    def test_person_admin_can_add_affiliation_inline(
-        self, admin_client, person, organization
-    ):
-        affiliation = Affiliation.objects.create(
-            person=person,
-            organization=organization,
-            type=Affiliation.MembershipType.MEMBER,
-            is_primary=True,
-        )
-
-        url = reverse("admin:contributors_person_change", args=[person.pk])
-        response = admin_client.get(url)
-
-        assert response.status_code == 200
-        assert str(organization) in response.content.decode()
-        assert person.affiliations.filter(organization=organization).exists()
-
-
-@pytest.mark.django_db
-class TestOrganizationAdminChangelist:
-    def test_organization_admin_changelist_loads(self, admin_client, organization):
-        url = reverse("admin:contributors_organization_changelist")
-        response = admin_client.get(url)
-
-        assert response.status_code == 200
-        content = response.content.decode()
-
-        assert organization.name in content
-
-    def test_organization_admin_change_view_loads(self, admin_client, organization):
-        url = reverse("admin:contributors_organization_change", args=[organization.pk])
-
-        assert url
-        assert f"/admin/contributors/organization/{organization.pk}/change/" in url
-
-
-@pytest.mark.django_db
-class TestOrganizationAdminInlineMembers:
-    def test_organization_admin_members_inline_present(
-        self, admin_client, organization
-    ):
-        url = reverse("admin:contributors_organization_change", args=[organization.pk])
-        response = admin_client.get(url)
-
-        assert response.status_code == 200
-
-    def test_organization_admin_members_inline_shows_existing(
-        self, admin_client, organization, affiliation
-    ):
-        url = reverse("admin:contributors_organization_change", args=[organization.pk])
-        response = admin_client.get(url)
-
-        assert response.status_code == 200
-        content = response.content.decode()
-
-        assert affiliation.person.name in content or affiliation.person.email in content
-
-
-@pytest.mark.django_db
-class TestOrganizationAdminInlines:
-    def test_member_inline_is_registered(self):
-        from fairdm.contrib.contributors.admin import MemberInline
-        from fairdm.contrib.contributors.models import Organization
-
-        model_admin = admin.site._registry[Organization]
-        assert MemberInline in model_admin.inlines
-
-    def test_sub_organization_inline_is_registered(self):
-        from fairdm.contrib.contributors.admin import SubOrganizationInline
-        from fairdm.contrib.contributors.models import Organization
-
-        model_admin = admin.site._registry[Organization]
-        assert SubOrganizationInline in model_admin.inlines
-        assert SubOrganizationInline.model is Organization
-        assert SubOrganizationInline.fk_name == "parent"
-
-    def test_sub_organizations_are_listed_on_the_organization_screen(
-        self, admin_client, organization
-    ):
-        from fairdm.factories import OrganizationFactory
-
-        child = OrganizationFactory(name="Sub-department", parent=organization)
-        url = reverse("admin:contributors_organization_change", args=[organization.pk])
-        response = admin_client.get(url)
-
-        assert response.status_code == 200
-        assert child.name in response.content.decode()
-
-
-@pytest.mark.django_db
 class TestOrganizationAdminRORSync:
-    def test_organization_admin_ror_sync_action_present(
-        self, admin_client, organization
+    def test_the_sync_action_stores_the_record_of_each_selected_organization(
+        self, admin_client, organization, ror_identifier, registry_network, recorded
     ):
-        url = reverse("admin:contributors_organization_changelist")
-        response = admin_client.get(url)
-
-        assert response.status_code == 200
-        content = response.content.decode()
-
-        assert 'value="sync_from_ror"' in content
-
-    def test_organization_admin_ror_sync_action_works(
-        self, admin_client, organization, mocker
-    ):
-        mock_task = mocker.patch(
-            "fairdm.contrib.contributors.tasks.sync_contributor_identifier.delay"
+        registry_network.answer(
+            "https://api.ror.org/v2/organizations/02nr0ka47", recorded("ror-record")
         )
 
-        from fairdm.contrib.contributors.models import ContributorIdentifier
-
-        ror_id = ContributorIdentifier.objects.create(
-            related=organization,
-            type_id=f"{IDENTIFIER_TYPES}/ror",
-            value="https://ror.org/abc123",
-        )
-
-        url = reverse("admin:contributors_organization_changelist")
         response = admin_client.post(
-            url,
-            {
-                "action": "sync_from_ror",
-                "_selected_action": [organization.pk],
-            },
+            reverse("admin:contributors_organization_changelist"),
+            {"action": "sync_from_ror", "_selected_action": [organization.pk]},
             follow=True,
         )
 
         assert response.status_code == 200
-
-        mock_task.assert_called_once_with(ror_id.pk)
+        organization.refresh_from_db()
+        assert organization.synced_data == recorded("ror-record")
 
 
 @pytest.mark.django_db
@@ -367,51 +190,6 @@ class TestOwnershipTransferAction:
 
         messages_text = " ".join(str(m) for m in get_messages(response.wsgi_request))
         assert "don't have permission" in messages_text
-
-
-@pytest.mark.django_db
-class TestOrganizationAdmin:
-    def test_public_identifier_is_readonly(self):
-        from fairdm.contrib.contributors.models import Organization
-
-        model_admin = admin.site._registry[Organization]
-        assert "uuid" in model_admin.readonly_fields
-        assert "uuid" in _fieldset_field_names(model_admin.fieldsets)
-
-    def test_list_filter_includes_country(self):
-        from fairdm.contrib.contributors.models import Organization
-
-        model_admin = admin.site._registry[Organization]
-        assert "country" in model_admin.list_filter
-
-    def test_fieldsets_present(self, admin_client, organization):
-        url = reverse("admin:contributors_organization_change", args=[organization.pk])
-        response = admin_client.get(url)
-
-        assert response.status_code == 200
-
-
-@pytest.mark.django_db
-class TestAffiliationAdmin:
-    def test_affiliation_is_registered_with_autocomplete_relations(self):
-        model_admin = admin.site._registry[Affiliation]
-        assert set(model_admin.autocomplete_fields) == {"person", "organization"}
-
-    def test_no_contribution_or_identifier_admin_is_registered(self):
-        from fairdm.contrib.contributors.models import (
-            Contribution,
-            ContributorIdentifier,
-        )
-
-        assert Contribution not in admin.site._registry
-        assert ContributorIdentifier not in admin.site._registry
-
-    def test_changelist_loads(self, admin_client, affiliation):
-        url = reverse("admin:contributors_affiliation_changelist")
-        response = admin_client.get(url)
-
-        assert response.status_code == 200
-        assert affiliation.person.name in response.content.decode()
 
 
 def _grant(user, model, codename):
@@ -995,20 +773,6 @@ class TestPersonAdminFields:
 
 
 class TestClaimingAuditLogAdminView:
-    def test_changelist_view_returns_200(self, db, admin_client, audit_log_entry):
-        from django.urls import reverse
-
-        url = reverse("admin:contributors_claimingauditlog_changelist")
-        response = admin_client.get(url)
-        assert response.status_code == 200
-
-    def test_admin_has_no_add_permission(self, db, admin_client):
-        from django.urls import reverse
-
-        url = reverse("admin:contributors_claimingauditlog_add")
-        response = admin_client.get(url)
-        assert response.status_code == 403
-
     def test_admin_has_no_change_permission(self, db, admin_client, audit_log_entry):
         from django.urls import reverse
 
@@ -1033,35 +797,6 @@ def _fieldset_field_names(fieldsets):
 
 @pytest.mark.django_db
 class TestPersonAdmin:
-    def test_fieldsets_present_account_and_profile_fields_together(self):
-        model_admin = admin.site._registry[Person]
-        field_names = _fieldset_field_names(model_admin.fieldsets)
-
-        account_fields = {"password", "is_active", "is_staff", "is_superuser"}
-        profile_fields = {"name", "email", "profile", "image"}
-
-        assert account_fields <= field_names
-        assert profile_fields <= field_names
-
-    def test_no_separate_account_model_is_registered(self):
-        from fairdm.contrib.contributors.models import Contributor
-
-        assert Person in admin.site._registry
-        assert Contributor not in admin.site._registry
-
-    def test_public_identifier_and_timestamps_are_readonly(self):
-        model_admin = admin.site._registry[Person]
-        assert "uuid" in model_admin.readonly_fields
-        assert "added" in model_admin.readonly_fields
-        assert "modified" in model_admin.readonly_fields
-        assert {"uuid", "added", "modified"} <= _fieldset_field_names(
-            model_admin.fieldsets
-        )
-
-    def test_search_fields_cover_name_email_and_public_identifier(self):
-        model_admin = admin.site._registry[Person]
-        assert set(model_admin.search_fields) == {"email", "name", "uuid"}
-
     def test_list_display_reports_account_state(self, person, unclaimed_person):
         model_admin = admin.site._registry[Person]
         assert "account_state" in model_admin.list_display
@@ -1071,87 +806,56 @@ class TestPersonAdmin:
 
 @pytest.mark.django_db
 class TestContributorAdminSmoke:
-    EXPECTED_ADD_STATUS = {
-        "person": 200,
-        "organization": 200,
-        "affiliation": 200,
-        "claimingauditlog": 403,
-    }
-    EXPECTED_CHANGE_STATUS = {
-        "person": 200,
-        "organization": 200,
-        "affiliation": 200,
-        "claimingauditlog": 403,
+    #: The status each registered model's changelist, add page and change page answer
+    #: with.
+    EXPECTED = {
+        "person": (200, 200, 200),
+        "organization": (200, 200, 200),
+        "affiliation": (200, 200, 200),
+        "claimingauditlog": (200, 403, 403),
     }
 
-    def _registered_app_models(self):
-        from django.apps import apps
-
-        app_models = set(apps.get_app_config("contributors").get_models())
-        return [model for model in admin.site._registry if model in app_models]
-
-    def test_every_registered_model_is_covered_by_the_expectation_maps(self):
-        registered_names = {
-            model._meta.model_name for model in self._registered_app_models()
-        }
-        assert registered_names == set(self.EXPECTED_ADD_STATUS)
-        assert registered_names == set(self.EXPECTED_CHANGE_STATUS)
-
-    def test_every_registered_model_changelist_loads(self, admin_client):
-        for model in self._registered_app_models():
-            opts = model._meta
-            url = reverse(f"admin:{opts.app_label}_{opts.model_name}_changelist")
-            response = admin_client.get(url)
-            assert response.status_code == 200, f"{model.__name__} changelist"
-
-    def test_add_view_matches_expectation(self, admin_client):
-        for model in self._registered_app_models():
-            opts = model._meta
-            url = reverse(f"admin:{opts.app_label}_{opts.model_name}_add")
-            response = admin_client.get(url)
-            expected = self.EXPECTED_ADD_STATUS[opts.model_name]
-            assert response.status_code == expected, f"{model.__name__} add"
-
-    def test_change_view_matches_expectation(
+    def test_every_registered_page_answers_as_expected(
         self, admin_client, person, organization, affiliation, audit_log_entry
     ):
+        from django.apps import apps
+
         instances = {
             "person": person,
             "organization": organization,
             "affiliation": affiliation,
             "claimingauditlog": audit_log_entry,
         }
-        for model in self._registered_app_models():
-            opts = model._meta
-            obj = instances[opts.model_name]
-            url = reverse(
-                f"admin:{opts.app_label}_{opts.model_name}_change", args=[obj.pk]
+        app_models = set(apps.get_app_config("contributors").get_models())
+        registered = [model for model in admin.site._registry if model in app_models]
+
+        failures = []
+        if {model._meta.model_name for model in registered} != set(self.EXPECTED):
+            failures.append(
+                f"registered models {sorted(m._meta.model_name for m in registered)}"
+                f" differ from {sorted(self.EXPECTED)}"
             )
-            response = admin_client.get(url)
-            expected = self.EXPECTED_CHANGE_STATUS[opts.model_name]
-            assert response.status_code == expected, f"{model.__name__} change"
-
-
-@pytest.mark.django_db
-class TestPersonChoicesInTheAdmin:
-    def test_the_new_owner_is_chosen_with_the_person_field(self):
-        from fairdm.contrib.autocomplete.fields import PersonChoiceField
-        from fairdm.contrib.contributors.admin import OrganizationActionForm
-
-        field = OrganizationActionForm().fields["new_owner"]
-
-        assert isinstance(field, PersonChoiceField)
-
-    def test_the_merge_page_carries_the_scripts_of_the_target_field(
-        self, admin_client, unclaimed_person
-    ):
-        url = reverse("admin:contributors_person_merge", args=[unclaimed_person.pk])
-
-        response = admin_client.get(url)
-
-        media = str(response.context["form"].media)
-        assert media
-        assert media in response.content.decode()
+        for model in registered:
+            opts = model._meta
+            expected = self.EXPECTED.get(opts.model_name)
+            if expected is None:
+                continue
+            obj = instances[opts.model_name]
+            pages = {
+                "changelist": ("changelist", [], expected[0]),
+                "add": ("add", [], expected[1]),
+                "change": ("change", [obj.pk], expected[2]),
+            }
+            for label, (view, args, status) in pages.items():
+                url = reverse(
+                    f"admin:{opts.app_label}_{opts.model_name}_{view}", args=args
+                )
+                got = admin_client.get(url).status_code
+                if got != status:
+                    failures.append(
+                        f"{model.__name__} {label}: {got}, expected {status}"
+                    )
+        assert not failures, failures
 
 
 def _admitted_holder_of(role, email):
@@ -1287,6 +991,17 @@ class TestMergePagePreselection:
         response = admin_client.get(self._merge_url(unclaimed_person, target.pk))
 
         assert response.context["form"]["merge_into"].value() == target.pk
+
+    def test_the_merge_page_carries_the_scripts_of_the_target_field(
+        self, admin_client, unclaimed_person
+    ):
+        response = admin_client.get(
+            reverse("admin:contributors_person_merge", args=[unclaimed_person.pk])
+        )
+
+        media = str(response.context["form"].media)
+        assert media
+        assert media in response.content.decode()
 
     def test_the_chosen_person_is_drawn_in_the_field(
         self, admin_client, unclaimed_person

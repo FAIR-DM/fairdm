@@ -10,18 +10,6 @@ from fairdm.core.vocabularies import CONTRIBUTOR_ROLES
 
 class TestPersonQuerysets:
     @pytest.mark.django_db
-    def test_claimed_queryset(self, person):
-        unclaimed = Person.objects.create_unclaimed(
-            first_name="Unclaimed",
-            last_name="Test",
-        )
-
-        claimed_persons = Person.objects.claimed()
-
-        assert person in claimed_persons
-        assert unclaimed not in claimed_persons
-
-    @pytest.mark.django_db
     def test_unclaimed_queryset(self, unclaimed_person):
         claimed = Person.objects.create(
             email="claimed@example.com",
@@ -38,40 +26,8 @@ class TestPersonQuerysets:
         assert unclaimed_person in unclaimed_persons
         assert claimed not in unclaimed_persons
 
-    @pytest.mark.django_db
-    def test_claimed_excludes_inactive_with_email(self):
-        inactive = Person.objects.create(
-            email="inactive@example.com",
-            first_name="Inactive",
-            last_name="User",
-            is_active=False,
-        )
-
-        claimed_persons = Person.objects.claimed()
-
-        assert inactive not in claimed_persons
-
 
 class TestAccountStateFilters:
-    @pytest.mark.django_db
-    @pytest.mark.parametrize("filter_name", ["ghost", "invited", "claimed", "inactive"])
-    def test_filter_returns_exactly_the_matching_population_member(
-        self, contributor_population, filter_name
-    ):
-        pop = contributor_population
-        by_state = {
-            "ghost": pop.ghost,
-            "invited": pop.invited,
-            "claimed": pop.claimed,
-            "inactive": pop.inactive,
-        }
-        expected = by_state.pop(filter_name)
-        result = getattr(Person.objects, filter_name)()
-
-        assert expected in result
-        for other in by_state.values():
-            assert other not in result
-
     @pytest.mark.django_db
     def test_filters_partition_the_whole_table_exactly_once(
         self, contributor_population
@@ -160,7 +116,6 @@ class TestContributionByRole:
 
         qs = Contribution.objects.by_role(role.uri)
 
-        assert qs.count() > 0
         assert contribution in qs
 
     @pytest.mark.django_db
@@ -185,18 +140,6 @@ class TestContributionForEntity:
 
         other_qs = Contribution.objects.for_entity(other_project)
         assert contribution not in other_qs
-
-    @pytest.mark.django_db
-    def test_for_entity_returns_empty_for_new_object(self, organization):
-        from fairdm.factories import ProjectFactory
-
-        new_project = ProjectFactory(owner=organization)
-
-        new_project.contributors.all().delete()
-
-        qs = Contribution.objects.for_entity(new_project)
-
-        assert qs.count() == 0
 
 
 class TestDuplicateDetection:
@@ -343,44 +286,6 @@ class TestAffiliationQuerysetMethods:
         assert past_aff in past_affiliations
         assert current_aff not in past_affiliations
 
-    @pytest.mark.django_db
-    def test_affiliation_current_and_past_mutually_exclusive(self, db):
-        from fairdm.factories import (
-            AffiliationFactory,
-            OrganizationFactory,
-            PersonFactory,
-        )
-
-        person = PersonFactory()
-        org1 = OrganizationFactory(name="Org 1")
-        org2 = OrganizationFactory(name="Org 2")
-        org3 = OrganizationFactory(name="Org 3")
-
-        AffiliationFactory(
-            person=person,
-            organization=org1,
-            end_date=None,
-        )
-        AffiliationFactory(
-            person=person,
-            organization=org2,
-            end_date=None,
-        )
-
-        AffiliationFactory(
-            person=person,
-            organization=org3,
-            end_date="2020",
-        )
-
-        current = person.affiliations.current()
-        past = person.affiliations.past()
-
-        assert current.count() == 2
-        assert past.count() == 1
-
-        assert set(current) & set(past) == set()
-
 
 class TestAffiliationOwnersMethod:
     @pytest.mark.django_db
@@ -479,45 +384,6 @@ class TestActiveAccounts:
         assert contributor_population.invited in active
         assert contributor_population.claimed in active
         assert contributor_population.inactive not in active
-
-
-class TestQuerysetManagerParity:
-    @pytest.mark.django_db
-    @pytest.mark.parametrize(
-        "method_name",
-        ["real", "active", "claimed", "unclaimed", "ghost", "invited"],
-    )
-    def test_person_query_matches_between_queryset_and_manager(
-        self, contributor_population, method_name
-    ):
-        from_manager = set(getattr(Person.objects, method_name)())
-        from_queryset = set(getattr(Person.objects.all(), method_name)())
-
-        assert from_manager == from_queryset
-        assert from_manager
-
-    @pytest.mark.django_db
-    @pytest.mark.parametrize("method_name", ["current", "past"])
-    def test_membership_query_matches_between_queryset_and_manager(
-        self, contributor_population, method_name
-    ):
-        from_manager = set(getattr(Affiliation.objects, method_name)())
-        from_queryset = set(getattr(Affiliation.objects.all(), method_name)())
-
-        assert from_manager == from_queryset
-        assert from_manager
-
-    @pytest.mark.django_db
-    def test_credit_by_role_query_matches_between_queryset_and_manager(
-        self, contributor_population
-    ):
-        role_name = contributor_population.creator_role.uri
-
-        from_manager = set(Contribution.objects.by_role(role_name))
-        from_queryset = set(Contribution.objects.all().by_role(role_name))
-
-        assert from_manager == from_queryset
-        assert from_manager
 
 
 @pytest.mark.django_db

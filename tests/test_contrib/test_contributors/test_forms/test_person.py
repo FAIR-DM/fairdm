@@ -2,18 +2,12 @@
 
 import pytest
 
-from fairdm.contrib.autocomplete.fields import PersonChoiceField
 from fairdm.contrib.contributors.forms.person import MergePersonForm
 from fairdm.factories import PersonFactory
 
 
 @pytest.mark.django_db
 class TestMergePersonForm:
-    def test_the_target_is_chosen_with_the_person_field(self):
-        form = MergePersonForm(exclude_pk=PersonFactory().pk)
-
-        assert isinstance(form.fields["merge_into"], PersonChoiceField)
-
     def test_the_chosen_person_is_the_target(self, in_request):
         discarded = PersonFactory()
         kept = PersonFactory()

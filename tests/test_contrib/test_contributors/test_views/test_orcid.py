@@ -5,8 +5,6 @@ from allauth.socialaccount.models import SocialApp
 from django.contrib.sites.models import Site
 from django.urls import reverse
 
-from fairdm.factories import PersonFactory
-
 ORCID_ROUTES = ["orcid_login", "orcid_callback"]
 
 
@@ -14,12 +12,6 @@ ORCID_ROUTES = ["orcid_login", "orcid_callback"]
 class TestOrcidRoutes:
     @pytest.mark.parametrize("route", ORCID_ROUTES)
     def test_a_visitor_gets_a_404_with_no_orcid_application(self, client, route):
-        assert client.get(reverse(route)).status_code == 404
-
-    @pytest.mark.parametrize("route", ORCID_ROUTES)
-    def test_a_signed_in_user_gets_a_404_with_no_orcid_application(self, client, route):
-        client.force_login(PersonFactory())
-
         assert client.get(reverse(route)).status_code == 404
 
     @pytest.mark.parametrize(

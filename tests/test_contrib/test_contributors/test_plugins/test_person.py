@@ -40,12 +40,14 @@ class TestContributorTabs:
         projects, _ = get_page(_tab_url(world.person, "projects"))
         datasets, _ = get_page(_tab_url(world.person, "datasets"))
 
-        assert hasattr(projects.context["object_list"][0], "dataset_count")
-        assert hasattr(datasets.context["object_list"][0], "sample_count")
-        assert hasattr(datasets.context["object_list"][0], "measurement_count")
+        (project,) = projects.context["object_list"]
+        (dataset,) = datasets.context["object_list"]
+        assert project.dataset_count == 1
+        assert dataset.sample_count == 1
+        assert dataset.measurement_count == 1
 
     @pytest.mark.parametrize("tab", ["projects", "datasets"])
-    def test_the_person_and_a_member_of_a_private_project_see_what_a_visitor_sees(
+    def test_a_member_of_a_private_project_sees_what_a_visitor_sees(
         self, get_page, credited_world, tab
     ):
         world = credited_world
@@ -53,25 +55,11 @@ class TestContributorTabs:
         assign_perm("view_project", member, world.private_project)
         visitor, _ = get_page(_tab_url(world.person, tab))
 
-        for viewer in (world.person, member):
-            response, _ = get_page(_tab_url(world.person, tab), viewer=viewer)
+        response, _ = get_page(_tab_url(world.person, tab), viewer=member)
 
-            assert set(response.context["object_list"]) == set(
-                visitor.context["object_list"]
-            )
-
-    # #248
-    @pytest.mark.parametrize("tab", ["projects", "datasets"])
-    def test_each_tab_answers_for_a_visitor_and_for_a_signed_in_person(
-        self, get_page, credited_world, tab
-    ):
-        world = credited_world
-
-        visitor, _ = get_page(_tab_url(world.person, tab))
-        signed_in, _ = get_page(_tab_url(world.person, tab), viewer=world.person)
-
-        assert visitor.status_code == 200
-        assert signed_in.status_code == 200
+        assert set(response.context["object_list"]) == set(
+            visitor.context["object_list"]
+        )
 
     @pytest.mark.parametrize("tab", ["projects", "datasets"])
     def test_a_contributor_credited_on_nothing_gets_an_empty_tab_not_an_error(

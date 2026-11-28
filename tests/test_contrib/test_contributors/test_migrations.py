@@ -27,18 +27,23 @@ VIEW, EDIT, MANAGE = (
 MIGRATION = "0023_levels_from_stored_permissions"
 
 
+@pytest.fixture(scope="module")
+def historical_apps():
+    """The models as they stood just before the migration, built once for the module."""
+    with override_settings(MIGRATION_MODULES={}):
+        loader = MigrationLoader(None, ignore_no_migrations=True)
+        return loader.project_state(("contributors", MIGRATION), at_end=False).apps
+
+
 @pytest.fixture
-def upgrade():
+def upgrade(historical_apps):
     """Run the data step against the historical models, as the executor does."""
     module = importlib.import_module(
         f"fairdm.contrib.contributors.migrations.{MIGRATION}"
     )
 
     def run():
-        with override_settings(MIGRATION_MODULES={}):
-            loader = MigrationLoader(None, ignore_no_migrations=True)
-            state = loader.project_state(("contributors", MIGRATION), at_end=False)
-        module.convert_stored_permissions(state.apps, None)
+        module.convert_stored_permissions(historical_apps, None)
 
     return run
 
