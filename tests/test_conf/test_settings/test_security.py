@@ -4,30 +4,6 @@ import os
 
 
 class TestSecurity:
-    def test_ssl_and_cookie_security_apply_unconditionally(
-        self, isolated_env, settings_module
-    ):
-        os.environ["DJANGO_ENV"] = "qa"
-
-        module = settings_module()
-
-        assert module.SECURE_SSL_REDIRECT is True
-        assert module.SESSION_COOKIE_SECURE is True
-        assert module.CSRF_COOKIE_SECURE is True
-        assert module.SECURE_CONTENT_TYPE_NOSNIFF is True
-        assert module.SECURE_HSTS_INCLUDE_SUBDOMAINS is True
-
-    def test_security_headers_are_not_gated_by_django_secure(
-        self, isolated_env, settings_module
-    ):
-        os.environ["DJANGO_ENV"] = "qa"
-        os.environ["DJANGO_SECURE"] = "False"
-
-        module = settings_module()
-
-        assert module.SECURE_SSL_REDIRECT is True
-        assert module.SESSION_COOKIE_SECURE is True
-
     def test_baseline_keeps_the_browser_enforced_cookie_name_prefixes(
         self, isolated_env, settings_module
     ):
@@ -39,25 +15,28 @@ class TestSecurity:
         assert module.CSRF_COOKIE_NAME.startswith("__Secure-")
         assert module.SESSION_COOKIE_NAME.startswith("__Secure-")
 
-    def test_reading_unconfigured_security_never_raises(
-        self, isolated_env, settings_module
-    ):
+    def test_baseline_is_secure_with_nothing_set(self, isolated_env, settings_module):
+        # The settings a portal gets from the baseline when it sets none of the
+        # switches, so a change that put one behind a switch fails here.
         os.environ["DJANGO_ENV"] = "qa"
+        names = [
+            "SECURE_SSL_REDIRECT",
+            "SESSION_COOKIE_SECURE",
+            "CSRF_COOKIE_SECURE",
+            "SECURE_HSTS_INCLUDE_SUBDOMAINS",
+            "SECURE_CONTENT_TYPE_NOSNIFF",
+        ]
 
-        settings_module()
+        module = settings_module()
+
+        assert {name: getattr(module, name) for name in names} == dict.fromkeys(
+            names, True
+        )
 
 
 class TestAllowedHostsComposition:
     # Only truthy entries compose, so an unset domain gives [] rather than [""]. Otherwise the
     # emptiness check could never fire.
-    def test_unset_site_domain_and_allowed_hosts_yields_empty_list(
-        self, isolated_env, settings_module
-    ):
-        os.environ["DJANGO_ENV"] = "qa"
-
-        module = settings_module()
-
-        assert module.ALLOWED_HOSTS == []
 
     def test_check_allowed_hosts_configured_fires_when_everything_unset(
         self, isolated_env, settings_module

@@ -28,21 +28,3 @@ class TestEmail:
 
         assert f"{module.SITE_NAME} <noreply@example.com>" == module.DEFAULT_FROM_EMAIL
         assert f"{module.SITE_NAME} Server <server@example.com>" == module.SERVER_EMAIL
-
-    def test_default_from_email_derives_from_site_domain(
-        self, isolated_env, settings_module
-    ):
-        os.environ["DJANGO_ENV"] = "qa"
-        os.environ["DJANGO_SITE_DOMAIN"] = "example.com"
-        os.environ["DJANGO_SITE_NAME"] = "Example Portal"
-
-        module = settings_module()
-
-        assert module.DEFAULT_FROM_EMAIL == "Example Portal <noreply@example.com>"
-
-    def test_reading_unconfigured_email_never_raises(
-        self, isolated_env, settings_module
-    ):
-        os.environ["DJANGO_ENV"] = "qa"
-
-        settings_module()

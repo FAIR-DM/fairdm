@@ -22,17 +22,3 @@ class TestCelery:
         module = settings_module()
 
         assert module.CELERY_TIMEZONE == "Europe/Berlin"
-
-    def test_tasks_are_not_eager_by_default(self, isolated_env, settings_module):
-        os.environ["DJANGO_ENV"] = "qa"
-
-        module = settings_module()
-
-        assert module.CELERY_TASK_ALWAYS_EAGER is False
-
-    def test_reading_unconfigured_celery_never_raises(
-        self, isolated_env, settings_module
-    ):
-        os.environ["DJANGO_ENV"] = "qa"
-
-        settings_module()

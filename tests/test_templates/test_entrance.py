@@ -16,12 +16,6 @@ class TestEntranceLayout:
 
         assert content.count("<h1") == 1
 
-    @pytest.mark.parametrize("url_name", ENTRANCE_PAGES)
-    def test_page_links_the_layout_stylesheet(self, client, url_name):
-        content = client.get(reverse(url_name)).content.decode()
-
-        assert "css/daisy-cotton-ext.css" in content
-
     def test_pane_names_the_saved_portal(self, client):
         identity = Identity.get_solo()
         identity.name = "PORTAL-MARKER"

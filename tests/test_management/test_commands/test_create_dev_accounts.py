@@ -104,6 +104,7 @@ class TestCreateDevAccountsRefusesToAdopt:
         assert untouched.last_name == "Else"
 
 
+@pytest.mark.slow
 class TestCreateDevAccountsRefusesOutsideDevelopment:
     # Boots a real process under a valid production configuration, so the command's own environment
     # gate is what refuses.

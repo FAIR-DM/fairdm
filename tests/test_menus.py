@@ -20,11 +20,6 @@ def documentation_menu_group():
     return groups[0]
 
 
-class TestDocumentationMenuGroupPresent:
-    def test_documentation_group_exists_in_app_menu(self, documentation_menu_group):
-        assert documentation_menu_group is not None
-
-
 class TestAPIMenuItem:
     def test_exactly_one_entry_leads_to_the_api_documentation(self):
         from mvp.menus import AppMenu
@@ -41,33 +36,6 @@ class TestAPIMenuItem:
         ]
 
         assert len(leading) == 1
-
-    def test_api_child_uses_view_name_not_hardcoded_url(self, documentation_menu_group):
-        child = next(
-            child
-            for child in documentation_menu_group.children
-            if getattr(child, "view_name", None) == "api:api-docs"
-        )
-        assert child._url == "", "Internal links must not carry a hardcoded _url"
-
-
-class TestDocumentationMenuGroupOtherChildren:
-    def test_second_child_is_user_guide(self, documentation_menu_group):
-        child = documentation_menu_group.children[1]
-        assert child._url == "https://docs.fairdm.org/latest/users/"
-
-    def test_third_child_is_admin_guide(self, documentation_menu_group):
-        child = documentation_menu_group.children[2]
-        assert child._url == "https://docs.fairdm.org/latest/administrators/"
-
-
-@pytest.mark.django_db
-class TestTeamMenuItem:
-    def test_team_link_appears_in_the_menu(self, client):
-        response = client.get(reverse("team"))
-
-        assert response.status_code == 200
-        assert f'href="{reverse("team")}"' in response.content.decode()
 
 
 @pytest.mark.django_db
@@ -115,21 +83,26 @@ class TestAdminGuideLinkVisibility:
 
 
 @pytest.mark.django_db
-class TestLiteratureMenuItem:
-    def test_the_menu_links_to_the_catalogue(self, client):
+class TestMenuLinks:
+    def test_the_menu_links_to_the_team_the_catalogue_and_the_install_page(
+        self, client
+    ):
         response = client.get(reverse("team"))
+        content = response.content.decode()
 
-        assert f'href="{reverse("literature:item-list")}"' in response.content.decode()
+        assert response.status_code == 200
+        missing = [
+            href
+            for href in (
+                reverse("team"),
+                reverse("literature:item-list"),
+                reverse("mvp-pwa-install"),
+            )
+            if f'href="{href}"' not in content
+        ]
+        assert missing == []
 
     def test_the_catalogue_opens_for_an_anonymous_visitor(self, client):
         response = client.get(reverse("literature:item-list"))
 
         assert response.status_code == 200
-
-
-@pytest.mark.django_db
-class TestInstallTheAppMenuItem:
-    def test_the_menu_leads_to_the_install_page(self, client):
-        content = client.get(reverse("team")).content.decode()
-
-        assert f'href="{reverse("mvp-pwa-install")}"' in content

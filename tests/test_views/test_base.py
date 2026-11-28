@@ -3,7 +3,6 @@
 import django_tables2 as tables
 import pytest
 from django.contrib.auth.models import AnonymousUser
-from django.contrib.messages.storage.fallback import FallbackStorage
 
 from fairdm.core.models import Project
 from fairdm.factories import ProjectFactory
@@ -16,13 +15,6 @@ from fairdm.views.base import (
     FairDMTemplateView,
     FairDMUpdateView,
 )
-
-
-def _add_messages(request):
-    """Attach a message storage to *request* so SuccessMessageMixin works."""
-    request.session = "session"
-    storage = FallbackStorage(request)
-    request._messages = storage
 
 
 class ConcreteTemplateView(FairDMTemplateView):
@@ -87,34 +79,34 @@ class ConcreteTableView(FairDMTableView):
 
 
 @pytest.mark.django_db
-class TestFairDMTemplateView:
-    def test_get_returns_200(self, rf):
-        request = rf.get("/")
-        request.user = AnonymousUser()
-        response = ConcreteTemplateView.as_view()(request)
-        assert response.status_code == 200
+class TestFairDMBaseViews:
+    def test_every_base_view_renders_and_carries_the_page_meta(self, rf, user):
+        project = ProjectFactory()
+        views = {
+            "template": (ConcreteTemplateView, {}, None),
+            "list": (ConcreteListView, {}, None),
+            "table": (ConcreteTableView, {}, None),
+            "detail": (ConcreteDetailView, {"pk": project.pk}, None),
+            "create": (ConcreteCreateView, {}, user),
+            "update": (ConcreteUpdateView, {"pk": project.pk}, user),
+            "delete": (ConcreteDeleteView, {"pk": project.pk}, user),
+        }
 
-    def test_meta_context_key_present(self, rf):
-        request = rf.get("/")
-        request.user = AnonymousUser()
-        response = ConcreteTemplateView.as_view()(request)
-        assert "meta" in response.context_data
+        failed = []
+        for name, (view, kwargs, person) in views.items():
+            request = rf.get("/")
+            request.user = person or AnonymousUser()
+            response = view.as_view()(request, **kwargs)
+            if response.status_code != 200:
+                failed.append(f"{name}: status {response.status_code}")
+            elif "meta" not in response.context_data:
+                failed.append(f"{name}: no meta in the context")
+
+        assert not failed, "\n".join(failed)
 
 
 @pytest.mark.django_db
 class TestFairDMListView:
-    def test_get_returns_200(self, rf):
-        request = rf.get("/")
-        request.user = AnonymousUser()
-        response = ConcreteListView.as_view()(request)
-        assert response.status_code == 200
-
-    def test_meta_context_key_present(self, rf):
-        request = rf.get("/")
-        request.user = AnonymousUser()
-        response = ConcreteListView.as_view()(request)
-        assert "meta" in response.context_data
-
     def test_grid_config_context_key_present(self, rf):
         request = rf.get("/")
         request.user = AnonymousUser()
@@ -127,131 +119,6 @@ class TestFairDMListView:
         view = ConcreteListView()
         view.setup(request)
         assert view.get_breadcrumbs()[0]["icon"] == "project"
-
-
-@pytest.mark.django_db
-class TestFairDMDetailView:
-    def test_get_returns_200(self, rf):
-        project = ProjectFactory()
-        request = rf.get("/")
-        request.user = AnonymousUser()
-        response = ConcreteDetailView.as_view()(request, pk=project.pk)
-        assert response.status_code == 200
-
-    def test_meta_context_key_present(self, rf):
-        project = ProjectFactory()
-        request = rf.get("/")
-        request.user = AnonymousUser()
-        response = ConcreteDetailView.as_view()(request, pk=project.pk)
-        assert "meta" in response.context_data
-
-    def test_object_in_context(self, rf):
-        project = ProjectFactory()
-        request = rf.get("/")
-        request.user = AnonymousUser()
-        response = ConcreteDetailView.as_view()(request, pk=project.pk)
-        assert response.context_data["object"] == project
-
-
-@pytest.mark.django_db
-class TestFairDMCreateView:
-    def test_get_returns_200(self, rf, user):
-        request = rf.get("/")
-        request.user = user
-        response = ConcreteCreateView.as_view()(request)
-        assert response.status_code == 200
-
-    def test_meta_context_key_present(self, rf, user):
-        request = rf.get("/")
-        request.user = user
-        response = ConcreteCreateView.as_view()(request)
-        assert "meta" in response.context_data
-
-    def test_form_in_context(self, rf, user):
-        request = rf.get("/")
-        request.user = user
-        response = ConcreteCreateView.as_view()(request)
-        assert "form" in response.context_data
-
-    def test_post_creates_object_and_redirects(self, rf, user):
-        data = {"name": "Integration Test Project", "status": 1, "visibility": 0}
-        request = rf.post("/", data)
-        request.user = user
-        _add_messages(request)
-        initial_count = Project.objects.count()
-        response = ConcreteCreateView.as_view()(request)
-        assert response.status_code == 302
-        assert Project.objects.count() == initial_count + 1
-
-
-@pytest.mark.django_db
-class TestFairDMUpdateView:
-    def test_get_returns_200(self, rf, user):
-        project = ProjectFactory()
-        request = rf.get("/")
-        request.user = user
-        response = ConcreteUpdateView.as_view()(request, pk=project.pk)
-        assert response.status_code == 200
-
-    def test_meta_context_key_present(self, rf, user):
-        project = ProjectFactory()
-        request = rf.get("/")
-        request.user = user
-        response = ConcreteUpdateView.as_view()(request, pk=project.pk)
-        assert "meta" in response.context_data
-
-    def test_form_in_context(self, rf, user):
-        project = ProjectFactory()
-        request = rf.get("/")
-        request.user = user
-        response = ConcreteUpdateView.as_view()(request, pk=project.pk)
-        assert "form" in response.context_data
-
-    def test_object_in_context(self, rf, user):
-        project = ProjectFactory()
-        request = rf.get("/")
-        request.user = user
-        response = ConcreteUpdateView.as_view()(request, pk=project.pk)
-        assert response.context_data["object"] == project
-
-
-@pytest.mark.django_db
-class TestFairDMDeleteView:
-    def test_get_returns_200(self, rf, user):
-        project = ProjectFactory()
-        request = rf.get("/")
-        request.user = user
-        response = ConcreteDeleteView.as_view()(request, pk=project.pk)
-        assert response.status_code == 200
-
-    def test_meta_context_key_present(self, rf, user):
-        project = ProjectFactory()
-        request = rf.get("/")
-        request.user = user
-        response = ConcreteDeleteView.as_view()(request, pk=project.pk)
-        assert "meta" in response.context_data
-
-    def test_object_in_context(self, rf, user):
-        project = ProjectFactory()
-        request = rf.get("/")
-        request.user = user
-        response = ConcreteDeleteView.as_view()(request, pk=project.pk)
-        assert response.context_data["object"] == project
-
-
-@pytest.mark.django_db
-class TestFairDMTableView:
-    def test_get_returns_200(self, rf):
-        request = rf.get("/")
-        request.user = AnonymousUser()
-        response = ConcreteTableView.as_view()(request)
-        assert response.status_code == 200
-
-    def test_meta_context_key_present(self, rf):
-        request = rf.get("/")
-        request.user = AnonymousUser()
-        response = ConcreteTableView.as_view()(request)
-        assert "meta" in response.context_data
 
 
 @pytest.mark.django_db

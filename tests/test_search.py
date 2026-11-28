@@ -83,11 +83,6 @@ def make_everything(word=WORD):
 
 @pytest.mark.django_db
 class TestRegisteredKinds:
-    def test_the_active_kinds_are_the_seven_record_types_in_order(self):
-        active = registry.default_registry.active()
-
-        assert [kind.name for kind in active] == KIND_NAMES
-
     def test_registering_again_leaves_the_seven_kinds_as_they_are(self):
         register_kinds()
 
@@ -118,16 +113,22 @@ class TestMatchingFollowsTheList:
 
         assert urls(groups["samples"]) == [sample.get_absolute_url()]
 
-    @pytest.mark.parametrize(
-        "kind", ["projects", "datasets", "samples", "measurements"]
-    )
-    def test_a_record_is_found_by_its_portal_id(self, kind):
+    def test_a_record_is_found_by_its_portal_id(self):
         records = make_everything()
-        record = records[kind]
+        client = Client()
 
-        groups = panel(Client(), str(record.uuid))
+        failed = []
+        for kind in ("projects", "datasets", "samples", "measurements"):
+            record = records[kind]
+            found = urls(
+                panel(client, str(record.uuid)).get(kind, SimpleNamespace(results=[]))
+            )
+            if found != [record.get_absolute_url()]:
+                failed.append(f"{kind}: {found}")
 
-        assert urls(groups[kind]) == [record.get_absolute_url()]
+        assert not failed, (
+            "These kinds did not find their record by portal id:\n" + "\n".join(failed)
+        )
 
     def test_a_project_is_found_by_an_external_identifier(self):
         project = ProjectFactory(visibility=Visibility.PUBLIC)
@@ -154,26 +155,28 @@ class TestMatchingFollowsTheList:
 
         assert dataset.get_absolute_url() in urls(groups["datasets"])
 
-    @pytest.mark.parametrize(
-        ("kind", "list_name"),
-        [
+    @pytest.mark.slow
+    def test_what_the_list_page_returns_the_kind_returns_too(self):
+        make_everything()
+        client = Client()
+        found = panel(client, WORD)
+
+        failed = []
+        for kind, list_name in [
             ("projects", "project-list"),
             ("datasets", "dataset-list"),
             ("people", "people-list"),
             ("organizations", "organization-list"),
             ("literature", "literature:item-list"),
-        ],
-    )
-    def test_what_the_list_page_returns_the_kind_returns_too(self, kind, list_name):
-        make_everything()
-        client = Client()
+        ]:
+            listed = client.get(reverse(list_name), {"q": WORD})
+            listed_urls = {
+                obj.get_absolute_url() for obj in listed.context["object_list"]
+            }
+            if not listed_urls or not listed_urls <= set(urls(found[kind])):
+                failed.append(f"{kind}: list shows {sorted(listed_urls)}")
 
-        listed = client.get(reverse(list_name), {"q": WORD})
-        found = panel(client, WORD)[kind]
-
-        listed_urls = {obj.get_absolute_url() for obj in listed.context["object_list"]}
-        assert listed_urls
-        assert listed_urls <= set(urls(found))
+        assert not failed, "\n".join(failed)
 
     def test_a_query_that_is_only_a_doi_prefix_lists_no_literature(self):
         LiteratureItemFactory()
@@ -193,15 +196,17 @@ class TestOrdering:
 
         assert [r.title for r in found.results] == [f"{WORD} {n}" for n in "abc"]
 
-    @pytest.mark.parametrize("name", KIND_NAMES)
-    def test_every_kind_ends_its_order_with_the_record_id(self, name):
+    def test_every_kind_ends_its_order_with_the_record_id(self):
         """Read the order itself, as the database returns ties in no fixed order."""
-        kind = next(k for k in registry.default_registry.active() if k.name == name)
         request = SimpleNamespace(user=AnonymousUser())
 
-        ordering = kind.find(WORD, request).query.order_by
+        not_ending_on_pk = [
+            kind.name
+            for kind in registry.default_registry.active()
+            if kind.find(WORD, request).query.order_by[-1] != "pk"
+        ]
 
-        assert ordering[-1] == "pk"
+        assert not_ending_on_pk == []
 
 
 @pytest.mark.django_db

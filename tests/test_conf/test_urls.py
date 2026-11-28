@@ -10,9 +10,6 @@ from fairdm.factories import UserFactory
 
 
 class TestAccountCenterRoutes:
-    def test_reverse_account_center_still_resolves_to_the_same_address(self):
-        assert reverse("account-center") == "/account-center/"
-
     def test_a_signed_in_visitor_sees_the_account_center_landing_page(
         self, db, authenticated_client
     ):

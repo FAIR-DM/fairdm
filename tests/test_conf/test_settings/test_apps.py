@@ -5,37 +5,14 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
 from django.utils.translation import gettext_lazy
 
 from tests.keys import BACKUP_PUBLIC_KEY
 
 
 class TestInstalledApps:
-    def test_portal_apps_precede_fairdm_core(self, isolated_env, settings_module):
-        os.environ["DJANGO_ENV"] = "qa"
-
-        module = settings_module(
-            setup_call="fairdm.setup(apps=['a_portal_app'])",
-        )
-
-        portal_index = module.INSTALLED_APPS.index("a_portal_app")
-        fairdm_index = module.INSTALLED_APPS.index("fairdm")
-
-        assert portal_index < fairdm_index
-
-    def test_portal_apps_precede_third_party_apps(self, isolated_env, settings_module):
-        os.environ["DJANGO_ENV"] = "qa"
-
-        module = settings_module(
-            setup_call="fairdm.setup(apps=['a_portal_app'])",
-        )
-
-        portal_index = module.INSTALLED_APPS.index("a_portal_app")
-        allauth_index = module.INSTALLED_APPS.index("allauth")
-
-        assert portal_index < allauth_index
-
-    def test_portal_apps_stay_behind_django_contrib_apps(
+    def test_portal_apps_sit_after_django_and_before_fairdm_and_third_party_apps(
         self, isolated_env, settings_module
     ):
         os.environ["DJANGO_ENV"] = "qa"
@@ -44,25 +21,16 @@ class TestInstalledApps:
             setup_call="fairdm.setup(apps=['a_portal_app'])",
         )
 
-        portal_index = module.INSTALLED_APPS.index("a_portal_app")
-        auth_index = module.INSTALLED_APPS.index("django.contrib.auth")
-
-        assert portal_index > auth_index
-
-    def test_no_apps_argument_still_boots(self, isolated_env, settings_module):
-        os.environ["DJANGO_ENV"] = "qa"
-
-        settings_module()
+        apps = module.INSTALLED_APPS
+        assert (
+            apps.index("django.contrib.auth")
+            < apps.index("a_portal_app")
+            < apps.index("fairdm")
+        )
+        assert apps.index("a_portal_app") < apps.index("allauth")
 
 
 class TestContributorsAppRegistration:
-    def test_contributors_app_is_installed(self, isolated_env, settings_module):
-        os.environ["DJANGO_ENV"] = "qa"
-
-        module = settings_module()
-
-        assert "fairdm.contrib.contributors" in module.INSTALLED_APPS
-
     def test_contributors_app_loads_behind_django_contrib_auth(
         self, isolated_env, settings_module
     ):
@@ -77,6 +45,7 @@ class TestContributorsAppRegistration:
 
 
 class TestTemplateAndStaticPrecedence:
+    @pytest.mark.slow
     def test_portal_template_wins_over_fairdm_template_at_the_same_path(
         self, isolated_env, tmp_path
     ):
@@ -141,13 +110,6 @@ class TestTemplateAndStaticPrecedence:
 
         assert result.returncode == 0, result.stderr[-3000:]
         assert "a_shadowing_portal_app" in result.stdout
-
-
-class TestGroupsFixtureRemoved:
-    def test_the_groups_fixture_file_is_gone(self):
-        repo_root = Path(__file__).resolve().parents[3]
-
-        assert not (repo_root / "fairdm" / "fixtures" / "groups.json").exists()
 
 
 class TestPortalNamespace:

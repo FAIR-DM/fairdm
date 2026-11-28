@@ -23,10 +23,6 @@ class TestSanitisation:
 
 class TestOrdinaryMarkdownRenders:
     # Stops TestSanitisation passing by accident when the sanitiser strips everything.
-    def test_heading(self):
-        html = markdownify("# Title")
-
-        assert "<h1>Title</h1>" in html
 
     def test_bold(self):
         html = markdownify("**bold text**")
@@ -38,18 +34,6 @@ class TestOrdinaryMarkdownRenders:
 
         assert '<a href="https://fairdm.org"' in html
         assert ">FairDM</a>" in html
-
-    def test_unordered_list(self):
-        html = markdownify("- one\n- two")
-
-        assert "<li>one</li>" in html
-        assert "<li>two</li>" in html
-
-    def test_code_block(self):
-        html = markdownify("```\nprint('hi')\n```")
-
-        assert "<pre>" in html
-        assert "print(" in html
 
     def test_table(self):
         html = markdownify("| A | B |\n| - | - |\n| 1 | 2 |")

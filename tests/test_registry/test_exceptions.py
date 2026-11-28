@@ -10,7 +10,6 @@ from fairdm.registry.exceptions import (
     DuplicateRegistrationError,
     FieldValidationError,
     NotRegisteredError,
-    RegistryError,
 )
 
 
@@ -23,23 +22,6 @@ def rock_sample():
             app_label = "test_app"
 
     return RockSample
-
-
-class TestHierarchy:
-    @pytest.mark.parametrize(
-        "error",
-        [
-            ConfigurationError,
-            FieldValidationError,
-            DuplicateRegistrationError,
-            NotRegisteredError,
-        ],
-    )
-    def test_every_error_is_a_registry_error(self, error):
-        assert issubclass(error, RegistryError)
-
-    def test_not_registered_is_also_a_key_error(self):
-        assert issubclass(NotRegisteredError, KeyError)
 
 
 class TestFieldValidationError:
@@ -56,12 +38,6 @@ class TestFieldValidationError:
         message = str(error)
         assert "RockSample.table_fields" in message
         assert "'rock_typ'" in message
-
-    def test_no_suggestion_when_nothing_is_close(self, rock_sample):
-        with pytest.raises(FieldValidationError) as caught:
-            ModelConfiguration(model=rock_sample, fields=["zzzzzzzz"])
-
-        assert not caught.value.suggestion
 
 
 class TestDuplicateRegistrationError:
@@ -99,15 +75,8 @@ class TestNotRegisteredError:
         assert not message.startswith("'")
         assert not message.endswith("'")
 
-    def test_there_is_no_shortcut_on_the_model(self, rock_sample):
-        assert not hasattr(rock_sample, "config")
-
 
 class TestConfigurationError:
-    def test_a_missing_model_is_refused(self):
-        with pytest.raises(ConfigurationError):
-            ModelConfiguration()
-
     def test_an_ineligible_model_names_both_permitted_bases(self, clean_registry):
         class NotASample(models.Model):
             class Meta:

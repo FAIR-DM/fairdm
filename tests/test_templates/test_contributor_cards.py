@@ -139,7 +139,7 @@ class TestRolesCard:
             "ROLE-ONE",
             "ROLE-TWO",
         ]
-        assert [dd.get_text() for dd in card.select("dd")][0].count("3") == 1
+        assert next(dd.get_text() for dd in card.select("dd")).count("3") == 1
 
     def test_each_role_carries_its_share_of_the_most_held_role(self, request_, soup):
         roles = [
