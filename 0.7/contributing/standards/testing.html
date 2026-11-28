@@ -11,11 +11,11 @@
 <meta property="og:description" content="These rules apply to every change in this repository. CONSTITUTION.md makes them binding. The sections above Project additions are shared unchanged with our other repositories, so edit this reposit..." />
 <meta name="description" content="These rules apply to every change in this repository. CONSTITUTION.md makes them binding. The sections above Project additions are shared unchanged with our other repositories, so edit this reposit..." />
 
-    <title>Testing standards &#8212; fairdm 0.7.1 documentation</title>
+    <title>Testing standards &#8212; fairdm 0.7.2 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/styles/sphinx-daisyui.css?v=aedd34d4" />
     <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
-    <script src="../../_static/documentation_options.js?v=bcb520b0"></script>
+    <script src="../../_static/documentation_options.js?v=11e5507c"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -429,7 +429,7 @@ project’s media directory.</p></li>
 <td><p><code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">manage.py</span> <span class="pre">makemigrations</span> <span class="pre">--check</span></code> is clean after the change.</p></td>
 </tr>
 <tr class="row-even"><td><p>Every model field has <code class="docutils literal notranslate"><span class="pre">verbose_name</span></code> and <code class="docutils literal notranslate"><span class="pre">help_text</span></code></p></td>
-<td><p>One test that walks every field of every model, collects the fields that lack either and reports them together (section 7). Never one test per field, and never asserting the wording.</p></td>
+<td><p>One test that walks every field of every model, collects the fields that lack either and reports them together (section 7). Package fields need both as lazy translations, demo fields as plain text because the demo app is never translated. A field a dependency declares is listed in the test with the dependency named. Never one test per field, and never asserting the wording.</p></td>
 </tr>
 <tr class="row-odd"><td><p>Template output for component changes</p></td>
 <td><p>Render the template, not only the context. A context key can be right while the template never renders it.</p></td>
