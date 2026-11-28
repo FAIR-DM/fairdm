@@ -14,12 +14,12 @@
 :maxdepth: 1
 
 fairdm.core.sample.models
-fairdm.core.sample.plugins
-fairdm.core.sample.urls
-fairdm.core.sample.managers
-fairdm.core.sample.admin
-fairdm.core.sample.filters
-fairdm.core.sample.apps
 fairdm.core.sample.forms
+fairdm.core.sample.plugins
 fairdm.core.sample.config
+fairdm.core.sample.filters
+fairdm.core.sample.admin
+fairdm.core.sample.managers
+fairdm.core.sample.urls
+fairdm.core.sample.apps
 ```

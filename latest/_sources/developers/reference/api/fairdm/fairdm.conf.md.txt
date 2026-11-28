@@ -23,12 +23,12 @@ fairdm.conf.settings
 :maxdepth: 1
 
 fairdm.conf.development
-fairdm.conf.urls
-fairdm.conf.addons
 fairdm.conf.setup
+fairdm.conf.addons
 fairdm.conf.environment
-fairdm.conf.checks
 fairdm.conf.celery
+fairdm.conf.urls
+fairdm.conf.checks
 ```
 
 ## Package Contents
