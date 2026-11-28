@@ -6,10 +6,12 @@ executor hands it.
 """
 
 import importlib
+from types import SimpleNamespace
 
 import pytest
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
+from django.db import connection
 from django.db.migrations.loader import MigrationLoader
 from django.test import override_settings
 from guardian.models import GroupObjectPermission, UserObjectPermission
@@ -43,9 +45,23 @@ def upgrade(historical_apps):
     )
 
     def run():
-        module.convert_stored_permissions(historical_apps, None)
+        module.convert_stored_permissions(
+            historical_apps, SimpleNamespace(connection=connection)
+        )
 
     return run
+
+
+class RefusesToChoose:
+    """A router that fails any query the code did not send to a database by name."""
+
+    @staticmethod
+    def db_for_read(model, **hints):
+        raise AssertionError(f"A read of {model.__name__} did not name its database.")
+
+    @staticmethod
+    def db_for_write(model, **hints):
+        raise AssertionError(f"A write to {model.__name__} did not name its database.")
 
 
 @pytest.fixture
@@ -94,6 +110,28 @@ def credit(record, person):
 
 @pytest.mark.django_db
 class TestConvertStoredPermissions:
+    def test_every_query_names_the_database_being_migrated(
+        self, upgrade, record_chain, somebody, settings
+    ):
+        # A query that leaves the choice to the router reads `default`, whatever database the
+        # migration was started on.
+        group = Group.objects.create(name="field team")
+        group.user_set.add(somebody)
+        store(somebody, "view_dataset", record_chain.dataset)
+        store(group, "change_project", record_chain.project)
+        ContributionFactory(
+            content_object=record_chain.sample,
+            contributor=somebody,
+            affiliation=OrganizationFactory(),
+        )
+        settings.DATABASE_ROUTERS = [f"{__name__}.RefusesToChoose"]
+
+        upgrade()
+
+        settings.DATABASE_ROUTERS = []
+        assert own_level(record_chain.dataset, somebody) == VIEW
+        assert own_level(record_chain.sample, somebody) == VIEW
+
     def test_view_change_and_delete_make_a_manager(
         self, upgrade, record_chain, somebody
     ):

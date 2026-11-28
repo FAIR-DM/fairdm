@@ -32,6 +32,12 @@ def level_for(codename):
 
 
 def convert_stored_permissions(apps, schema_editor):
+    # Every query names the database being migrated, never the one the router would pick.
+    db = schema_editor.connection.alias
+
+    def on(model):
+        return model.objects.using(db)
+
     ContentType = apps.get_model("contenttypes", "ContentType")
     UserObjectPermission = apps.get_model("guardian", "UserObjectPermission")
     GroupObjectPermission = apps.get_model("guardian", "GroupObjectPermission")
@@ -42,16 +48,16 @@ def convert_stored_permissions(apps, schema_editor):
     kind_of = {}
     base_of = {}
     for kind, (app_label, model) in CORE.items():
-        content_type = ContentType.objects.filter(
-            app_label=app_label, model=model.lower()
-        ).first()
+        content_type = (
+            on(ContentType).filter(app_label=app_label, model=model.lower()).first()
+        )
         if content_type is not None:
             kind_of[content_type.pk] = kind
             base_of[kind] = content_type.pk
     for kind in POLYMORPHIC:
         for content_type_id in (
-            models[kind]
-            .objects.order_by()
+            on(models[kind])
+            .order_by()
             .values_list("polymorphic_ctype_id", flat=True)
             .distinct()
         ):
@@ -64,21 +70,21 @@ def convert_stored_permissions(apps, schema_editor):
         best[key] = max(best.get(key, 0), level)
 
     members = {}
-    user_rows = UserObjectPermission.objects.filter(content_type_id__in=kind_of)
+    user_rows = on(UserObjectPermission).filter(content_type_id__in=kind_of)
     for row in user_rows.select_related("permission"):
         level = level_for(row.permission.codename)
         if level is not None:
             note(row.user_id, kind_of[row.content_type_id], row.object_pk, level)
-    group_rows = GroupObjectPermission.objects.filter(content_type_id__in=kind_of)
+    group_rows = on(GroupObjectPermission).filter(content_type_id__in=kind_of)
     for row in group_rows.select_related("permission"):
         level = level_for(row.permission.codename)
         if level is None:
             continue
         if row.group_id not in members:
             members[row.group_id] = list(
-                Person.groups.through.objects.filter(group_id=row.group_id).values_list(
-                    "person_id", flat=True
-                )
+                on(Person.groups.through)
+                .filter(group_id=row.group_id)
+                .values_list("person_id", flat=True)
             )
         for person_id in members[row.group_id]:
             note(person_id, kind_of[row.content_type_id], row.object_pk, level)
@@ -86,7 +92,8 @@ def convert_stored_permissions(apps, schema_editor):
     # The location column is not read: a later migration drops it, and this step uses nothing in it.
     people = {
         person.pk: person
-        for person in Person.objects.defer("location")
+        for person in on(Person)
+        .defer("location")
         .filter(pk__in={person_id for person_id, _kind, _pk in best})
         .exclude(email=ANONYMOUS)
     }
@@ -96,27 +103,27 @@ def convert_stored_permissions(apps, schema_editor):
         wanted = {pk for _person, found, pk in best if found == kind}
         if kind in POLYMORPHIC:
             found = (
-                models[kind]
-                .objects.filter(pk__in=wanted)
+                on(models[kind])
+                .filter(pk__in=wanted)
                 .values_list("pk", "polymorphic_ctype_id")
             )
             own_type.update({(kind, str(pk)): ctype for pk, ctype in found})
         else:
             existing = (
-                models[kind].objects.filter(pk__in=wanted).values_list("pk", flat=True)
+                on(models[kind]).filter(pk__in=wanted).values_list("pk", flat=True)
             )
             own_type.update({(kind, str(pk)): base_of[kind] for pk in existing})
 
     held = {}
-    for contribution in Contribution.objects.filter(content_type_id__in=kind_of):
+    for contribution in on(Contribution).filter(content_type_id__in=kind_of):
         kind = kind_of[contribution.content_type_id]
         held[(contribution.contributor_id, kind, contribution.object_id)] = contribution
-    top = Contribution.objects.aggregate(top=Max("order"))["top"]
+    top = on(Contribution).aggregate(top=Max("order"))["top"]
     next_order = 0 if top is None else top + 1
 
     def credit_on(contributor_id, kind, object_id, content_type_id, level):
         nonlocal next_order
-        credit = Contribution.objects.create(
+        credit = on(Contribution).create(
             contributor_id=contributor_id,
             content_type_id=content_type_id,
             object_id=object_id,
@@ -137,13 +144,13 @@ def convert_stored_permissions(apps, schema_editor):
             credit_on(person_id, kind, object_pk, content_type_id, level)
         elif (existing.level or 0) < level:
             existing.level = level
-            existing.save(update_fields=["level"])
+            existing.save(update_fields=["level"], using=db)
 
-    person_ids = set(Person.objects.values_list("pk", flat=True))
+    person_ids = set(on(Person).values_list("pk", flat=True))
     for (contributor_id, kind, object_id), contribution in list(held.items()):
         if contributor_id in person_ids and contribution.level is None:
             contribution.level = VIEW
-            contribution.save(update_fields=["level"])
+            contribution.save(update_fields=["level"], using=db)
         if contributor_id in person_ids and contribution.affiliation_id is not None:
             key = (contribution.affiliation_id, kind, object_id)
             if key not in held:
