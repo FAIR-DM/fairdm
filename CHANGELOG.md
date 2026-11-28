@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **A ROR export no longer doubles the address.** `RORTransform.export` wrote `https://ror.org/https://ror.org/...` for an organization whose stored ROR identifier is already the full address.
+- **A migration reads the database it is migrating.** `0023_levels_from_stored_permissions` of the contributors app queried the router's default database for every row, so migrating another database read the wrong data.
+- **The latitude and longitude columns of a sample or measurement table use the `__` separator.** Their accessors were `location.y` and `effective_location.x`, a form django-tables2 deprecates and will remove in version 3.
+
+### Changed
+
+- **The date rule is shared.** `AbstractDate` refuses an end date earlier than the start date for any record that names `START_TYPE`, `END_TYPE` and `END_BEFORE_START_MESSAGE`, as the project and dataset dates do. The project and dataset overviews put the samples map in their context with `add_sample_map()`, and the three measurement inlines share `OneRowPerTypeInline`.
+
 ## [v0.7.0] - 2026-11-27
 
 ### Added
