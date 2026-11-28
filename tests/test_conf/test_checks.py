@@ -538,7 +538,11 @@ class TestCheckCommandIntegration:
         CELERY_TASK_ALWAYS_EAGER=False,
         BACKUP_PUBLIC_KEY=BACKUP_PUBLIC_KEY,
     )
-    def test_check_deploy_passes_with_valid_config(self):
+    def test_check_deploy_passes_with_valid_config(self, monkeypatch):
+        # The test run sets DJANGO_ALLOW_ASYNC_UNSAFE for the browser tests, and
+        # Django's deploy check rejects it, as it should for a deployment.
+        monkeypatch.delenv("DJANGO_ALLOW_ASYNC_UNSAFE", raising=False)
+
         call_command("check", deploy=True)
 
 
