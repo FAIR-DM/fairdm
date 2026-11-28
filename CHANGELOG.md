@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.7.1] - 2026-11-28
+
 ### Fixed
 
 - **A ROR export no longer doubles the address.** `RORTransform.export` and the schema.org export of an organization or an affiliation wrote `https://ror.org/https://ror.org/...` for an organization whose stored ROR identifier is already the full address.
