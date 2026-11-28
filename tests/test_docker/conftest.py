@@ -8,6 +8,10 @@ import pytest
 
 ENTRYPOINT = Path(__file__).resolve().parents[2] / "docker" / "entrypoint.sh"
 
+# The scripts under test call ordinary tools (``git``, ``sh``, ``sort``), found wherever
+# this machine keeps them rather than in two directories that only some layouts have.
+SYSTEM_PATH = os.environ.get("PATH", os.defpath)
+
 STAND_IN = """#!/bin/sh
 line="{name} $*"
 echo "$line" >> "$STAND_IN_LOG"
@@ -43,7 +47,7 @@ def run_entrypoint(tmp_path, stand_in_log):
             ["/bin/sh", str(ENTRYPOINT), *args],
             cwd=tmp_path,
             env={
-                "PATH": f"{bin_dir}{os.pathsep}/usr/bin{os.pathsep}/bin",
+                "PATH": f"{bin_dir}{os.pathsep}{SYSTEM_PATH}",
                 "STAND_IN_LOG": str(stand_in_log),
                 "STAND_IN_FAIL_ON": fail_on,
                 "STAND_IN_STATUS": str(status),

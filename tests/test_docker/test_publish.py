@@ -5,6 +5,10 @@ from pathlib import Path
 
 import pytest
 
+from tests.test_docker.conftest import SYSTEM_PATH
+
+pytestmark = pytest.mark.slow
+
 PUBLISH = Path(__file__).resolve().parents[2] / "docker" / "publish.sh"
 
 REPOSITORY = "registry.example/fairdm"
@@ -51,7 +55,7 @@ def run_publish(tmp_path):
             ["/bin/sh", str(PUBLISH), *args],
             cwd=tmp_path,
             env={
-                "PATH": "/usr/bin:/bin",
+                "PATH": SYSTEM_PATH,
                 "DOCKER": str(fake),
                 "FAKE_LOG": str(log),
                 **env,

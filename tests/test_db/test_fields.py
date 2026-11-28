@@ -58,18 +58,16 @@ class TestPartialDateField:
         form_field_required = model_field_required.formfield()
         assert form_field_required.required is True
 
-    def test_formfield_preserves_verbose_name(self):
-        model_field = PartialDateField(verbose_name="collection date", blank=True)
+    def test_the_form_field_takes_the_model_fields_label_and_help_text(self):
+        model_field = PartialDateField(
+            verbose_name="collection date",
+            help_text="Enter the date the sample was collected",
+            blank=True,
+        )
         form_field = model_field.formfield()
 
         assert form_field.label == "Collection date"
-
-    def test_formfield_preserves_help_text(self):
-        help_text = "Enter the date the sample was collected"
-        model_field = PartialDateField(help_text=help_text, blank=True)
-        form_field = model_field.formfield()
-
-        assert form_field.help_text == help_text
+        assert form_field.help_text == "Enter the date the sample was collected"
 
     def test_formfield_accepts_kwargs_override(self):
         model_field = PartialDateField(blank=True)

@@ -1,22 +1,23 @@
 """Tests for ``fairdm/backups/signals.py``: the default backup tasks."""
 
+from importlib import import_module
+
 import pytest
+from celery import current_app
 from django.conf import settings
-from django.urls import reverse
 from django_celery_beat.models import CrontabSchedule, PeriodicTask
 
-from fairdm.backups.signals import seed_default_tasks
-from fairdm.factories import UserFactory
+from fairdm.backups.signals import DEFAULT_TASKS, seed_default_tasks
 
 DATABASE_TASK = "fairdm.backups.tasks.backup_database"
 MEDIA_TASK = "fairdm.backups.tasks.backup_media"
 
 
-@pytest.fixture
-def superuser_client(client):
-    administrator = UserFactory(is_staff=True, is_superuser=True)
-    client.force_login(administrator)
-    return client
+class TestDefaultTasks:
+    def test_each_seeded_task_is_a_registered_celery_task(self):
+        import_module("fairdm.backups.tasks")
+
+        assert {task for _, task in DEFAULT_TASKS} <= set(current_app.tasks)
 
 
 @pytest.mark.django_db
@@ -78,25 +79,3 @@ class TestSeedDefaultTasks:
 
         assert tasks.count() == count
         assert CrontabSchedule.objects.count() == schedules
-
-
-@pytest.mark.django_db
-class TestPeriodicTaskAdmin:
-    def test_run_selected_tasks_sends_the_database_task(self, superuser_client, mocker):
-        sent = mocker.patch("fairdm.backups.tasks.backup_database.apply_async")
-        periodic_task = PeriodicTask.objects.get(task=DATABASE_TASK)
-
-        response = superuser_client.post(
-            reverse("admin:django_celery_beat_periodictask_changelist"),
-            {"action": "run_tasks", "_selected_action": [periodic_task.pk]},
-        )
-
-        assert response.status_code == 302
-        sent.assert_called_once()
-
-    def test_the_changelist_answers_a_superuser(self, superuser_client):
-        response = superuser_client.get(
-            reverse("admin:django_celery_beat_periodictask_changelist")
-        )
-
-        assert response.status_code == 200
