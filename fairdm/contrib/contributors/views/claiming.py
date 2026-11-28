@@ -5,7 +5,6 @@ from __future__ import annotations
 import logging
 
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.views import redirect_to_login
 from django.shortcuts import redirect
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import TemplateView
@@ -14,12 +13,14 @@ from fairdm.contrib.contributors.exceptions import ClaimingError
 
 logger = logging.getLogger(__name__)
 
+_CLAIM_TOKEN_SESSION_KEY = "claim_token"  # noqa: S105
+
 
 class ClaimProfileView(TemplateView):
     """Show the unclaimed profile a claim token names, for the user to confirm.
 
-    Nothing is claimed on GET. An anonymous visitor is sent to sign in and returns to
-    this link afterwards. An invalid token or a deactivated profile renders an error.
+    Nothing is claimed on GET. An anonymous visitor is sent to sign in with the token kept
+    in the session, and an invalid token or a deactivated profile renders an error.
 
     Attributes:
         template_name: The confirmation template.
@@ -49,7 +50,11 @@ class ClaimProfileView(TemplateView):
         token = kwargs["token"]
 
         if not request.user.is_authenticated:
-            return redirect_to_login(request.get_full_path())
+            request.session[_CLAIM_TOKEN_SESSION_KEY] = token
+            from django.conf import settings
+
+            login_url = getattr(settings, "LOGIN_URL", "/accounts/login/")
+            return redirect(login_url)
 
         person, error = self._resolve_token(token)
         context = self.get_context_data(**kwargs)

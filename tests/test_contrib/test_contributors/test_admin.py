@@ -1,19 +1,15 @@
 """Tests for the contributor admin workflows."""
 
-from urllib.parse import urlsplit
-
 import pytest
 from django.contrib import admin
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.messages import get_messages
 from django.test import RequestFactory
-from django.urls import resolve, reverse
+from django.urls import reverse
 
 from fairdm.contrib.contributors.models import Affiliation, Organization, Person
-from fairdm.contrib.contributors.views.claiming import ClaimProfileView
 from fairdm.core.vocabularies import IDENTIFIER_TYPES
-from fairdm.factories import PersonFactory
 
 
 @pytest.mark.django_db
@@ -727,26 +723,16 @@ class TestMergeAndClaimLinkViewsRequireSuperuser:
 
         assert response.status_code == 200
 
-    def test_claim_link_view_offers_a_link_that_opens_the_claim_page_of_the_person(
-        self, admin_client, client, unclaimed_person
+    def test_claim_link_view_is_not_refused_for_a_superuser(
+        self, admin_client, unclaimed_person
     ):
-        from fairdm.contrib.contributors.utils.tokens import validate_claim_token
+        from django.urls import NoReverseMatch
 
         url = reverse(
             "admin:contributors_person_claim_link", args=[unclaimed_person.pk]
         )
-        response = admin_client.get(url)
-        claim_url = urlsplit(response.context["claim_url"]).path
-        match = resolve(claim_url)
-        claimant = PersonFactory(email="claimant@example.com", is_active=True)
-        client.force_login(claimant)
-        claim_page = client.get(claim_url)
-
-        assert response.status_code == 200
-        assert match.func.view_class is ClaimProfileView
-        assert validate_claim_token(match.kwargs["token"]) == unclaimed_person
-        assert claim_page.status_code == 200
-        assert claim_page.context["unclaimed_person"] == unclaimed_person
+        with pytest.raises(NoReverseMatch):
+            admin_client.get(url)
 
 
 @pytest.mark.django_db
@@ -765,15 +751,16 @@ class TestMergeAndClaimLinkViewsAdmitACommunityManager:
     def test_claim_link_view_proceeds_for_a_community_manager(
         self, client, unclaimed_person
     ):
+        from django.urls import NoReverseMatch
+
         manager = _community_manager("claim-manager@example.com")
         client.force_login(manager)
 
         url = reverse(
             "admin:contributors_person_claim_link", args=[unclaimed_person.pk]
         )
-        response = client.get(url)
-
-        assert response.status_code == 200
+        with pytest.raises(NoReverseMatch):
+            client.get(url)
 
     def test_a_person_holding_a_role_without_change_person_is_still_refused(
         self, client, unclaimed_person

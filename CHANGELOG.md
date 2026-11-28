@@ -7,10 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixed
-
-- **The Generate claim link action on a person in the administration works.** It raised an error because the pages a claim link opens had no address. A link now opens the person's claim page, where a signed-in user confirms the claim.
-
 ## [v0.7.0] - 2026-11-27
 
 ### Added
