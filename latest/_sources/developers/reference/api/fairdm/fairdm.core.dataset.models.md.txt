@@ -713,6 +713,16 @@ Bases: {py:obj}`fairdm.core.abstract.AbstractDate`
 
 ````
 
+````{py:attribute} END_BEFORE_START_MESSAGE
+:canonical: fairdm.core.dataset.models.DatasetDate.END_BEFORE_START_MESSAGE
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.dataset.models.DatasetDate.END_BEFORE_START_MESSAGE
+```
+
+````
+
 `````{py:class} Meta
 :canonical: fairdm.core.dataset.models.DatasetDate.Meta
 
@@ -732,14 +742,6 @@ Bases: {py:obj}`fairdm.core.abstract.AbstractDate.Meta`
 ````
 
 `````
-
-````{py:method} clean()
-:canonical: fairdm.core.dataset.models.DatasetDate.clean
-
-```{autodoc2-docstring} fairdm.core.dataset.models.DatasetDate.clean
-```
-
-````
 
 ``````
 

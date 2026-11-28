@@ -383,6 +383,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.project.plugins.Overview"><code class="docutils literal notranslate"><span class="pre">Overview</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.project.plugins.Overview.url_path"><code class="docutils literal notranslate"><span class="pre">Overview.url_path</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.project.plugins.Overview.model"><code class="docutils literal notranslate"><span class="pre">Overview.model</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.core.project.plugins.Overview.map_counts_datasets"><code class="docutils literal notranslate"><span class="pre">Overview.map_counts_datasets</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.project.plugins.Overview.check"><code class="docutils literal notranslate"><span class="pre">Overview.check</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.project.plugins.Overview.template_name"><code class="docutils literal notranslate"><span class="pre">Overview.template_name</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.project.plugins.Overview.dataset_preview"><code class="docutils literal notranslate"><span class="pre">Overview.dataset_preview</span></code></a></li>
@@ -484,7 +485,9 @@ with the private share called out for the team.</p>
 dataset_preview: How many datasets the page lists before it hands over to the Datasets
 page.
 lead_roles: The addresses of the roles that name the people a visitor should see first,
-in this order.</p>
+in this order.
+map_counts_datasets: True, so the map panel counts the datasets the samples
+come from.</p>
 <p class="rubric">Initialization</p>
 <p>Constructor. Called in the URLconf; can contain helpful extra
 keyword arguments, and other things.</p>
@@ -498,6 +501,12 @@ keyword arguments, and other things.</p>
 <dt class="sig sig-object py" id="fairdm.core.project.plugins.Overview.model">
 <span class="sig-name descname"><span class="pre">model</span></span><a class="headerlink" aria-label="Link to this definition: model" href="#fairdm.core.project.plugins.Overview.model" title="Link to this definition">¶</a></dt>
 <dd><p>None</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.core.project.plugins.Overview.map_counts_datasets">
+<span class="sig-name descname"><span class="pre">map_counts_datasets</span></span><a class="headerlink" aria-label="Link to this definition: map_counts_datasets" href="#fairdm.core.project.plugins.Overview.map_counts_datasets" title="Link to this definition">¶</a></dt>
+<dd><p>True</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -716,6 +725,7 @@ keyword arguments, and other things.</p>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.project.plugins.Overview"><code class="docutils literal notranslate"><span class="pre">Overview</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.project.plugins.Overview.url_path"><code class="docutils literal notranslate"><span class="pre">Overview.url_path</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.project.plugins.Overview.model"><code class="docutils literal notranslate"><span class="pre">Overview.model</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.core.project.plugins.Overview.map_counts_datasets"><code class="docutils literal notranslate"><span class="pre">Overview.map_counts_datasets</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.project.plugins.Overview.check"><code class="docutils literal notranslate"><span class="pre">Overview.check</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.project.plugins.Overview.template_name"><code class="docutils literal notranslate"><span class="pre">Overview.template_name</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.project.plugins.Overview.dataset_preview"><code class="docutils literal notranslate"><span class="pre">Overview.dataset_preview</span></code></a></li>

@@ -472,7 +472,11 @@ commentsRunWhenDOMLoaded(addUtterances);
 <td><p><code class="docutils literal notranslate"><span class="pre">10</span></code></p></td>
 <td><p>How many faces it draws after them before it counts the rest.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">resolvable_identifier_types</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">map_counts_datasets</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>Whether the samples map counts the datasets its samples come from. The project overview sets it to <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">resolvable_identifier_types</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">(DOI,</span> <span class="pre">IGSN)</span></code>, the addresses from <code class="docutils literal notranslate"><span class="pre">fairdm.core.vocabularies</span></code></p></td>
 <td><p>The identifier types that link to doi.org. A value links only when it starts with <code class="docutils literal notranslate"><span class="pre">10.</span></code>.</p></td>
 </tr>
@@ -542,6 +546,9 @@ commentsRunWhenDOMLoaded(addUtterances);
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_sample_map(samples,</span> <span class="pre">coverage,</span> <span class="pre">points_url,</span> <span class="pre">*,</span> <span class="pre">count_datasets=False)</span></code></p></td>
 <td><p>What <a class="reference internal" href="components.html#c-overview-coverage"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">c-overview.coverage</span></code></span></a> shows: <code class="docutils literal notranslate"><span class="pre">located</span></code>, <code class="docutils literal notranslate"><span class="pre">missing</span></code>, <code class="docutils literal notranslate"><span class="pre">bounds</span></code>, <code class="docutils literal notranslate"><span class="pre">area</span></code>, <code class="docutils literal notranslate"><span class="pre">points_url</span></code>, and <code class="docutils literal notranslate"><span class="pre">datasets</span></code> when <code class="docutils literal notranslate"><span class="pre">count_datasets</span></code> is true. <code class="docutils literal notranslate"><span class="pre">bounds</span></code> and <code class="docutils literal notranslate"><span class="pre">area</span></code> are <code class="docutils literal notranslate"><span class="pre">None</span></code> when nothing is located. <code class="docutils literal notranslate"><span class="pre">None</span></code> when <code class="docutils literal notranslate"><span class="pre">samples</span></code> is empty.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">add_sample_map(page,</span> <span class="pre">samples)</span></code></p></td>
+<td><p>Sets <code class="docutils literal notranslate"><span class="pre">sample_map</span></code> in the context dictionary being built, from <code class="docutils literal notranslate"><span class="pre">get_sample_map()</span></code> with the record’s own coverage and its <code class="docutils literal notranslate"><span class="pre">overview-sample-points</span></code> address, and <code class="docutils literal notranslate"><span class="pre">has_map</span></code> when a sample is located. The project and dataset overviews call it. <code class="docutils literal notranslate"><span class="pre">map_counts_datasets</span></code> decides whether the panel counts datasets. It is true on the project overview only.</p></td>
 </tr>
 </tbody>
 </table>
@@ -900,7 +907,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <td><p>A dictionary with <code class="docutils literal notranslate"><span class="pre">text</span></code> when the type declares a <code class="docutils literal notranslate"><span class="pre">value</span></code>, else <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_sample_status()</span></code></p></td>
-<td><p>The sample’s status <code class="docutils literal notranslate"><span class="pre">label</span></code> and <code class="docutils literal notranslate"><span class="pre">variant</span></code>, or <code class="docutils literal notranslate"><span class="pre">None</span></code> when it records none.</p></td>
+<td><p>The sample’s status <code class="docutils literal notranslate"><span class="pre">label</span></code> and <code class="docutils literal notranslate"><span class="pre">variant</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_siblings()</span></code></p></td>
 <td><p>The other measurements on the same sample that the viewer may see: <code class="docutils literal notranslate"><span class="pre">rows</span></code>, <code class="docutils literal notranslate"><span class="pre">more</span></code> and <code class="docutils literal notranslate"><span class="pre">total</span></code>.</p></td>

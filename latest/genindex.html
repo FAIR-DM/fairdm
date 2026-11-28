@@ -768,6 +768,8 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.utils.html#fairdm.contrib.import_export.utils.DataPackage.add_readme">add_readme() (DataPackage method)</a>
 </li>
+      <li><a href="developers/reference/api/fairdm/fairdm.core.plugins.html#fairdm.core.plugins.RecordOverviewPlugin.add_sample_map">add_sample_map() (RecordOverviewPlugin method)</a>
+</li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.utils.html#fairdm.contrib.import_export.utils.DataPackage.add_samples">add_samples() (DataPackage method)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.models.html#fairdm.contrib.contributors.models.Contribution.add_to">add_to() (Contribution class method)</a>
@@ -1518,9 +1520,11 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.plugins.utils.html#fairdm.contrib.plugins.utils.class_to_slug">class_to_slug() (in module fairdm.contrib.plugins.utils)</a>
 </li>
-      <li><a href="developers/reference/api/fairdm/fairdm.core.abstract.html#fairdm.core.abstract.AbstractIdentifier.clean">clean() (AbstractIdentifier method)</a>
+      <li><a href="developers/reference/api/fairdm/fairdm.core.abstract.html#fairdm.core.abstract.AbstractDate.clean">clean() (AbstractDate method)</a>
 
       <ul>
+        <li><a href="developers/reference/api/fairdm/fairdm.core.abstract.html#fairdm.core.abstract.AbstractIdentifier.clean">(AbstractIdentifier method)</a>
+</li>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.models.html#fairdm.contrib.contributors.models.Affiliation.clean">(Affiliation method)</a>
 </li>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.admin.html#fairdm.contrib.contributors.admin.AffiliationForm.clean">(AffiliationForm method)</a>
@@ -1536,8 +1540,6 @@ window.runMermaid = runMermaid;</script>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.models.html#fairdm.contrib.contributors.models.ContributorIdentifier.clean">(ContributorIdentifier method)</a>
 </li>
         <li><a href="developers/reference/api/fairdm/fairdm.core.dataset.models.html#fairdm.core.dataset.models.Dataset.clean">(Dataset method)</a>
-</li>
-        <li><a href="developers/reference/api/fairdm/fairdm.core.dataset.models.html#fairdm.core.dataset.models.DatasetDate.clean">(DatasetDate method)</a>
 </li>
         <li><a href="developers/reference/api/fairdm/fairdm.core.dataset.models.html#fairdm.core.dataset.models.DatasetDescription.clean">(DatasetDescription method)</a>
 </li>
@@ -1562,8 +1564,6 @@ window.runMermaid = runMermaid;</script>
         <li><a href="developers/reference/api/fairdm/fairdm.forms.fields.html#fairdm.forms.fields.PartialDateField.clean">(PartialDateField method)</a>
 </li>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.models.html#fairdm.contrib.contributors.models.Person.clean">(Person method)</a>
-</li>
-        <li><a href="developers/reference/api/fairdm/fairdm.core.project.models.html#fairdm.core.project.models.ProjectDate.clean">(ProjectDate method)</a>
 </li>
         <li><a href="developers/reference/api/fairdm/fairdm.core.project.models.html#fairdm.core.project.models.ProjectDescription.clean">(ProjectDescription method)</a>
 </li>
@@ -2772,13 +2772,23 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.api.serializers.html#fairdm.api.serializers.AffiliationSerializer.end">end (AffiliationSerializer attribute)</a>
 </li>
+      <li><a href="developers/reference/api/fairdm/fairdm.core.abstract.html#fairdm.core.abstract.AbstractDate.END_BEFORE_START_MESSAGE">END_BEFORE_START_MESSAGE (AbstractDate attribute)</a>
+
+      <ul>
+        <li><a href="developers/reference/api/fairdm/fairdm.core.dataset.models.html#fairdm.core.dataset.models.DatasetDate.END_BEFORE_START_MESSAGE">(DatasetDate attribute)</a>
+</li>
+        <li><a href="developers/reference/api/fairdm/fairdm.core.project.models.html#fairdm.core.project.models.ProjectDate.END_BEFORE_START_MESSAGE">(ProjectDate attribute)</a>
+</li>
+      </ul></li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.models.html#fairdm.contrib.contributors.models.Affiliation.end_date">end_date (Affiliation attribute)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.models.html#fairdm.contrib.contributors.models.Affiliation.end_display">end_display (Affiliation property)</a>
 </li>
-      <li><a href="developers/reference/api/fairdm/fairdm.core.dataset.models.html#fairdm.core.dataset.models.DatasetDate.END_TYPE">END_TYPE (DatasetDate attribute)</a>
+      <li><a href="developers/reference/api/fairdm/fairdm.core.abstract.html#fairdm.core.abstract.AbstractDate.END_TYPE">END_TYPE (AbstractDate attribute)</a>
 
       <ul>
+        <li><a href="developers/reference/api/fairdm/fairdm.core.dataset.models.html#fairdm.core.dataset.models.DatasetDate.END_TYPE">(DatasetDate attribute)</a>
+</li>
         <li><a href="developers/reference/api/fairdm/fairdm.core.project.models.html#fairdm.core.project.models.ProjectDate.END_TYPE">(ProjectDate attribute)</a>
 </li>
       </ul></li>
@@ -2822,6 +2832,8 @@ window.runMermaid = runMermaid;</script>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.autocomplete.views.html#fairdm.contrib.autocomplete.views.SampleAutocompleteView.exact_lookups">(SampleAutocompleteView attribute)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.autocomplete.views.html#fairdm.contrib.autocomplete.views.ContributorAutocompleteView.exact_q">exact_q() (ContributorAutocompleteView method)</a>
 
       <ul>
@@ -2830,8 +2842,6 @@ window.runMermaid = runMermaid;</script>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.autocomplete.views.html#fairdm.contrib.autocomplete.views.SampleAutocompleteView.exact_q">(SampleAutocompleteView method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.schema.html#fairdm.contrib.import_export.schema.Column.example">example (Column attribute)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.management.commands.create_dev_accounts.html#fairdm.management.commands.create_dev_accounts.EXAMPLE_ACCOUNT_EMAILS">EXAMPLE_ACCOUNT_EMAILS (in module fairdm.management.commands.create_dev_accounts)</a>
@@ -2929,13 +2939,9 @@ window.runMermaid = runMermaid;</script>
 </li>
         <li><a href="developers/reference/api/fairdm/fairdm.core.measurement.admin.html#fairdm.core.measurement.admin.MeasurementContributionInline.extra">(MeasurementContributionInline attribute)</a>
 </li>
-        <li><a href="developers/reference/api/fairdm/fairdm.core.measurement.admin.html#fairdm.core.measurement.admin.MeasurementDateInline.extra">(MeasurementDateInline attribute)</a>
-</li>
-        <li><a href="developers/reference/api/fairdm/fairdm.core.measurement.admin.html#fairdm.core.measurement.admin.MeasurementDescriptionInline.extra">(MeasurementDescriptionInline attribute)</a>
-</li>
-        <li><a href="developers/reference/api/fairdm/fairdm.core.measurement.admin.html#fairdm.core.measurement.admin.MeasurementIdentifierInline.extra">(MeasurementIdentifierInline attribute)</a>
-</li>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.admin.html#fairdm.contrib.contributors.admin.MemberInline.extra">(MemberInline attribute)</a>
+</li>
+        <li><a href="developers/reference/api/fairdm/fairdm.core.measurement.admin.html#fairdm.core.measurement.admin.OneRowPerTypeInline.extra">(OneRowPerTypeInline attribute)</a>
 </li>
         <li><a href="developers/reference/api/fairdm/fairdm.core.related_records.html#fairdm.core.related_records.RelatedRecordInline.extra">(RelatedRecordInline attribute)</a>
 </li>
@@ -6120,14 +6126,14 @@ window.runMermaid = runMermaid;</script>
         <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.models.html#fairdm.contrib.contributors.models.Person.get_initials">(Person method)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="developers/reference/api/fairdm/fairdm.core.editing.html#fairdm.core.editing.EditIdentifiers.get_inlines">get_inlines() (EditIdentifiers method)</a>
 
       <ul>
         <li><a href="developers/reference/api/fairdm/fairdm.core.editing.html#fairdm.core.editing.EditKeyDates.get_inlines">(EditKeyDates method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.resources.html#fairdm.contrib.contributors.resources.PersonResource.get_instance">get_instance() (PersonResource method)</a>
 
       <ul>
@@ -6184,14 +6190,8 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.core.dataset.plugins.html#fairdm.core.dataset.plugins.Overview.get_map_samples">get_map_samples() (Overview method)</a>, <a href="developers/reference/api/fairdm/fairdm.core.project.plugins.html#fairdm.core.project.plugins.Overview.get_map_samples">[1]</a>
 </li>
-      <li><a href="developers/reference/api/fairdm/fairdm.core.measurement.admin.html#fairdm.core.measurement.admin.MeasurementDateInline.get_max_num">get_max_num() (MeasurementDateInline method)</a>
-
-      <ul>
-        <li><a href="developers/reference/api/fairdm/fairdm.core.measurement.admin.html#fairdm.core.measurement.admin.MeasurementDescriptionInline.get_max_num">(MeasurementDescriptionInline method)</a>
+      <li><a href="developers/reference/api/fairdm/fairdm.core.measurement.admin.html#fairdm.core.measurement.admin.OneRowPerTypeInline.get_max_num">get_max_num() (OneRowPerTypeInline method)</a>
 </li>
-        <li><a href="developers/reference/api/fairdm/fairdm.core.measurement.admin.html#fairdm.core.measurement.admin.MeasurementIdentifierInline.get_max_num">(MeasurementIdentifierInline method)</a>
-</li>
-      </ul></li>
       <li><a href="developers/reference/api/fairdm/fairdm.core.sample.plugins.html#fairdm.core.sample.plugins.Overview.get_measurement_types">get_measurement_types() (Overview method)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.core.sample.plugins.html#fairdm.core.sample.plugins.Overview.get_measurements">get_measurements() (Overview method)</a>
@@ -7938,6 +7938,12 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.access.html#fairdm.contrib.contributors.access.RecordAccess.managers">managers() (RecordAccess method)</a>
 </li>
+      <li><a href="developers/reference/api/fairdm/fairdm.core.project.plugins.html#fairdm.core.project.plugins.Overview.map_counts_datasets">map_counts_datasets (Overview attribute)</a>
+
+      <ul>
+        <li><a href="developers/reference/api/fairdm/fairdm.core.plugins.html#fairdm.core.plugins.RecordOverviewPlugin.map_counts_datasets">(RecordOverviewPlugin attribute)</a>
+</li>
+      </ul></li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.import_export.runner.html#fairdm.contrib.import_export.runner.ImportRun.mark_duplicates">mark_duplicates() (ImportRun method)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.utils.markdown.html#fairdm.utils.markdown.markdownify">markdownify() (in module fairdm.utils.markdown)</a>
@@ -9352,6 +9358,8 @@ window.runMermaid = runMermaid;</script>
       <li><a href="developers/reference/api/fairdm/fairdm.templatetags.fairdm.html#fairdm.templatetags.fairdm.on_menu_page">on_menu_page() (in module fairdm.templatetags.fairdm)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.templatetags.fairdm.html#fairdm.templatetags.fairdm.on_own_profile">on_own_profile() (in module fairdm.templatetags.fairdm)</a>
+</li>
+      <li><a href="developers/reference/api/fairdm/fairdm.core.measurement.admin.html#fairdm.core.measurement.admin.OneRowPerTypeInline">OneRowPerTypeInline (class in fairdm.core.measurement.admin)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.core.editing.html#fairdm.core.editing.RecordEditingPage.OPEN">OPEN (RecordEditingPage attribute)</a>
 </li>
@@ -11541,9 +11549,11 @@ window.runMermaid = runMermaid;</script>
       </ul></li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.models.html#fairdm.contrib.contributors.models.Affiliation.start_display">start_display (Affiliation property)</a>
 </li>
-      <li><a href="developers/reference/api/fairdm/fairdm.core.dataset.models.html#fairdm.core.dataset.models.DatasetDate.START_TYPE">START_TYPE (DatasetDate attribute)</a>
+      <li><a href="developers/reference/api/fairdm/fairdm.core.abstract.html#fairdm.core.abstract.AbstractDate.START_TYPE">START_TYPE (AbstractDate attribute)</a>
 
       <ul>
+        <li><a href="developers/reference/api/fairdm/fairdm.core.dataset.models.html#fairdm.core.dataset.models.DatasetDate.START_TYPE">(DatasetDate attribute)</a>
+</li>
         <li><a href="developers/reference/api/fairdm/fairdm.core.project.models.html#fairdm.core.project.models.ProjectDate.START_TYPE">(ProjectDate attribute)</a>
 </li>
       </ul></li>

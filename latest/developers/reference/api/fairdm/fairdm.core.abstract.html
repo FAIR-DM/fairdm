@@ -452,6 +452,9 @@ commentsRunWhenDOMLoaded(addUtterances);
 </ul>
 </li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.abstract.AbstractDate"><code class="docutils literal notranslate"><span class="pre">AbstractDate</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
+<li><a class="daisy-toc-link reference internal" href="#fairdm.core.abstract.AbstractDate.START_TYPE"><code class="docutils literal notranslate"><span class="pre">AbstractDate.START_TYPE</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.core.abstract.AbstractDate.END_TYPE"><code class="docutils literal notranslate"><span class="pre">AbstractDate.END_TYPE</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.core.abstract.AbstractDate.END_BEFORE_START_MESSAGE"><code class="docutils literal notranslate"><span class="pre">AbstractDate.END_BEFORE_START_MESSAGE</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.abstract.AbstractDate.value"><code class="docutils literal notranslate"><span class="pre">AbstractDate.value</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.abstract.AbstractDate.Meta"><code class="docutils literal notranslate"><span class="pre">AbstractDate.Meta</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.abstract.AbstractDate.Meta.abstract"><code class="docutils literal notranslate"><span class="pre">AbstractDate.Meta.abstract</span></code></a></li>
@@ -462,6 +465,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.abstract.AbstractDate.Meta.constraints"><code class="docutils literal notranslate"><span class="pre">AbstractDate.Meta.constraints</span></code></a></li>
 </ul>
 </li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.core.abstract.AbstractDate.clean"><code class="docutils literal notranslate"><span class="pre">AbstractDate.clean()</span></code></a></li>
 </ul>
 </li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.abstract.AbstractIdentifier"><code class="docutils literal notranslate"><span class="pre">AbstractIdentifier</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
@@ -933,7 +937,28 @@ The plural verbose name from the model options.</p>
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">AbstractDate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: AbstractDate" href="#fairdm.core.abstract.AbstractDate" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#fairdm.core.abstract.GenericModel" title="fairdm.core.abstract.GenericModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fairdm.core.abstract.GenericModel</span></code></a></p>
 <p>Abstract base for a typed partial date on a record.</p>
+<p>A subclass that names a start type and an end type also refuses an end that precedes
+the start. It sets <code class="docutils literal notranslate"><span class="pre">START_TYPE</span></code>, <code class="docutils literal notranslate"><span class="pre">END_TYPE</span></code> and <code class="docutils literal notranslate"><span class="pre">END_BEFORE_START_MESSAGE</span></code>, a
+message with <code class="docutils literal notranslate"><span class="pre">%(start)s</span></code> and <code class="docutils literal notranslate"><span class="pre">%(end)s</span></code> placeholders for the two dates.</p>
 <p class="rubric">Initialization</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.core.abstract.AbstractDate.START_TYPE">
+<span class="sig-name descname"><span class="pre">START_TYPE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" aria-label="Link to this definition: START_TYPE" href="#fairdm.core.abstract.AbstractDate.START_TYPE" title="Link to this definition">¶</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.core.abstract.AbstractDate.END_TYPE">
+<span class="sig-name descname"><span class="pre">END_TYPE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" aria-label="Link to this definition: END_TYPE" href="#fairdm.core.abstract.AbstractDate.END_TYPE" title="Link to this definition">¶</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.core.abstract.AbstractDate.END_BEFORE_START_MESSAGE">
+<span class="sig-name descname"><span class="pre">END_BEFORE_START_MESSAGE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">django.utils.functional.Promise</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" aria-label="Link to this definition: END_BEFORE_START_MESSAGE" href="#fairdm.core.abstract.AbstractDate.END_BEFORE_START_MESSAGE" title="Link to this definition">¶</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
 <dl class="py attribute">
 <dt class="sig sig-object py" id="fairdm.core.abstract.AbstractDate.value">
 <span class="sig-name descname"><span class="pre">value</span></span><a class="headerlink" aria-label="Link to this definition: value" href="#fairdm.core.abstract.AbstractDate.value" title="Link to this definition">¶</a></dt>
@@ -979,6 +1004,12 @@ The plural verbose name from the model options.</p>
 <dd><p>None</p>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.core.abstract.AbstractDate.clean">
+<span class="sig-name descname"><span class="pre">clean</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: clean" href="#fairdm.core.abstract.AbstractDate.clean" title="Link to this definition">¶</a></dt>
+<dd><p>Refuse an end date that precedes the start date.</p>
 </dd></dl>
 
 </dd></dl>
@@ -1162,6 +1193,9 @@ The address the identifier resolves to, or None for a type with no resolver.</p>
 </ul>
 </li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.abstract.AbstractDate"><code class="docutils literal notranslate"><span class="pre">AbstractDate</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
+<li><a class="daisy-toc-link reference internal" href="#fairdm.core.abstract.AbstractDate.START_TYPE"><code class="docutils literal notranslate"><span class="pre">AbstractDate.START_TYPE</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.core.abstract.AbstractDate.END_TYPE"><code class="docutils literal notranslate"><span class="pre">AbstractDate.END_TYPE</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.core.abstract.AbstractDate.END_BEFORE_START_MESSAGE"><code class="docutils literal notranslate"><span class="pre">AbstractDate.END_BEFORE_START_MESSAGE</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.abstract.AbstractDate.value"><code class="docutils literal notranslate"><span class="pre">AbstractDate.value</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.abstract.AbstractDate.Meta"><code class="docutils literal notranslate"><span class="pre">AbstractDate.Meta</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.abstract.AbstractDate.Meta.abstract"><code class="docutils literal notranslate"><span class="pre">AbstractDate.Meta.abstract</span></code></a></li>
@@ -1172,6 +1206,7 @@ The address the identifier resolves to, or None for a type with no resolver.</p>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.abstract.AbstractDate.Meta.constraints"><code class="docutils literal notranslate"><span class="pre">AbstractDate.Meta.constraints</span></code></a></li>
 </ul>
 </li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.core.abstract.AbstractDate.clean"><code class="docutils literal notranslate"><span class="pre">AbstractDate.clean()</span></code></a></li>
 </ul>
 </li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.abstract.AbstractIdentifier"><code class="docutils literal notranslate"><span class="pre">AbstractIdentifier</span></code></a><ul class="daisy-toc-list daisy-toc-deep">

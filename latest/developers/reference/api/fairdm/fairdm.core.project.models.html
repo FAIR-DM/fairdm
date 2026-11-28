@@ -436,12 +436,12 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.project.models.ProjectDate.related"><code class="docutils literal notranslate"><span class="pre">ProjectDate.related</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.project.models.ProjectDate.START_TYPE"><code class="docutils literal notranslate"><span class="pre">ProjectDate.START_TYPE</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.project.models.ProjectDate.END_TYPE"><code class="docutils literal notranslate"><span class="pre">ProjectDate.END_TYPE</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.core.project.models.ProjectDate.END_BEFORE_START_MESSAGE"><code class="docutils literal notranslate"><span class="pre">ProjectDate.END_BEFORE_START_MESSAGE</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.project.models.ProjectDate.Meta"><code class="docutils literal notranslate"><span class="pre">ProjectDate.Meta</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.project.models.ProjectDate.Meta.verbose_name"><code class="docutils literal notranslate"><span class="pre">ProjectDate.Meta.verbose_name</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.project.models.ProjectDate.Meta.verbose_name_plural"><code class="docutils literal notranslate"><span class="pre">ProjectDate.Meta.verbose_name_plural</span></code></a></li>
 </ul>
 </li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.core.project.models.ProjectDate.clean"><code class="docutils literal notranslate"><span class="pre">ProjectDate.clean()</span></code></a></li>
 </ul>
 </li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.project.models.ProjectIdentifier"><code class="docutils literal notranslate"><span class="pre">ProjectIdentifier</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
@@ -816,6 +816,12 @@ the 180th meridian, or <code class="docutils literal notranslate"><span class="p
 <dd><p>None</p>
 </dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.core.project.models.ProjectDate.END_BEFORE_START_MESSAGE">
+<span class="sig-name descname"><span class="pre">END_BEFORE_START_MESSAGE</span></span><a class="headerlink" aria-label="Link to this definition: END_BEFORE_START_MESSAGE" href="#fairdm.core.project.models.ProjectDate.END_BEFORE_START_MESSAGE" title="Link to this definition">¶</a></dt>
+<dd><p>‘_(…)’</p>
+</dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="fairdm.core.project.models.ProjectDate.Meta">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">Meta</span></span><a class="headerlink" aria-label="Link to this definition: Meta" href="#fairdm.core.project.models.ProjectDate.Meta" title="Link to this definition">¶</a></dt>
@@ -832,12 +838,6 @@ the 180th meridian, or <code class="docutils literal notranslate"><span class="p
 <dd><p>‘_(…)’</p>
 </dd></dl>
 
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="fairdm.core.project.models.ProjectDate.clean">
-<span class="sig-name descname"><span class="pre">clean</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: clean" href="#fairdm.core.project.models.ProjectDate.clean" title="Link to this definition">¶</a></dt>
-<dd><p>Refuse an end date that precedes the start date.</p>
 </dd></dl>
 
 </dd></dl>
@@ -990,12 +990,12 @@ PublicDatasetsProtect: The project has public datasets.</p>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.project.models.ProjectDate.related"><code class="docutils literal notranslate"><span class="pre">ProjectDate.related</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.project.models.ProjectDate.START_TYPE"><code class="docutils literal notranslate"><span class="pre">ProjectDate.START_TYPE</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.project.models.ProjectDate.END_TYPE"><code class="docutils literal notranslate"><span class="pre">ProjectDate.END_TYPE</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.core.project.models.ProjectDate.END_BEFORE_START_MESSAGE"><code class="docutils literal notranslate"><span class="pre">ProjectDate.END_BEFORE_START_MESSAGE</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.project.models.ProjectDate.Meta"><code class="docutils literal notranslate"><span class="pre">ProjectDate.Meta</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.project.models.ProjectDate.Meta.verbose_name"><code class="docutils literal notranslate"><span class="pre">ProjectDate.Meta.verbose_name</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.project.models.ProjectDate.Meta.verbose_name_plural"><code class="docutils literal notranslate"><span class="pre">ProjectDate.Meta.verbose_name_plural</span></code></a></li>
 </ul>
 </li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.core.project.models.ProjectDate.clean"><code class="docutils literal notranslate"><span class="pre">ProjectDate.clean()</span></code></a></li>
 </ul>
 </li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.project.models.ProjectIdentifier"><code class="docutils literal notranslate"><span class="pre">ProjectIdentifier</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
