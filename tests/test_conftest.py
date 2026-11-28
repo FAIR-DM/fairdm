@@ -29,7 +29,12 @@ class TestShouldSkipBrowserTests:
             (False, {"CI": "true"}, False),
             (False, {"CI": ""}, True),
         ],
-        ids=["browser present", "missing locally", "missing in CI", "empty CI variable"],
+        ids=[
+            "browser present",
+            "missing locally",
+            "missing in CI",
+            "empty CI variable",
+        ],
     )
     def test_a_missing_browser_skips_only_outside_ci(self, has_browser, env, skips):
         assert _should_skip_browser_tests(has_browser, env) is skips
@@ -77,7 +82,11 @@ class TestAnswerRequest:
 
         route, external = answer(url)
 
-        assert (route.answer, route.body, external) == ("fulfill", path.read_bytes(), [])
+        assert (route.answer, route.body, external) == (
+            "fulfill",
+            path.read_bytes(),
+            [],
+        )
 
 
 class TestOffThisMachine:

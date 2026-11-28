@@ -19,9 +19,9 @@ from tests.test_contrib.test_autocomplete.conftest import in_request  # noqa: F4
 def pytest_collection_modifyitems(items):
     """Mark every browser test ``e2e``, then queue the slow and browser tests first.
 
-    A test is a browser test when its fixtures reach Playwright's ``browser``. Marking it
-    here means a new browser test cannot miss the marker, and ``pytest -m "not e2e and not
-    slow"`` is the whole suite without them.
+    A test is a browser test when its fixtures reach Playwright's ``browser``. Marking
+    it here means a new browser test cannot miss the marker, and
+    ``pytest -m "not e2e and not slow"`` is the whole suite without them.
 
     ``--dist=loadscope`` hands out one class or module at a time in collection order. A
     slow test collected late starts late and sets the suite's wall time.
@@ -202,13 +202,15 @@ VENDORED = Path(__file__).resolve().parent / "fixtures" / "vendor"
 
 _ICONS = r"https://cdn\.jsdelivr\.net/npm/bootstrap-icons@1\.13\.1/font/"
 
-#: What the browser tests serve in place of the hosts a page asks for, so no browser test
-#: needs the network: ``(address pattern, file to send, content type)``. The pattern
-#: matches the whole URL. Each file is a copy of the published release, and the page's
-#: integrity hash is checked against it.
+#: What the browser tests serve in place of the hosts a page asks for, so no browser
+#: test needs the network: ``(address pattern, file to send, content type)``. The
+#: pattern matches the whole URL. Each file is a copy of the published release, and
+#: the page's integrity hash is checked against it.
 STAND_INS = (
     (
-        re.compile(r"https://cdn\.jsdelivr\.net/npm/htmx\.org@2\.0\.10/dist/htmx\.min\.js"),
+        re.compile(
+            r"https://cdn\.jsdelivr\.net/npm/htmx\.org@2\.0\.10/dist/htmx\.min\.js"
+        ),
         VENDORED / "htmx.min.js",
         "application/javascript",
     ),
@@ -224,9 +226,9 @@ STAND_INS = (
     ),
 )
 
-#: Every web address that is not on this machine. Only these go through Python: a test
-#: that waits with ``wait_until`` does not run Playwright, so a request held for Python's
-#: answer would stall until the test's next browser call.
+#: Every web address that is not on this machine. Only these go through Python: a
+#: test that waits with ``wait_until`` does not run Playwright, so a request held for
+#: Python's answer would stall until the test's next browser call.
 OFF_THIS_MACHINE = re.compile(
     r"^https?://(?!(?:localhost|127\.0\.0\.1|\[::1\])(?::\d+)?(?:/|$))"
 )
@@ -253,9 +255,9 @@ def wait_until_still(page):
     """Wait until no htmx request is in flight and nothing is moving.
 
     No htmx request is in flight, no swap is settling and no CSS transition is running,
-    for two animation frames in a row. A swap is settled only then: htmx scrolls the page
-    back to the top as it finishes. This is the state a fixed pause after a gesture
-    would stand in for.
+    for two animation frames in a row. A swap is settled only then: htmx scrolls the
+    page back to the top as it finishes. This is the state a fixed pause after a
+    gesture would stand in for.
 
     Args:
         page: The Playwright page.
@@ -283,10 +285,10 @@ def wait_until_still(page):
 def answer_request(route, request, external):
     """Answer one request a browser context makes.
 
-    Only requests to other machines reach this function (see ``OFF_THIS_MACHINE``). One to
-    an address in ``STAND_INS`` is answered from the repository. Any other is refused and
-    recorded in ``external``, which fails the test when it ends, so a page cannot reach
-    the network without a test noticing.
+    Only requests to other machines reach this function (see ``OFF_THIS_MACHINE``).
+    One to an address in ``STAND_INS`` is answered from the repository. Any other is
+    refused and recorded in ``external``, which fails the test when it ends, so a page
+    cannot reach the network without a test noticing.
 
     Args:
         route: The Playwright route for the request.
@@ -300,7 +302,9 @@ def answer_request(route, request, external):
                 body = path.read_bytes()
             except OSError as error:
                 # An unanswered route hangs the page until its timeout and hides why.
-                external.append(f"{request.method} {url} (stand-in unreadable: {error})")
+                external.append(
+                    f"{request.method} {url} (stand-in unreadable: {error})"
+                )
                 route.abort("failed")
                 return
             route.fulfill(

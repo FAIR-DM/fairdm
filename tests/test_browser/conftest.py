@@ -1,4 +1,4 @@
-"""Fixtures for the browser tests: a live server, a database it can see and a sign-in."""
+"""Fixtures for the browser tests: pages signed in, with data the server can see."""
 
 import pytest
 from django.test import Client
@@ -13,15 +13,16 @@ from fairdm.registry import registry
 from fairdm.utils.choices import Visibility
 from tests.conftest import seed_session_data
 
+
 @pytest.hookimpl(wrapper=True)
 def pytest_runtest_teardown(item, nextitem):
-    """Write the licences and vocabularies back after a browser test's database is flushed.
+    """Write the seed licences and vocabularies back after a browser test flushes them.
 
-    A browser test runs against a database that commits, because the live server's threads
-    cannot see a transaction the test has not committed. It is emptied when the test ends,
-    and the tests that run after it on the same worker still expect the seed data.
-    pytest-django empties it when the test's own fixtures end, and the teardown hook
-    returns after that, whichever order the fixtures were set up in.
+    A browser test runs against a database that commits, because the live server's
+    threads cannot see a transaction the test has not committed. It is emptied when the
+    test ends, and the tests that run after it on the same worker still expect the seed
+    data. pytest-django empties it when the test's own fixtures end, and the teardown
+    hook returns after that, whichever order the fixtures were set up in.
     """
     try:
         return (yield)
