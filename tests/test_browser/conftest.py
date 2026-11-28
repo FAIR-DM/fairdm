@@ -11,7 +11,7 @@ from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.factories import ContributionFactory, DatasetFactory, PersonFactory
 from fairdm.registry import registry
 from fairdm.utils.choices import Visibility
-from tests.conftest import seed_session_data
+from tests.conftest import HAS_BROWSER, seed_session_data
 
 
 @pytest.hookimpl(wrapper=True)
@@ -27,7 +27,7 @@ def pytest_runtest_teardown(item, nextitem):
     try:
         return (yield)
     finally:
-        if "live_server" in item.fixturenames:
+        if HAS_BROWSER and "live_server" in item.fixturenames:
             with item.config.stash[blocking_manager_key].unblock():
                 seed_session_data()
 

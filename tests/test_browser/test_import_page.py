@@ -44,20 +44,24 @@ class TestDropZone:
 
 
 class TestUploadForm:
-    def test_a_second_submit_while_the_first_is_sent_posts_nothing(self, import_page):
-        posts = []
-        import_page.on(
-            "request", lambda r: posts.append(r.url) if r.method == "POST" else None
+    def test_a_second_submit_while_the_first_is_sent_is_refused(
+        self, import_page, live_server
+    ):
+        """Hold the first upload on its way out, then submit the form again."""
+        import_page.route(
+            live_server.url + "/**",
+            lambda route: None if route.request.method == "POST" else route.continue_(),
         )
         choose_file(import_page)
 
-        import_page.evaluate(
-            """() => {
+        with import_page.expect_request(lambda request: request.method == "POST"):
+            import_page.locator("[data-ie-submit]").click()
+        refused = import_page.evaluate(
+            """() => new Promise(done => {
               const form = document.querySelector('form[data-ie-upload]');
+              form.addEventListener('submit', event => done(event.defaultPrevented));
               form.requestSubmit();
-              form.requestSubmit();
-            }"""
+            })"""
         )
-        import_page.wait_for_url("**/imports/**")
 
-        assert len(posts) == 1
+        assert refused is True

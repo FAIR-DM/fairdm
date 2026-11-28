@@ -25,15 +25,20 @@ def menu(page, live_server, rock_listing_url):
 
 class TestExportMenuClosing:
     def test_escape_closes_the_menu_and_returns_focus_to_its_button(self, page, menu):
+        menu.locator("a").first.focus()
+
         page.keyboard.press("Escape")
 
         expect(menu).not_to_have_attribute("open", "")
         expect(menu.locator("summary")).to_be_focused()
 
     def test_a_click_outside_the_menu_closes_it(self, page, menu):
+        address = page.url
+
         page.locator("body").click(position={"x": 1, "y": 1})
 
         expect(menu).not_to_have_attribute("open", "")
+        assert page.url == address
 
     def test_a_click_inside_the_menu_keeps_it_open(self, page, menu):
         menu.locator(".ie-menu__title").first.click()

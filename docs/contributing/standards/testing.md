@@ -230,8 +230,8 @@ pytest -m "not e2e and not slow"
 
 It skips every browser test and every test that takes over a second or starts a subprocess:
 the migration tests, the backup and restore tests and the Docker script tests. The `e2e` marker
-is added to any test that uses the Playwright `browser` fixture (`page` and `live_server`
-included), in `tests/conftest.py`, so a new browser test cannot miss it. A test that is slow
+is added to any test that uses the Playwright `browser` fixture (`page` included), in
+`tests/conftest.py`, so a new browser test cannot miss it. A test that is slow
 without a browser carries `@pytest.mark.slow`, and a few older ones still start a Python process
 without it. The full suite, `pytest`, runs before a pull request and in CI.
 
@@ -246,8 +246,9 @@ declared a non-mirror path because their subject is a script or a page, not a Py
   on a developer's machine. In CI a missing browser is a failure, so the checks page never shows
   a skip as a pass.
 - **Run them** with `pytest -m e2e`. They use pytest-playwright's `page` fixture and pytest-django's
-  `live_server`, and a test that asks for either runs against a database that commits. The
-  licences and vocabularies are written back when it ends. Sign in with the `sign_in` fixture in
+  `live_server`. A test that asks for `live_server` runs against a database that commits, so the
+  server's own threads see what the test wrote, and the licences and vocabularies are written
+  back when it ends. Sign in with the `sign_in` fixture in
   `tests/test_browser/conftest.py`.
 - **A browser test never reaches the network.** The browser answers the CDN addresses a page asks
   for from files in `tests/fixtures/vendor/`: htmx and the Bootstrap Icons stylesheet and font.

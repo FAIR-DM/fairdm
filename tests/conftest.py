@@ -190,8 +190,10 @@ def _should_skip_browser_tests(has_browser, env):
     return env.get("CI", "").lower() not in {"1", "true"}
 
 
+HAS_BROWSER = _browser_is_installed()
+
 requires_browser = pytest.mark.skipif(
-    _should_skip_browser_tests(_browser_is_installed(), os.environ),
+    _should_skip_browser_tests(HAS_BROWSER, os.environ),
     reason="playwright browser not installed (run: playwright install chromium)",
 )
 
