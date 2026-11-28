@@ -44,24 +44,30 @@ class TestDropZone:
 
 
 class TestUploadForm:
-    def test_a_second_submit_while_the_first_is_sent_is_refused(
-        self, import_page, live_server
-    ):
-        """Hold the first upload on its way out, then submit the form again."""
-        import_page.route(
-            live_server.url + "/**",
-            lambda route: None if route.request.method == "POST" else route.continue_(),
+    def test_a_second_submit_after_the_first_is_refused(self, import_page):
+        """Submit twice, keeping the page where it is so both submits can be seen.
+
+        The test's own listener runs after the script's. It notes whether the script
+        refused each submit, then cancels it so the page stays put instead of leaving
+        for the upload's response.
+        """
+        import_page.evaluate(
+            """() => {
+              window.refused = [];
+              document.querySelector('form[data-ie-upload]').addEventListener(
+                'submit',
+                event => {
+                  window.refused.push(event.defaultPrevented);
+                  event.preventDefault();
+                },
+              );
+            }"""
         )
         choose_file(import_page)
 
-        with import_page.expect_request(lambda request: request.method == "POST"):
-            import_page.locator("[data-ie-submit]").click()
-        refused = import_page.evaluate(
-            """() => new Promise(done => {
-              const form = document.querySelector('form[data-ie-upload]');
-              form.addEventListener('submit', event => done(event.defaultPrevented));
-              form.requestSubmit();
-            })"""
+        import_page.locator("[data-ie-submit]").click()
+        import_page.evaluate(
+            "document.querySelector('form[data-ie-upload]').requestSubmit()"
         )
 
-        assert refused is True
+        assert import_page.evaluate("window.refused") == [False, True]
