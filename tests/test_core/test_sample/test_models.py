@@ -704,7 +704,7 @@ class TestSampleNoRights:
 
 @pytest.mark.django_db
 class TestMoveKeepsManager:
-    """A sample's ``clean`` applies the shared rule: one refusing, one passing case."""
+    """A sample's ``clean`` applies the shared rule, which ``RecordAccess`` tests in full."""
 
     def test_a_move_to_a_dataset_that_gives_no_manager_is_refused(
         self, make_manager, dataset
@@ -717,12 +717,3 @@ class TestMoveKeepsManager:
             sample.clean()
 
         assert refused.value.error_dict["dataset"][0].code == "no_manager"
-
-    def test_a_move_to_a_dataset_with_a_manager_passes(self, make_manager, dataset):
-        other = DatasetFactory(project=dataset.project)
-        make_manager(dataset)
-        make_manager(other)
-        sample = RockSampleFactory(dataset=dataset)
-        sample.dataset = other
-
-        sample.clean()

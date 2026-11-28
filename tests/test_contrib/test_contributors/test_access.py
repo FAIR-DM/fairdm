@@ -6,6 +6,7 @@ record above it. Nothing here goes through a permission backend.
 
 import pytest
 from django.contrib.auth.models import AnonymousUser, Group, Permission
+from django.core.exceptions import ValidationError
 from django.db.models import QuerySet
 
 from fairdm.contrib.contributors.access import REQUIRED_LEVEL, RecordAccess
@@ -18,8 +19,10 @@ from fairdm.factories import (
     DatasetFactory,
     OrganizationFactory,
     PersonFactory,
+    ProjectFactory,
 )
 from fairdm.portal_roles import PortalRoles
+from fairdm.utils.choices import Visibility
 from tests.factories import ConcreteMeasurementFactory, ConcreteSampleFactory
 from tests.registry_models.models import PlainProxyMeasurement
 
@@ -349,6 +352,77 @@ class TestManagers:
         grant(record_chain.dataset, person, MANAGE)
 
         assert RecordAccess(record_chain.dataset).managers() == set()
+
+
+@pytest.mark.django_db
+class TestRefuseMoveWithoutManager:
+    """The rule every record type applies in its ``clean``: a move may not leave nobody to manage."""
+
+    @pytest.fixture
+    def moved_dataset(self, record_chain, signed_in, grant):
+        """The chain's dataset, managed through its project, pointed at a project nobody manages."""
+        grant(record_chain.project, signed_in, MANAGE)
+        dataset = record_chain.dataset
+        dataset.project = ProjectFactory()
+        return dataset
+
+    def test_a_move_to_a_parent_that_gives_no_manager_is_refused(self, moved_dataset):
+        with pytest.raises(ValidationError) as refused:
+            RecordAccess(moved_dataset).refuse_move_without_manager("project")
+
+        assert refused.value.error_dict["project"][0].code == "no_manager"
+
+    def test_a_move_out_of_the_parent_is_refused(self, moved_dataset):
+        moved_dataset.project = None
+
+        with pytest.raises(ValidationError) as refused:
+            RecordAccess(moved_dataset).refuse_move_without_manager("project")
+
+        assert refused.value.error_dict["project"][0].code == "no_manager"
+
+    def test_a_move_to_a_parent_with_a_manager_passes(self, moved_dataset, grant):
+        grant(
+            moved_dataset.project,
+            PersonFactory(is_active=True, is_claimed=True, password="x"),
+            MANAGE,
+        )
+
+        RecordAccess(moved_dataset).refuse_move_without_manager("project")
+
+    def test_a_manager_listed_on_the_record_itself_keeps_it_manageable(
+        self, moved_dataset, signed_in, grant
+    ):
+        grant(moved_dataset, signed_in, MANAGE)
+
+        RecordAccess(moved_dataset).refuse_move_without_manager("project")
+
+    def test_a_record_that_had_no_manager_may_move_anywhere(self, record_chain):
+        dataset = record_chain.dataset
+        dataset.project = ProjectFactory()
+
+        RecordAccess(dataset).refuse_move_without_manager("project")
+
+    def test_a_record_whose_parent_did_not_change_passes(
+        self, record_chain, signed_in, grant
+    ):
+        grant(record_chain.project, signed_in, MANAGE)
+        dataset = record_chain.dataset
+        dataset.name = "Renamed"
+
+        RecordAccess(dataset).refuse_move_without_manager("project")
+
+    def test_a_new_record_is_never_refused(self):
+        new = Dataset(name="New", project=ProjectFactory())
+
+        RecordAccess(new).refuse_move_without_manager("project")
+
+    def test_a_record_the_default_manager_hides_is_still_compared(self, moved_dataset):
+        moved_dataset.visibility = Visibility.PRIVATE
+        moved_dataset.save(update_fields=["visibility"])
+        moved_dataset.project = ProjectFactory()
+
+        with pytest.raises(ValidationError):
+            RecordAccess(moved_dataset).refuse_move_without_manager("project")
 
 
 @pytest.mark.django_db
