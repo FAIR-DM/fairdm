@@ -211,7 +211,7 @@ Context entries: `sample`, `record`, `can_manage`, `sample_type`, `status`, `lif
 | Method | Returns |
 |---|---|
 | `get_result()` | A dictionary with `text` when the type declares a `value`, else `None`. |
-| `get_sample_status()` | The sample's status `label` and `variant`, or `None` when it records none. |
+| `get_sample_status()` | The sample's status `label` and `variant`. |
 | `get_siblings()` | The other measurements on the same sample that the viewer may see: `rows`, `more` and `total`. |
 | `get_citation_details(entries, dates, identifiers, sample)` | `title` and `text`, with `work` and `formats` from the [citations](#citations), and `note`, `note_url` and `note_link` when there is no DOI. `sample` is `None` when the viewer may not see it. |
 | `get_details(project)` | The rows of the fact sheet. |

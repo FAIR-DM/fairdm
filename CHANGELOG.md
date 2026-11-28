@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **A ROR export no longer doubles the address.** `RORTransform.export` and the schema.org export of an organization or an affiliation wrote `https://ror.org/https://ror.org/...` for an organization whose stored ROR identifier is already the full address.
 - **A migration reads the database it is migrating.** `0023_levels_from_stored_permissions` of the contributors app queried the router's default database for every row, so migrating another database read the wrong data.
-- **The latitude and longitude columns of a sample or measurement table use the `__` separator.** Their accessors were `location.y` and `effective_location.x`, a form django-tables2 deprecates and will remove in version 3.
+- **The latitude and longitude columns of a sample or measurement table use the `__` separator.** Their accessors were `location.y` and `effective_location.x`, a form django-tables2 deprecates.
 
 ### Changed
 
