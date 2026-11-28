@@ -88,7 +88,11 @@ class Measurement(BasePolymorphicModel):
         editable=False,
         unique=True,
         prefix="m",
-        verbose_name="UUID",
+        verbose_name=_("UUID"),
+        help_text=_(
+            "A short, unique identifier generated automatically when the "
+            "measurement is created. Cannot be edited afterwards."
+        ),
     )
 
     contributors = GenericRelation("contributors.Contribution")
@@ -301,7 +305,12 @@ class MeasurementDescription(VocabularyGuardedSave, AbstractDescription):
             "What the description covers, from the measurement description types."
         ),
     )
-    related = models.ForeignKey("Measurement", on_delete=models.CASCADE)
+    related = models.ForeignKey(
+        "Measurement",
+        verbose_name=_("measurement"),
+        help_text=_("The measurement this description belongs to."),
+        on_delete=models.CASCADE,
+    )
 
 
 class MeasurementDate(VocabularyGuardedSave, AbstractDate):
@@ -315,7 +324,12 @@ class MeasurementDate(VocabularyGuardedSave, AbstractDate):
         verbose_name=_("type"),
         help_text=_("What the date marks, from the measurement date types."),
     )
-    related = models.ForeignKey("Measurement", on_delete=models.CASCADE)
+    related = models.ForeignKey(
+        "Measurement",
+        verbose_name=_("measurement"),
+        help_text=_("The measurement this date belongs to."),
+        on_delete=models.CASCADE,
+    )
 
 
 class MeasurementIdentifier(VocabularyGuardedSave, AbstractIdentifier):
@@ -333,4 +347,9 @@ class MeasurementIdentifier(VocabularyGuardedSave, AbstractIdentifier):
         verbose_name=_("type"),
         help_text=_("The kind of identifier, from the measurement identifier types."),
     )
-    related = models.ForeignKey("Measurement", on_delete=models.CASCADE)
+    related = models.ForeignKey(
+        "Measurement",
+        verbose_name=_("measurement"),
+        help_text=_("The measurement this identifier belongs to."),
+        on_delete=models.CASCADE,
+    )

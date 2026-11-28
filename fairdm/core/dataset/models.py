@@ -91,12 +91,14 @@ class DatasetLiteratureRelation(models.Model):
         on_delete=models.CASCADE,
         related_name="literature_relations",
         verbose_name=_("dataset"),
+        help_text=_("The dataset the literature item relates to."),
     )
     literature_item = models.ForeignKey(
         "literature.Item",
         on_delete=models.CASCADE,
         related_name="dataset_relations",
         verbose_name=_("literature item"),
+        help_text=_("The publication that relates to the dataset."),
     )
     relationship_type = models.CharField(
         _("relationship type"),
@@ -340,6 +342,7 @@ class Dataset(BaseModel):
     )
     related_literature: models.ManyToManyField = models.ManyToManyField(
         "literature.Item",
+        verbose_name=_("related literature"),
         help_text=_("Any literature that is related to this dataset."),
         through="DatasetLiteratureRelation",
         related_name="related_datasets",
@@ -457,7 +460,12 @@ class DatasetDescription(AbstractDescription):
         verbose_name=_("type"),
         help_text=_("What the description covers, from the dataset description types."),
     )
-    related = models.ForeignKey("Dataset", on_delete=models.CASCADE)
+    related = models.ForeignKey(
+        "Dataset",
+        verbose_name=_("dataset"),
+        help_text=_("The dataset this description belongs to."),
+        on_delete=models.CASCADE,
+    )
 
     class Meta(AbstractDescription.Meta):
         indexes = [
@@ -501,7 +509,12 @@ class DatasetDate(AbstractDate):
         verbose_name=_("type"),
         help_text=_("What the date marks, from the dataset date types."),
     )
-    related = models.ForeignKey("Dataset", on_delete=models.CASCADE)
+    related = models.ForeignKey(
+        "Dataset",
+        verbose_name=_("dataset"),
+        help_text=_("The dataset this date belongs to."),
+        on_delete=models.CASCADE,
+    )
 
     START_TYPE = f"{DATE_TYPES}/collection-start"
     END_TYPE = f"{DATE_TYPES}/collection-end"
@@ -530,4 +543,9 @@ class DatasetIdentifier(AbstractIdentifier):
         verbose_name=_("type"),
         help_text=_("The kind of identifier, from the dataset identifier types."),
     )
-    related = models.ForeignKey("Dataset", on_delete=models.CASCADE)
+    related = models.ForeignKey(
+        "Dataset",
+        verbose_name=_("dataset"),
+        help_text=_("The dataset this identifier belongs to."),
+        on_delete=models.CASCADE,
+    )

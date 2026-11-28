@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Every model field has a label and help text.** The name, image and options of a project, dataset, sample and measurement, the value of a date, description or identifier, the `related` link of those rows, the `UUID` of projects, samples and measurements, the sample relations, the dataset literature links, the claiming audit log, the tag's object ID and the portal identity and authority names now carry a translatable `verbose_name` and `help_text`. A migration per app records them and changes no column. A description's value was labelled "value" and a `related` link "related" before. Fields that a dependency declares keep that dependency's labels.
 - **The date rule is shared.** `AbstractDate` refuses an end date earlier than the start date for any record that names `START_TYPE`, `END_TYPE` and `END_BEFORE_START_MESSAGE`, as the project and dataset dates do. The project and dataset overviews put the samples map in their context with `add_sample_map()`, and the three measurement inlines share `OneRowPerTypeInline`.
 
 ## [v0.7.0] - 2026-11-27
