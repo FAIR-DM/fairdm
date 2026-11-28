@@ -1,9 +1,28 @@
 """Pytest configuration shared by every suite in this repository."""
 
+import random
 import uuid
+import zlib
 
+import factory.random
+import faker
 import pytest
 from django.apps import apps
+
+
+@pytest.hookimpl(tryfirst=True)
+def pytest_runtest_setup(item):
+    """Seed every random source from the test's id before any fixture builds data.
+
+    Faker, factory_boy and ``random`` draw the same values on every run of a test and
+    different values from one test to the next, so a failure reproduces and tests do
+    not collide on a unique field. This runs ahead of fixture setup, which includes the
+    class- and module-scoped fixtures.
+    """
+    seed = zlib.crc32(item.nodeid.encode())
+    factory.random.reseed_random(seed)
+    faker.Faker.seed(seed)
+    random.seed(seed)
 
 
 @pytest.fixture
