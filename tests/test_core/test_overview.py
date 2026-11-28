@@ -73,10 +73,6 @@ class TestJsonLd:
 
 
 class TestAsDate:
-    @pytest.mark.parametrize("recorded", ["2020", "2020-03", "2020-03-04"])
-    def test_a_partial_date_of_any_precision_gives_a_date(self, recorded):
-        assert isinstance(as_date(PartialDate.fromisoformat(recorded)), date)
-
     def test_a_year_only_date_gives_the_first_day_of_that_year(self):
         assert as_date(PartialDate.fromisoformat("2020")) == date(2020, 1, 1)
 

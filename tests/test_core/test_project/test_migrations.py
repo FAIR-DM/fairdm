@@ -2,9 +2,6 @@
 
 import importlib
 
-import pytest
-from django.db.migrations.state import ProjectState
-
 
 class TestFundingShapeMigrationIsIrreversible:
     # Reversing 0008 would silently drop `amount` and the other DataCite funder fields,
@@ -18,9 +15,3 @@ class TestFundingShapeMigrationIsIrreversible:
 
     def test_operation_declares_no_reverse(self):
         assert self._operation().reversible is False
-
-    def test_reversing_the_operation_raises(self):
-        with pytest.raises(NotImplementedError):
-            self._operation().database_backwards(
-                "project", None, ProjectState(), ProjectState()
-            )

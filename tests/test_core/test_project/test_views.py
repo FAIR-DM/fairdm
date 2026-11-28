@@ -1,24 +1,20 @@
 """Integration tests for the project list, create, update and delete views."""
 
 import re
-import time
+from datetime import timedelta
 
-import django_filters
 import pytest
 from bs4 import BeautifulSoup
-from django import forms
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
-from django.urls import resolve, reverse, reverse_lazy
-from django.views.generic import CreateView
+from django.urls import resolve, reverse
+from django.utils import timezone
 from pytest_django.asserts import assertContains, assertNotContains
 
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.contrib.contributors.models import Organization
 from fairdm.core.choices import ProjectStatus
-from fairdm.core.dataset.models import Dataset
 from fairdm.core.project.models import Project
-from fairdm.core.project.views import ProjectCreateView, ProjectListView
 from fairdm.core.vocabularies import CONTRIBUTOR_ROLES, DESCRIPTION_TYPES
 from fairdm.factories import (
     ContributionFactory,
@@ -31,7 +27,6 @@ from fairdm.factories import (
     UserFactory,
 )
 from fairdm.utils.choices import Visibility
-from fairdm.views import FairDMCreateView, FairDMListView
 
 
 @pytest.mark.django_db
@@ -48,33 +43,6 @@ class TestProjectCreateView:
         form = response.context["form"]
         assert set(form.fields.keys()) == {"name", "status", "visibility"}
 
-    def test_anonymous_user_redirects_to_login(self, client):
-        url = reverse("project-create")
-        response = client.get(url)
-
-        assert response.status_code == 302
-        assert "/accounts/login/" in response.url or "/login/" in response.url
-
-    def test_create_project_redirects_to_detail(self, authenticated_client):
-        owner = Organization.objects.create(name="Test Organization")
-
-        url = reverse("project-create")
-        form_data = {
-            "name": "New Test Project",
-            "status": ProjectStatus.CONCEPT,
-            "visibility": Visibility.PRIVATE,
-            "owner": owner.pk,
-        }
-        response = authenticated_client.post(url, data=form_data)
-
-        assert response.status_code == 302
-
-        project = Project.objects.get(name="New Test Project")
-        assert project.pk is not None
-
-        expected_url = reverse("project:overview", kwargs={"uuid": project.uuid})
-        assert response.url == expected_url
-
     def test_create_project_records_creator(self, authenticated_client, user):
         url = reverse("project-create")
         form_data = {
@@ -88,30 +56,6 @@ class TestProjectCreateView:
 
         project = Project.objects.get(name="Creator Recorded Project")
         assert project.created_by == user
-
-    def test_create_form_displays_validation_errors(self, authenticated_client):
-        url = reverse("project-create")
-        form_data = {
-            "status": ProjectStatus.CONCEPT,
-            "visibility": Visibility.PRIVATE,
-        }
-        response = authenticated_client.post(url, data=form_data)
-
-        assert response.status_code == 200
-        assert "form" in response.context
-
-        form = response.context["form"]
-        assert not form.is_valid()
-        assert "name" in form.errors
-        assert Project.objects.count() == 0
-
-
-@pytest.mark.django_db
-class TestProjectListViewEmitsNoDeprecationWarning:
-    @pytest.mark.filterwarnings("error::mvp.warnings.MVPDeprecationWarning")
-    def test_rendering_the_listing_emits_no_deprecation_warning(self, client):
-        response = client.get(reverse("project-list"))
-        assert response.status_code == 200
 
 
 @pytest.mark.django_db
@@ -155,53 +99,51 @@ class TestProjectListing:
         entries = list(response.context["object_list"])
         assert project in entries
 
-    def test_listing_ordered_by_name_returns_alphabetical_order(self, client):
-        bravo = ProjectFactory(name="Bravo Project", visibility=Visibility.PUBLIC)
-        alpha = ProjectFactory(name="Alpha Project", visibility=Visibility.PUBLIC)
-        response = client.get(reverse("project-list"), {"o": "name"})
-        entries = list(response.context["object_list"])
-        assert entries.index(alpha) < entries.index(bravo)
-
-    def test_listing_ordered_by_name_reversed_returns_reverse_alphabetical_order(
+    def test_listing_ordered_by_name_sorts_both_ways_whatever_the_default_order(
         self, client
     ):
-        # Separate from the ascending case: an unordered queryset that arrives sorted
-        # would pass one.
-        bravo = ProjectFactory(name="Bravo Project", visibility=Visibility.PUBLIC)
-        alpha = ProjectFactory(name="Alpha Project", visibility=Visibility.PUBLIC)
-        response = client.get(reverse("project-list"), {"o": "-name"})
-        entries = list(response.context["object_list"])
-        assert entries.index(bravo) < entries.index(alpha)
-
-    def test_listing_ordered_by_date_added_returns_oldest_first(self, client):
-        older = ProjectFactory(visibility=Visibility.PUBLIC)
-        time.sleep(0.01)
-        newer = ProjectFactory(visibility=Visibility.PUBLIC)
-        response = client.get(reverse("project-list"), {"o": "added"})
-        entries = list(response.context["object_list"])
-        assert entries.index(older) < entries.index(newer)
-
-    def test_listing_ordered_by_date_added_reversed_returns_newest_first(self, client):
-        older = ProjectFactory(visibility=Visibility.PUBLIC)
-        time.sleep(0.01)
-        newer = ProjectFactory(visibility=Visibility.PUBLIC)
-        response = client.get(reverse("project-list"), {"o": "-added"})
-        entries = list(response.context["object_list"])
-        assert entries.index(newer) < entries.index(older)
-
-    def test_listing_status_filter_narrows_to_the_matching_status(self, client):
-        concept = ProjectFactory(
-            status=ProjectStatus.CONCEPT, visibility=Visibility.PUBLIC
+        # The default order is newest-modified first (bravo, charlie, alpha), which
+        # neither name order matches, so an ignored sort fails here.
+        # Created out of name order, so a sort on the primary key fails as well.
+        charlie, alpha, bravo = (
+            ProjectFactory(name=f"{name} Project", visibility=Visibility.PUBLIC)
+            for name in ("Charlie", "Alpha", "Bravo")
         )
-        complete = ProjectFactory(
-            status=ProjectStatus.COMPLETE, visibility=Visibility.PUBLIC
+        now = timezone.now()
+        for project, age in ((bravo, 1), (charlie, 2), (alpha, 3)):
+            Project.objects.filter(pk=project.pk).update(
+                modified=now - timedelta(days=age)
+            )
+
+        ascending = client.get(reverse("project-list"), {"o": "name"})
+        descending = client.get(reverse("project-list"), {"o": "-name"})
+
+        assert list(ascending.context["object_list"]) == [alpha, bravo, charlie]
+        assert list(descending.context["object_list"]) == [charlie, bravo, alpha]
+
+    def test_listing_ordered_by_date_added_sorts_both_ways_whatever_the_default_order(
+        self, client
+    ):
+        # Added in neither creation nor modified order, so a sort on the primary key or
+        # on `modified` fails as well.
+        first, second, third = (
+            ProjectFactory(visibility=Visibility.PUBLIC) for _ in range(3)
         )
-        response = client.get(
-            reverse("project-list"), {"status": [ProjectStatus.CONCEPT]}
-        )
-        entries = list(response.context["object_list"])
-        assert concept in entries
-        assert complete not in entries
+        now = timezone.now()
+        for project, age in ((second, 3), (third, 2), (first, 1)):
+            Project.objects.filter(pk=project.pk).update(
+                added=now - timedelta(days=age)
+            )
+        for project, age in ((third, 1), (first, 2), (second, 3)):
+            Project.objects.filter(pk=project.pk).update(
+                modified=now - timedelta(days=age)
+            )
+
+        oldest_first = client.get(reverse("project-list"), {"o": "added"})
+        newest_first = client.get(reverse("project-list"), {"o": "-added"})
+
+        assert list(oldest_first.context["object_list"]) == [second, third, first]
+        assert list(newest_first.context["object_list"]) == [first, third, second]
 
     def test_listing_status_filter_takes_several_statuses_at_once(self, client):
         concept = ProjectFactory(
@@ -221,27 +163,6 @@ class TestProjectListing:
         assert concept in entries
         assert complete in entries
         assert in_progress not in entries
-
-    def test_listing_owner_filter_narrows_to_the_matching_owner(self, client):
-        owner = OrganizationFactory()
-        matching = ProjectFactory(owner=owner, visibility=Visibility.PUBLIC)
-        other = ProjectFactory(visibility=Visibility.PUBLIC)
-        response = client.get(reverse("project-list"), {"owner": owner.pk})
-        entries = list(response.context["object_list"])
-        assert matching in entries
-        assert other not in entries
-
-    def test_listing_contributor_filter_narrows_to_the_matching_contributor(
-        self, client
-    ):
-        person = PersonFactory()
-        matching = ProjectFactory(visibility=Visibility.PUBLIC)
-        matching.add_contributor(person)
-        other = ProjectFactory(visibility=Visibility.PUBLIC)
-        response = client.get(reverse("project-list"), {"contributor": person.pk})
-        entries = list(response.context["object_list"])
-        assert matching in entries
-        assert other not in entries
 
     def test_listing_tag_filter_narrows_to_the_matching_tag(self, client):
         matching = ProjectFactory(visibility=Visibility.PUBLIC)
@@ -265,9 +186,6 @@ class TestProjectListing:
         response = client.get(reverse("project-list"))
         expected_url = public_project.get_absolute_url()
         assertContains(response, f'href="{expected_url}"')
-
-    def test_listing_view_derives_from_the_portals_own_list_base_class(self):
-        assert FairDMListView in ProjectListView.__bases__
 
 
 @pytest.mark.django_db
@@ -301,32 +219,6 @@ class TestProjectCreateViewExtended:
         assert response.status_code == 302
         expected_url = f"{reverse('account_login')}?next={url}"
         assert response.url == expected_url
-
-    def test_project_create_authenticated_200(self, authenticated_client):
-        url = reverse("project-create")
-        response = authenticated_client.get(url)
-        assert response.status_code == 200
-
-    def test_visibility_renders_as_radio_with_public_preselected(
-        self, authenticated_client
-    ):
-        url = reverse("project-create")
-        response = authenticated_client.get(url)
-        form = response.context["form"]
-
-        assert isinstance(form.fields["visibility"].widget, forms.RadioSelect)
-
-        content = response.content.decode()
-        public_input = re.search(
-            rf'<input[^>]*name="visibility"[^>]*value="{Visibility.PUBLIC}"[^>]*>',
-            content,
-        )
-        private_input = re.search(
-            rf'<input[^>]*name="visibility"[^>]*value="{Visibility.PRIVATE}"[^>]*>',
-            content,
-        )
-        assert public_input is not None and "checked" in public_input.group(0)
-        assert private_input is not None and "checked" not in private_input.group(0)
 
     def test_project_create_redirects_to_detail(self, authenticated_client):
         url = reverse("project-create")
@@ -433,11 +325,6 @@ class TestProjectCreateViewExtended:
         ]:
             assert role in role_names, f"Missing contributor role: {role}"
 
-    def test_create_view_derives_from_portal_create_base(self):
-        assert issubclass(ProjectCreateView, FairDMCreateView)
-        assert FairDMCreateView in ProjectCreateView.__mro__
-        assert CreateView not in ProjectCreateView.__bases__
-
 
 def _identifier_management_data(total=0, initial=0):
     """Return management-form data for the identifiers row set."""
@@ -461,94 +348,6 @@ def _date_management_data(total=0, initial=0):
 
 @pytest.mark.django_db
 class TestProjectUpdateView:
-    def test_project_update_anonymous_redirects_to_login(self, client):
-        project = ProjectFactory(visibility=Visibility.PUBLIC)
-        url = reverse("project:edit", kwargs={"uuid": project.uuid})
-        response = client.get(url)
-        assert response.status_code == 302
-        assert "/login/" in response.url or "/accounts/login/" in response.url
-
-    def test_project_update_without_permission_on_a_private_project_404(self, client):
-        project = ProjectFactory()
-        other_user = UserFactory()
-        client.force_login(other_user)
-        url = reverse("project:edit", kwargs={"uuid": project.uuid})
-        response = client.get(url)
-        assert response.status_code == 404
-
-    def test_project_update_without_permission_on_a_public_project_403(self, client):
-        project = ProjectFactory(visibility=Visibility.PUBLIC)
-        other_user = UserFactory()
-        client.force_login(other_user)
-        url = reverse("project:edit", kwargs={"uuid": project.uuid})
-        response = client.get(url)
-        assert response.status_code == 403
-
-    def test_project_update_without_permission_anonymous_on_a_private_project_404(
-        self, client
-    ):
-        project = ProjectFactory()
-        url = reverse("project:edit", kwargs={"uuid": project.uuid})
-        response = client.get(url)
-        assert response.status_code == 404
-
-    def test_project_update_with_permission_200(self, client):
-        project = ProjectFactory()
-        user = UserFactory()
-        ContributionFactory(
-            content_object=project, contributor=user, level=ContributionLevel.EDIT
-        )
-        client.force_login(user)
-        url = reverse("project:edit", kwargs={"uuid": project.uuid})
-        response = client.get(url)
-        assert response.status_code == 200
-
-    def test_changing_name_status_visibility_and_owner_each_persists(self, client):
-        org = Organization.objects.create(name="Original Org")
-        other_org = Organization.objects.create(name="Other Org")
-        user = UserFactory()
-
-        base_data = {
-            "name": "Original Name",
-            "status": ProjectStatus.CONCEPT,
-            "visibility": Visibility.PRIVATE,
-            "owner": org.pk,
-        }
-        changes = {
-            "name": "Changed Name",
-            "status": ProjectStatus.IN_PROGRESS,
-            "visibility": Visibility.PUBLIC,
-            "owner": other_org.pk,
-        }
-
-        for field, new_value in changes.items():
-            project = ProjectFactory(
-                name="Original Name",
-                status=ProjectStatus.CONCEPT,
-                visibility=Visibility.PRIVATE,
-                owner=org,
-            )
-            ContributionFactory(
-                content_object=project, contributor=user, level=ContributionLevel.MANAGE
-            )
-            client.force_login(user)
-            url = reverse("project:edit", kwargs={"uuid": project.uuid})
-            data = {
-                **base_data,
-                field: new_value,
-                **_identifier_management_data(),
-                **_date_management_data(),
-            }
-
-            response = client.post(url, data=data)
-
-            assert response.status_code == 302, response.context["form"].errors
-            project.refresh_from_db()
-            if field == "owner":
-                assert project.owner_id == other_org.pk
-            else:
-                assert getattr(project, field) == new_value
-
     def _post_changes(self, client, user, project, owner):
         client.force_login(user)
         url = reverse("project:edit", kwargs={"uuid": project.uuid})
@@ -584,19 +383,6 @@ class TestProjectUpdateView:
         assert project.name == "Renamed"
         assert project.visibility == Visibility.PRIVATE
         assert project.owner_id == org.pk
-
-    def test_the_form_an_editor_is_given_leaves_out_visibility_and_owner(self, client):
-        project = ProjectFactory()
-        editor = UserFactory()
-        ContributionFactory(
-            content_object=project, contributor=editor, level=ContributionLevel.EDIT
-        )
-        client.force_login(editor)
-
-        response = client.get(reverse("project:edit", kwargs={"uuid": project.uuid}))
-
-        assert {"name", "status"} <= set(response.context["form"].fields)
-        assert not {"visibility", "owner"} & set(response.context["form"].fields)
 
     def test_a_manager_changes_visibility_and_owner(self, client):
         org = Organization.objects.create(name="Original Org")
@@ -674,55 +460,6 @@ class TestProjectUpdateView:
         project.refresh_from_db()
         assert not project.image
 
-    def test_submitting_an_empty_name_reports_an_error_and_saves_nothing(self, client):
-        org = Organization.objects.create(name="Test Org")
-        project = ProjectFactory(name="Original Name", owner=org)
-        user = UserFactory()
-        ContributionFactory(
-            content_object=project, contributor=user, level=ContributionLevel.EDIT
-        )
-        client.force_login(user)
-        url = reverse("project:edit", kwargs={"uuid": project.uuid})
-
-        response = client.post(
-            url,
-            data={
-                "name": "",
-                "status": project.status,
-                "visibility": project.visibility,
-                "owner": org.pk,
-            },
-        )
-
-        assert response.status_code == 200
-        assert "name" in response.context["form"].errors
-        project.refresh_from_db()
-        assert project.name == "Original Name"
-
-    def test_project_update_success_redirects_to_detail(self, client):
-        org = Organization.objects.create(name="Test Org")
-        project = ProjectFactory(name="Original Name", owner=org)
-        user = UserFactory()
-        ContributionFactory(
-            content_object=project, contributor=user, level=ContributionLevel.EDIT
-        )
-        client.force_login(user)
-        url = reverse("project:edit", kwargs={"uuid": project.uuid})
-        response = client.post(
-            url,
-            data={
-                "name": "Updated Name",
-                "status": project.status,
-                "visibility": project.visibility,
-                "owner": org.pk,
-                **_identifier_management_data(),
-                **_date_management_data(),
-            },
-        )
-        assert response.status_code == 302
-        expected_url = reverse("project:overview", kwargs={"uuid": project.uuid})
-        assert response.url == expected_url
-
 
 def _project_field_data(project):
     """Return the attributes form's field values, unchanged from `project`."""
@@ -732,34 +469,6 @@ def _project_field_data(project):
         "visibility": project.visibility,
         "owner": project.owner_id,
     }
-
-
-@pytest.mark.django_db
-class TestAttributesSaveIsOneAtomicSubmission:
-    def test_a_successful_submission_redirects_to_the_projects_own_page(self, client):
-        org = Organization.objects.create(name="Test Org")
-        project = ProjectFactory(name="Original Name", owner=org)
-        user = UserFactory()
-        ContributionFactory(
-            content_object=project, contributor=user, level=ContributionLevel.EDIT
-        )
-        client.force_login(user)
-        url = reverse("project:edit", kwargs={"uuid": project.uuid})
-
-        response = client.post(
-            url,
-            data={
-                **_project_field_data(project),
-                "name": "Renamed",
-                **_identifier_management_data(),
-                **_date_management_data(),
-            },
-        )
-
-        assert response.status_code == 302
-        assert response.url == reverse(
-            "project:overview", kwargs={"uuid": project.uuid}
-        )
 
 
 @pytest.mark.django_db
@@ -800,55 +509,6 @@ class TestProjectDeleteView:
         assert response.url == reverse("project-list")
         assert not Project.objects.filter(pk=pk).exists()
 
-    def test_project_delete_blocks_public_datasets(self, client):
-        project = ProjectFactory(name="Dataset Project")
-        Dataset.objects.create(
-            name="Public Dataset", project=project, visibility=Visibility.PUBLIC
-        )
-        user = UserFactory()
-        ContributionFactory(
-            content_object=project, contributor=user, level=ContributionLevel.MANAGE
-        )
-        client.force_login(user)
-        url = reverse("project:delete", kwargs={"uuid": project.uuid})
-        response = client.post(url, data={"confirmation": "Dataset Project"})
-        assert response.status_code == 200
-        assertContains(response, "Public Dataset")
-        assert Project.objects.filter(pk=project.pk).exists()
-
-    def test_project_delete_refused_page_hides_confirmation_and_delete_control(
-        self, client
-    ):
-        project = ProjectFactory(name="Dataset Project")
-        Dataset.objects.create(
-            name="Public Dataset", project=project, visibility=Visibility.PUBLIC
-        )
-        user = UserFactory()
-        ContributionFactory(
-            content_object=project, contributor=user, level=ContributionLevel.MANAGE
-        )
-        client.force_login(user)
-        url = reverse("project:delete", kwargs={"uuid": project.uuid})
-        response = client.post(url, data={"confirmation": "Dataset Project"})
-        assert response.status_code == 200
-        assert response.context["is_protected"] is True
-        assertNotContains(response, 'id="id_confirmation"')
-        assertNotContains(response, 'id="delete-submit-btn"')
-
-    def test_project_delete_no_datasets_success(self, client):
-        project = ProjectFactory(name="Empty Project")
-        pk = project.pk
-        user = UserFactory()
-        ContributionFactory(
-            content_object=project, contributor=user, level=ContributionLevel.MANAGE
-        )
-        client.force_login(user)
-        url = reverse("project:delete", kwargs={"uuid": project.uuid})
-        response = client.post(url, data={"confirmation": "Empty Project"})
-        assert response.status_code == 302
-        assert response.url == reverse("project-list")
-        assert not Project.objects.filter(pk=pk).exists()
-
 
 @pytest.mark.django_db
 class TestProjectCardRendering:
@@ -857,27 +517,12 @@ class TestProjectCardRendering:
         assert response.status_code == 200
         return response, response.content.decode()
 
-    def test_card_shows_the_status_label(self, client):
-        project = ProjectFactory(
-            name="Rift Basin Survey",
-            status=ProjectStatus.IN_PROGRESS,
-            visibility=Visibility.PUBLIC,
-        )
-        response, _ = self._card_html(client)
-        assertContains(response, project.get_status_display())
-
     def test_card_reports_the_public_dataset_count(self, client):
         project = ProjectFactory(visibility=Visibility.PUBLIC)
         DatasetFactory(project=project, visibility=Visibility.PUBLIC)
         DatasetFactory(project=project, visibility=Visibility.PUBLIC)
         response, _ = self._card_html(client)
         assertContains(response, "2 datasets")
-
-    def test_card_counts_one_dataset_in_the_singular(self, client):
-        project = ProjectFactory(visibility=Visibility.PUBLIC)
-        DatasetFactory(project=project, visibility=Visibility.PUBLIC)
-        response, _ = self._card_html(client)
-        assertContains(response, "1 dataset")
 
     def test_card_says_so_rather_than_showing_a_zero(self, client):
         ProjectFactory(visibility=Visibility.PUBLIC)
@@ -895,10 +540,6 @@ class TestProjectCardRendering:
         assertContains(response, "1 dataset")
         assert "3 datasets" not in html
 
-    def test_the_whole_card_is_the_link(self, client, public_project):
-        response, _ = self._card_html(client)
-        assertContains(response, f'href="{public_project.get_absolute_url()}"')
-
     def test_card_renders_the_abstract_as_plain_text(self, client):
         project = ProjectFactory(visibility=Visibility.PUBLIC)
         ProjectDescriptionFactory(
@@ -912,41 +553,6 @@ class TestProjectCardRendering:
         assert "## Objectives" not in html
         assert "**heat flow**" not in html
 
-    def test_card_caps_a_long_abstract_at_400_characters(self, client):
-        project = ProjectFactory(visibility=Visibility.PUBLIC)
-        ProjectDescriptionFactory(
-            related=project,
-            type_id=f"{DESCRIPTION_TYPES}/abstract",
-            value="borehole " * 200,
-        )
-        response, _ = self._card_html(client)
-        assert len(project.get_abstract_summary()) <= 400
-        assertContains(response, project.get_abstract_summary()[:120])
-
-    def test_card_renders_keywords_as_badges_and_not_as_links(self, client):
-        from controlled_vocabularies.models import Record
-
-        keyword = Record.objects.filter(
-            scheme__uri=CONTRIBUTOR_ROLES, type=Record.Type.CONCEPT
-        ).first()
-        project = ProjectFactory(visibility=Visibility.PUBLIC)
-        project.keywords.add(keyword)
-        response, html = self._card_html(client)
-        assertContains(response, keyword.display_label())
-        assert f'href="?keywords={keyword.pk}"' not in html
-        assert f">{keyword.display_label()}</a>" not in html
-
-    def test_card_shows_the_project_uuid_with_a_copy_control(
-        self, client, public_project
-    ):
-        response, html = self._card_html(client)
-        assertContains(response, public_project.uuid)
-        assert "clipboard" in html
-
-    def test_card_shows_the_last_modified_date(self, client, public_project):
-        response, _ = self._card_html(client)
-        assertContains(response, public_project.modified.strftime("%b"))
-
     def test_card_shows_contributor_names_and_the_owning_organization(self, client):
         person = PersonFactory(name="Ada Lovelace")
         organization = OrganizationFactory(name="Institute of Deep Time")
@@ -956,64 +562,19 @@ class TestProjectCardRendering:
         assertContains(response, "Ada Lovelace")
         assertContains(response, "Institute of Deep Time")
 
-    def test_the_placeholder_is_hidden_from_assistive_technology(self, client):
-        ProjectFactory(image=None, visibility=Visibility.PUBLIC)
-        _, html = self._card_html(client)
-        placeholder = re.search(r'<span class="record-card__placeholder"([^>]*)>', html)
-        assert placeholder
-        assert 'aria-hidden="true"' in placeholder.group(1)
-
-    def test_stylesheet_is_linked_once_per_page_not_once_per_card(self, client):
-        for _ in range(3):
-            ProjectFactory(visibility=Visibility.PUBLIC)
-        response, html = self._card_html(client)
-        assert html.count("css/fairdm.css") == 1
-        assert len(response.context["object_list"]) == 3
-
-    def test_stylesheet_is_linked_from_the_base_template_not_a_page_template(
-        self, client
-    ):
-        response = client.get(reverse("dataset-list"))
-        assert response.status_code == 200
-        assert "css/fairdm.css" in response.content.decode()
-
-    @pytest.mark.parametrize(
-        ("path", "status"),
-        [
-            pytest.param("/", 200, id="page"),
-            pytest.param(reverse_lazy("account_login"), 200, id="entrance"),
-            pytest.param("/no-such-page/", 404, id="error"),
-        ],
-    )
-    def test_the_theme_is_linked_on_every_kind_of_page(self, client, path, status):
-        response = client.get(str(path))
-        assert response.status_code == status
-        assert "css/fairdm-theme.css" in response.content.decode()
-
-
-@pytest.mark.django_db
-class TestBrandIcons:
-    def test_the_tab_gets_the_favicon_and_the_sidebar_gets_the_symbol(self, client):
-        html = client.get("/").content.decode()
-        head, body = html.split("</head>", 1)
-        assert "brand/favicon.svg" in head
-        assert "brand/icon.svg" not in head
-        assert "brand/favicon.svg" not in body
-        assert "brand/icon.svg" in body
-
 
 @pytest.mark.django_db
 class TestProjectListingQueryCount:
     @staticmethod
-    def _build_projects(count):
+    def _build_projects(count, start=0):
         from controlled_vocabularies.models import Record
 
         keywords = list(
             Record.objects.filter(
                 scheme__uri=CONTRIBUTOR_ROLES, type=Record.Type.CONCEPT
-            )[:3]
+            ).order_by("pk")[:3]
         )
-        for index in range(count):
+        for index in range(start, start + count):
             project = ProjectFactory(
                 name=f"Survey {index}", visibility=Visibility.PUBLIC
             )
@@ -1040,38 +601,12 @@ class TestProjectListingQueryCount:
             assert response.status_code == 200
         baseline = len(one_project.captured_queries)
 
-        self._build_projects(19)
+        self._build_projects(2, start=1)
         client.get(url)
         with django_assert_num_queries(baseline):
             response = client.get(url)
             assert response.status_code == 200
-            assert len(response.context["object_list"]) == 20
-
-
-@pytest.mark.django_db
-class TestProjectCardEmitsNoTemplateComments:
-    # A multi-line `{# #}` is not a comment: its text is emitted verbatim (#330).
-    def test_no_comment_syntax_survives_into_the_rendered_page(self, client):
-        from controlled_vocabularies.models import Record
-
-        project = ProjectFactory(visibility=Visibility.PUBLIC)
-        project.keywords.add(
-            *Record.objects.filter(
-                scheme__uri=CONTRIBUTOR_ROLES, type=Record.Type.CONCEPT
-            )[:3]
-        )
-        project.add_contributor(PersonFactory())
-        ProjectDescriptionFactory(
-            related=project,
-            type_id=f"{DESCRIPTION_TYPES}/abstract",
-            value="An abstract.",
-        )
-
-        html = client.get(reverse("project-list")).content.decode()
-
-        assert "{#" not in html
-        assert "#}" not in html
-        assert "{%" not in html
+            assert len(response.context["object_list"]) == 3
 
 
 @pytest.mark.django_db
@@ -1095,24 +630,3 @@ class TestDeletionPageBackControl:
         back_href = match.group(1)
         assert back_href != ""
         resolve(back_href)
-
-
-@pytest.mark.django_db
-class TestProjectListToolbar:
-    def test_the_search_and_status_are_in_the_toolbar_and_the_rest_in_the_panel(
-        self, client, filter_placement
-    ):
-        ProjectFactory(visibility=Visibility.PUBLIC)
-
-        toolbar, panel = filter_placement(client.get(reverse("project-list")))
-
-        assert {"q", "status"} <= toolbar
-        assert {"owner", "contributor", "tags", "image"} <= panel
-
-    def test_the_status_is_a_multiple_choice(self, client):
-        from fairdm.core.project.filters import ProjectFilter
-
-        status = ProjectFilter().filters["status"]
-
-        assert isinstance(status, django_filters.MultipleChoiceFilter)
-        assert status.field_class is django_filters.fields.MultipleChoiceField

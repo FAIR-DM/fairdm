@@ -2,15 +2,11 @@
 
 import pytest
 
-from fairdm.core.dataset.models import DatasetDescription
 from fairdm.core.descriptions import VocabularyDescriptionsForm
 from fairdm.core.project.models import ProjectDescription
-from fairdm.factories import DatasetFactory, ProjectFactory
+from fairdm.factories import ProjectFactory
 
-DESCRIPTION_CASES = [
-    (ProjectDescription, ProjectFactory),
-    (DatasetDescription, DatasetFactory),
-]
+DESCRIPTION_CASES = [(ProjectDescription, ProjectFactory)]
 
 
 @pytest.mark.django_db

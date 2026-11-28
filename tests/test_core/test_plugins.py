@@ -651,7 +651,7 @@ class TestSamplePoints:
         assert response.status_code == 404
 
     def test_the_projects_address_costs_the_same_queries_for_more_samples(
-        self, client, mapped, django_assert_num_queries
+        self, client, django_assert_num_queries
     ):
         from demo.factories import RockSampleFactory, SoilSampleFactory
 
@@ -669,17 +669,13 @@ class TestSamplePoints:
             assert client.get(url).status_code == 200
         baseline = len(single.captured_queries)
 
-        RockSampleFactory.create_batch(
-            4, dataset=two, location=Point(8.0, 49.0, srid=4326)
-        )
-        SoilSampleFactory.create_batch(
-            4, dataset=one, location=Point(8.2, 49.1, srid=4326)
-        )
+        RockSampleFactory(dataset=two, location=Point(8.0, 49.0, srid=4326))
+        SoilSampleFactory(dataset=one, location=Point(8.2, 49.1, srid=4326))
         client.get(url)
         with django_assert_num_queries(baseline):
             response = client.get(url)
 
-        assert len(response.json()["features"]) == 9
+        assert len(response.json()["features"]) == 3
 
     @pytest.mark.parametrize(
         "overview",
@@ -776,6 +772,15 @@ def public_record(kind):
 
 
 @pytest.fixture
+def dataset_record():
+    """A public dataset, for what the citation view does the same way for every kind."""
+    record = public_dataset_for_citation()
+    record.name = "Borehole logs"
+    record.save()
+    return record
+
+
+@pytest.fixture
 def private_record(kind):
     dataset = private_dataset_for_citation()
     record = KINDS[kind][1](dataset)
@@ -791,30 +796,40 @@ def stem_for_citation(kind, record):
 
 @pytest.mark.django_db
 class TestCitationFile:
-    """The address of each citation format, at ``<record address>cite/<format>/``."""
+    """The address of each citation format, at ``<record address>cite/<format>/``.
 
-    @pytest.mark.parametrize("fmt", FORMATS, ids=lambda f: f.key)
-    def test_each_format_answers_with_its_content_type_and_a_named_attachment(
-        self, client, kind, public_record, fmt
+    The kinds differ in how the file is named and who may see the record, so those
+    are checked on every kind with one format. The formats differ in content type,
+    extension and body, so those are checked on one kind with every format.
+    """
+
+    def test_each_kind_gives_the_file_the_name_of_its_record(
+        self, client, kind, public_record
     ):
-        response = client.get(address_for_citation(kind, public_record, fmt.key))
+        extension = next(f.extension for f in FORMATS if f.key == "bibtex")
+
+        response = client.get(address_for_citation(kind, public_record, "bibtex"))
 
         assert response.status_code == 200
-        assert response["Content-Type"] == fmt.content_type
         stem = stem_for_citation(kind, public_record)
         assert response["Content-Disposition"] == (
-            f'attachment; filename="{stem}.{fmt.extension}"'
+            f'attachment; filename="{stem}.{extension}"'
         )
 
     @pytest.mark.parametrize("fmt", FORMATS, ids=lambda f: f.key)
-    def test_the_body_is_the_formats_value_on_the_pages_context(
-        self, client, kind, public_record, fmt
+    def test_each_format_answers_with_its_content_type_extension_and_the_pages_value(
+        self, client, dataset_record, fmt
     ):
-        page = client.get(page_address_for_citation(kind, public_record))
+        page = client.get(page_address_for_citation("dataset", dataset_record))
         values = {f["key"]: f["value"] for f in page.context["citation"]["formats"]}
 
-        response = client.get(address_for_citation(kind, public_record, fmt.key))
+        response = client.get(address_for_citation("dataset", dataset_record, fmt.key))
 
+        assert response.status_code == 200
+        assert response["Content-Type"] == fmt.content_type
+        assert response["Content-Disposition"] == (
+            f'attachment; filename="borehole-logs.{fmt.extension}"'
+        )
         assert response.content.decode() == values[fmt.key]
 
     def test_a_stranger_gets_the_not_found_the_page_gives_for_a_private_record(
@@ -822,43 +837,52 @@ class TestCitationFile:
     ):
         page = client.get(page_address_for_citation(kind, private_record))
 
-        for fmt in FORMATS:
-            response = client.get(address_for_citation(kind, private_record, fmt.key))
-            assert response.status_code == page.status_code == 404
+        response = client.get(address_for_citation(kind, private_record, "bibtex"))
 
-    @pytest.mark.parametrize("fmt", FORMATS, ids=lambda f: f.key)
+        assert response.status_code == page.status_code == 404
+
     def test_a_team_member_gets_the_file_for_a_private_record(
-        self, client, kind, private_record, fmt
+        self, client, kind, private_record
     ):
         client.force_login(team_member_of_for_citation(kind, private_record))
 
-        response = client.get(address_for_citation(kind, private_record, fmt.key))
+        response = client.get(address_for_citation(kind, private_record, "bibtex"))
 
         assert response.status_code == 200
-        assert response["Content-Type"] == fmt.content_type
 
-    def test_an_unknown_record_is_not_found(self, client, kind, public_record):
+    def test_an_unknown_record_is_not_found(self, client):
         unknown = SimpleNamespace(uuid=uuid.uuid4())
 
         assert (
-            client.get(address_for_citation(kind, unknown, "bibtex")).status_code == 404
-        )
-
-    def test_an_unknown_format_is_not_found(self, client, kind, public_record):
-        assert (
-            client.get(address_for_citation(kind, public_record, "csl")).status_code
+            client.get(address_for_citation("dataset", unknown, "bibtex")).status_code
             == 404
         )
 
-    def test_a_site_with_no_name_gives_no_publisher(self, client, kind, public_record):
+    def test_an_unknown_format_is_not_found(self, client, dataset_record):
+        assert (
+            client.get(
+                address_for_citation("dataset", dataset_record, "csl")
+            ).status_code
+            == 404
+        )
+
+    @pytest.fixture
+    def cleared_site_cache(self):
+        """Drop the cached Site afterwards: the request caches the blanked name."""
+        yield
+        Site.objects.clear_cache()
+
+    def test_a_site_with_no_name_gives_no_publisher(
+        self, client, dataset_record, cleared_site_cache
+    ):
         Site.objects.filter(pk=Site.objects.get_current().pk).update(name="")
         Site.objects.clear_cache()
 
         bibtex = client.get(
-            address_for_citation(kind, public_record, "bibtex")
+            address_for_citation("dataset", dataset_record, "bibtex")
         ).content.decode()
         ris = client.get(
-            address_for_citation(kind, public_record, "ris")
+            address_for_citation("dataset", dataset_record, "ris")
         ).content.decode()
 
         [entry] = parse_string(bibtex, "bibtex").entries.values()

@@ -7,7 +7,7 @@ from fairdm.registry import registry
 
 @pytest.mark.django_db
 class TestSampleRegistryGeneration:
-    def test_generated_form_carries_the_specimen_types_own_fields(self, clean_registry):
+    def test_generated_form_carries_the_specimen_types_own_fields(self):
         from demo.models import RockSample
 
         config = registry.get_for_model(RockSample)
@@ -23,9 +23,7 @@ class TestSampleRegistryGeneration:
             "mineral_content",
         }
 
-    def test_generated_filterset_carries_the_specimen_types_own_fields(
-        self, clean_registry
-    ):
+    def test_generated_filterset_carries_the_specimen_types_own_fields(self):
         from demo.models import RockSample
 
         config = registry.get_for_model(RockSample)
@@ -35,9 +33,7 @@ class TestSampleRegistryGeneration:
         assert "mineral_content" in filterset.filters
         assert "collection_date" in filterset.filters
 
-    def test_generated_table_carries_the_specimen_types_own_fields(
-        self, clean_registry
-    ):
+    def test_generated_table_carries_the_specimen_types_own_fields(self):
         from demo.models import RockSample
 
         config = registry.get_for_model(RockSample)
@@ -47,7 +43,7 @@ class TestSampleRegistryGeneration:
         assert "name" in column_names
         assert "rock_type" in column_names
 
-    def test_generated_admin_lists_the_specimen_types_own_fields(self, clean_registry):
+    def test_generated_admin_lists_the_specimen_types_own_fields(self):
         from demo.models import RockSample
         from fairdm.core.sample.admin import SampleChildAdmin
 

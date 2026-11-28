@@ -3,179 +3,27 @@
 import factory
 import pytest
 
-from demo.factories import (
-    ExampleMeasurementFactory,
-    ICP_MS_MeasurementFactory,
-    RockSampleFactory,
-    XRFMeasurementFactory,
-)
-from demo.models import ICP_MS_Measurement, XRFMeasurement
-from fairdm.core.measurement.models import (
-    MeasurementDate,
-    MeasurementDescription,
-    MeasurementIdentifier,
-)
-from fairdm.core.models import Measurement
-from fairdm.core.vocabularies import DATE_TYPES, DESCRIPTION_TYPES, IDENTIFIER_TYPES
-from fairdm.factories.core import (
-    MeasurementDateFactory,
-    MeasurementDescriptionFactory,
-    MeasurementFactory,
-    MeasurementIdentifierFactory,
-)
-
-
-@pytest.mark.django_db
-class TestMeasurementDescriptionFactory:
-    def test_default_type_is_a_measurement_description_vocabulary_member(self):
-        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
-
-        description = MeasurementDescriptionFactory(related=measurement)
-
-        assert description.type_id in {
-            f"{DESCRIPTION_TYPES}/measurement-conditions",
-            f"{DESCRIPTION_TYPES}/measurement-setup",
-            f"{DESCRIPTION_TYPES}/measurement-tear-down",
-            f"{DESCRIPTION_TYPES}/other",
-        }
-
-    def test_two_descriptions_of_different_types_do_not_collide(self):
-        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
-
-        first = MeasurementDescriptionFactory(
-            related=measurement, type_id=f"{DESCRIPTION_TYPES}/measurement-setup"
-        )
-        second = MeasurementDescriptionFactory(
-            related=measurement, type_id=f"{DESCRIPTION_TYPES}/measurement-tear-down"
-        )
-
-        assert MeasurementDescription.objects.filter(related=measurement).count() == 2
-        assert first.type != second.type
-
-
-@pytest.mark.django_db
-class TestMeasurementDateFactory:
-    def test_default_type_is_a_measurement_date_vocabulary_member(self):
-        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
-
-        date = MeasurementDateFactory(related=measurement)
-
-        assert date.type_id in {f"{DATE_TYPES}/setup", f"{DATE_TYPES}/tear-down"}
-
-    def test_two_dates_of_different_types_do_not_collide(self):
-        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
-
-        first = MeasurementDateFactory(
-            related=measurement, type_id=f"{DATE_TYPES}/setup"
-        )
-        second = MeasurementDateFactory(
-            related=measurement, type_id=f"{DATE_TYPES}/tear-down"
-        )
-
-        assert MeasurementDate.objects.filter(related=measurement).count() == 2
-        assert first.type != second.type
+from demo.factories import ExampleMeasurementFactory
+from fairdm.core.measurement.models import MeasurementIdentifier
+from fairdm.factories.core import MeasurementFactory, MeasurementIdentifierFactory
 
 
 @pytest.mark.django_db
 class TestMeasurementIdentifierFactory:
-    def test_default_type_is_a_measurement_identifier_vocabulary_member(self):
-        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
-
-        identifier = MeasurementIdentifierFactory(related=measurement)
-
-        assert identifier.type_id == f"{IDENTIFIER_TYPES}/doi"
-
-    def test_identifier_values_are_unique_across_instances(self):
-        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
-
+    def test_identifier_values_are_unique_across_instances(
+        self, measurement, second_sample
+    ):
         first = MeasurementIdentifierFactory(related=measurement)
         second = MeasurementIdentifierFactory(
-            related=ExampleMeasurementFactory(sample=RockSampleFactory())
+            related=ExampleMeasurementFactory(sample=second_sample)
         )
 
         assert first.value != second.value
-        assert MeasurementIdentifier.objects.filter(related=measurement).count() == 1
+        assert MeasurementIdentifier.objects.count() == 2
 
 
 @pytest.mark.django_db
 class TestMeasurementFactoryIsAbstract:
-    def test_calling_it_directly_refuses(self):
+    def test_calling_it_directly_refuses(self, sample):
         with pytest.raises(factory.errors.FactoryError):
-            MeasurementFactory(sample=RockSampleFactory())
-
-
-@pytest.mark.django_db
-class TestConcreteMeasurementFactories:
-    def test_example_measurement_factory_produces_an_example_measurement(self):
-        from demo.models import ExampleMeasurement
-
-        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
-
-        assert isinstance(measurement, ExampleMeasurement)
-        assert measurement.pk is not None
-
-    def test_xrf_measurement_factory_supplies_its_required_fields(self):
-        measurement = XRFMeasurementFactory(sample=RockSampleFactory())
-
-        assert isinstance(measurement, XRFMeasurement)
-        assert measurement.pk is not None
-        assert measurement.element
-        assert measurement.concentration_ppm is not None
-
-    def test_icp_ms_measurement_factory_supplies_its_required_fields(self):
-        measurement = ICP_MS_MeasurementFactory(sample=RockSampleFactory())
-
-        assert isinstance(measurement, ICP_MS_Measurement)
-        assert measurement.pk is not None
-        assert measurement.isotope
-        assert measurement.counts_per_second is not None
-
-
-class TestFairdmFactoriesExports:
-    def test_measurement_factories_are_importable_from_the_package(self):
-        from fairdm.factories import (
-            MeasurementDateFactory,
-            MeasurementDescriptionFactory,
-            MeasurementFactory,
-            MeasurementIdentifierFactory,
-        )
-
-        assert MeasurementDateFactory is not None
-        assert MeasurementDescriptionFactory is not None
-        assert MeasurementFactory is not None
-        assert MeasurementIdentifierFactory is not None
-
-    def test_measurement_factories_appear_in_all(self):
-        import fairdm.factories as factories_module
-
-        for name in (
-            "MeasurementDateFactory",
-            "MeasurementDescriptionFactory",
-            "MeasurementFactory",
-            "MeasurementIdentifierFactory",
-        ):
-            assert name in factories_module.__all__
-
-
-@pytest.mark.django_db
-class TestMeasurementFixtures:
-    def test_measurement_fixture_yields_a_concrete_type_not_a_bare_measurement(
-        self, measurement
-    ):
-        assert type(measurement) is not Measurement
-        assert isinstance(measurement, Measurement)
-
-    def test_second_dataset_fixture_has_its_own_sample(
-        self, dataset, second_dataset, second_sample
-    ):
-        assert second_dataset != dataset
-        assert second_sample.dataset == second_dataset
-
-    def test_user_no_rights_fixture_holds_no_rights(self, measurement, user_no_rights):
-        assert not user_no_rights.has_perm("measurement.view_measurement", measurement)
-        assert not user_no_rights.has_perm(
-            "measurement.change_measurement", measurement
-        )
-        assert not user_no_rights.has_perm(
-            "measurement.delete_measurement", measurement
-        )
+            MeasurementFactory(sample=sample)

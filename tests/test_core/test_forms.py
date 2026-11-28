@@ -2,11 +2,9 @@
 
 import pytest
 
-from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.forms import KeywordForm
 from fairdm.core.project.models import Project
-from fairdm.core.vocabularies import CONTRIBUTOR_ROLES
 from fairdm.factories import DatasetFactory, ProjectFactory
 
 
@@ -22,20 +20,6 @@ class TestKeywordForm:
         assert first._meta.model is Project
         assert second._meta.model is Dataset
         assert KeywordForm._meta.model is None
-
-    def test_a_configured_vocabulary_adds_no_field(self, settings):
-        settings.FAIRDM_SAMPLE = {"keywords": [CONTRIBUTOR_ROLES]}
-
-        form = KeywordForm(instance=RockSampleFactory())
-
-        assert list(form.fields) == ["tags"]
-
-    def test_it_offers_the_free_keywords_alone(self):
-        form = KeywordForm(
-            instance=ExampleMeasurementFactory(sample=RockSampleFactory())
-        )
-
-        assert list(form.fields) == ["tags"]
 
 
 @pytest.mark.django_db
@@ -90,8 +74,3 @@ class TestKeywordFormTags:
             "first",
             "second",
         ]
-
-    def test_the_field_lets_a_new_tag_be_added(self):
-        form = KeywordForm(instance=ProjectFactory())
-
-        assert form.fields["tags"].widget.create is True

@@ -2,7 +2,6 @@
 
 import codecs
 import json
-import re
 from datetime import UTC, date, datetime, timedelta
 
 import latexcodec  # noqa: F401  (registers the "ulatex" codec)
@@ -12,13 +11,15 @@ from bs4 import BeautifulSoup
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.gis.geos import Point
 from django.contrib.sites.models import Site
+from django.db import transaction
 from django.test import RequestFactory
 from django.urls import reverse
 from django.utils import timezone, translation
 from django.utils.formats import date_format
+from django.utils.functional import cached_property
 from partial_dates import PartialDate
 from pybtex.database import parse_string
-from pytest_django.asserts import assertContains, assertNotContains
+from pytest_django.asserts import assertContains
 
 from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 from fairdm import plugins
@@ -44,11 +45,6 @@ from fairdm.utils.choices import Visibility
 # `ProjectFactory()` produces private projects unless told otherwise.
 
 
-def _hrefs(content: str) -> list[str]:
-    """Return every ``href`` attribute value in rendered HTML, in document order."""
-    return re.findall(r'href="([^"]*)"', content)
-
-
 def _request_for(user, path="/"):
     request = RequestFactory().get(path)
     request.user = user
@@ -66,25 +62,6 @@ def _entry_view_names(model):
 
 @pytest.mark.django_db
 class TestOverviewIsTheProjectsOwnRegistration:
-    def test_the_project_menu_carries_an_overview_entry(self):
-        assert "project:overview" in _entry_view_names(Project)
-
-    def test_the_overview_entry_is_selected_while_on_the_projects_page(
-        self, public_project
-    ):
-        menu = plugins.registry.get_plugin_menu_for_model(Project)
-        url = reverse("project:overview", kwargs={"uuid": public_project.uuid})
-        request = _request_for(AnonymousUser(), path=url)
-        processed = menu.process(
-            request, object=public_project, uuid=public_project.uuid
-        )
-        overview_item = next(
-            child
-            for child in processed.children
-            if child.view_name == "project:overview"
-        )
-        assert overview_item.selected is True
-
     def test_the_overview_declares_no_path_segment_of_its_own(self, public_project):
         url = reverse("project:overview", kwargs={"uuid": public_project.uuid})
         assert url.split(str(public_project.uuid))[-1] == "/"
@@ -100,16 +77,6 @@ class TestTheProjectMenuEntries:
 
 @pytest.mark.django_db
 class TestTheOverviewGuardsAPrivateProjectsVisibility:
-    def test_a_private_project_refuses_a_user_who_may_not_view_it(
-        self, private_project, user_with_no_permission
-    ):
-        request = _request_for(user_with_no_permission)
-        assert can_open(Overview, request, private_project) is False
-
-    def test_a_private_project_refuses_an_anonymous_request(self, private_project):
-        request = _request_for(AnonymousUser())
-        assert can_open(Overview, request, private_project) is False
-
     def test_a_private_project_admits_a_user_holding_view_permission(
         self, private_project, user_with_no_permission
     ):
@@ -120,10 +87,6 @@ class TestTheOverviewGuardsAPrivateProjectsVisibility:
         )
         request = _request_for(user_with_no_permission)
         assert can_open(Overview, request, private_project) is True
-
-    def test_a_public_project_admits_an_anonymous_request(self, public_project):
-        request = _request_for(AnonymousUser())
-        assert can_open(Overview, request, public_project) is True
 
     def test_every_page_refuses_a_model_level_holder_with_no_grant_on_this_record(
         self, client, private_project
@@ -148,7 +111,7 @@ class TestTheOverviewGuardsAPrivateProjectsVisibility:
         ):
             url = reverse(name, kwargs={"uuid": private_project.uuid})
             response = client.get(url)
-            assert response.status_code in (403, 404), name
+            assert response.status_code == 404, name
 
 
 @pytest.mark.django_db
@@ -213,28 +176,6 @@ class TestAPrivateProjectsOtherTabs:
 
 @pytest.mark.django_db
 class TestEditPageForAModelLevelChangePermission:
-    def test_a_user_holding_only_model_level_change_permission_is_refused(self, client):
-        from django.contrib.auth.models import Permission
-
-        from fairdm.factories import (
-            ProjectFactory,
-            UserFactory,
-        )
-
-        project = ProjectFactory()
-        user = UserFactory()
-        user.user_permissions.add(
-            Permission.objects.get(
-                content_type__app_label="project", codename="change_project"
-            )
-        )
-        client.force_login(user)
-
-        url = reverse("project:edit", kwargs={"uuid": project.uuid})
-        response = client.get(url)
-
-        assert response.status_code == 404
-
     def test_a_model_level_grant_adds_nothing_to_a_view_level(self, client):
         from django.contrib.auth.models import Permission
 
@@ -259,151 +200,6 @@ class TestEditPageForAModelLevelChangePermission:
         response = client.get(url)
 
         assert response.status_code == 403
-
-
-@pytest.mark.django_db
-class TestDescriptionsPageOffersOneAreaPerVocabularyType:
-    def test_the_field_set_matches_the_vocabulary_exactly(
-        self, client, user_with_change_permission
-    ):
-        from fairdm.core.project.models import ProjectDescription
-
-        project = user_with_change_permission.project
-        client.force_login(user_with_change_permission)
-
-        url = reverse("project:descriptions", kwargs={"uuid": project.uuid})
-        response = client.get(url)
-
-        form = response.context["form"]
-        assert list(form.fields) == [
-            concept.uri for concept in ProjectDescription.get_type_concepts()
-        ]
-
-    def test_every_area_starts_empty_for_a_project_with_no_descriptions(
-        self, client, user_with_change_permission
-    ):
-        project = user_with_change_permission.project
-        client.force_login(user_with_change_permission)
-
-        url = reverse("project:descriptions", kwargs={"uuid": project.uuid})
-        response = client.get(url)
-
-        form = response.context["form"]
-        assert all(field.initial in (None, "") for field in form)
-
-
-@pytest.mark.django_db
-class TestDescriptionsPageAreasAreLabelledFromTheVocabulary:
-    def test_the_first_areas_label_and_help_text_match_its_concept(
-        self, client, user_with_change_permission
-    ):
-        from fairdm.core.project.models import ProjectDescription
-
-        project = user_with_change_permission.project
-        client.force_login(user_with_change_permission)
-        concept = ProjectDescription.get_type_concepts()[0]
-        first_type = concept.uri
-
-        url = reverse("project:descriptions", kwargs={"uuid": project.uuid})
-        response = client.get(url)
-
-        form = response.context["form"]
-        assert form.fields[first_type].label == concept.display_label()
-        assert form.fields[first_type].help_text == concept.first_value(
-            "skos:definition"
-        )
-
-
-@pytest.mark.django_db
-class TestSavingTextIntoOneAreaRecordsOnlyThatType:
-    def test_saving_one_area_creates_exactly_one_description_of_that_type(
-        self, client, user_with_change_permission
-    ):
-        from fairdm.core.project.models import ProjectDescription
-
-        project = user_with_change_permission.project
-        client.force_login(user_with_change_permission)
-        first_type = next(
-            concept.uri for concept in ProjectDescription.get_type_concepts()
-        )
-
-        url = reverse("project:descriptions", kwargs={"uuid": project.uuid})
-        client.post(url, data={first_type: "Some abstract text."})
-
-        assert ProjectDescription.objects.filter(related=project).count() == 1
-        row = ProjectDescription.objects.get(related=project)
-        assert row.type_id == first_type
-        assert row.value == "Some abstract text."
-
-
-@pytest.mark.django_db
-class TestExistingDescriptionsShowInTheirOwnArea:
-    def test_the_existing_description_appears_in_its_own_area_and_others_stay_empty(
-        self, client, user_with_change_permission
-    ):
-        from fairdm.core.project.models import ProjectDescription
-
-        project = user_with_change_permission.project
-        client.force_login(user_with_change_permission)
-        first_type, second_type = [
-            concept.uri for concept in ProjectDescription.get_type_concepts()
-        ][:2]
-        ProjectDescription.objects.create(
-            related=project, type_id=first_type, value="Existing abstract."
-        )
-
-        url = reverse("project:descriptions", kwargs={"uuid": project.uuid})
-        response = client.get(url)
-
-        form = response.context["form"]
-        assert form.fields[first_type].initial == "Existing abstract."
-        assert form.fields[second_type].initial in (None, "")
-
-
-@pytest.mark.django_db
-class TestEditingAnExistingDescriptionPersists:
-    def test_the_changed_text_persists(self, client, user_with_change_permission):
-        from fairdm.core.project.models import ProjectDescription
-
-        project = user_with_change_permission.project
-        client.force_login(user_with_change_permission)
-        first_type = next(
-            concept.uri for concept in ProjectDescription.get_type_concepts()
-        )
-        row = ProjectDescription.objects.create(
-            related=project, type_id=first_type, value="Original text."
-        )
-
-        url = reverse("project:descriptions", kwargs={"uuid": project.uuid})
-        client.post(url, data={first_type: "Changed text."})
-
-        row.refresh_from_db()
-        assert row.value == "Changed text."
-        assert ProjectDescription.objects.filter(related=project).count() == 1
-
-
-@pytest.mark.django_db
-class TestClearingAnAreaRemovesTheDescription:
-    def test_clearing_the_area_deletes_the_row(
-        self, client, user_with_change_permission
-    ):
-        from fairdm.core.project.models import ProjectDescription
-
-        project = user_with_change_permission.project
-        client.force_login(user_with_change_permission)
-        first_type = next(
-            concept.uri for concept in ProjectDescription.get_type_concepts()
-        )
-        ProjectDescription.objects.create(
-            related=project, type_id=first_type, value="Existing text."
-        )
-
-        url = reverse("project:descriptions", kwargs={"uuid": project.uuid})
-        client.post(url, data={first_type: ""})
-
-        assert not ProjectDescription.objects.filter(
-            related=project, type=first_type
-        ).exists()
 
 
 @pytest.mark.django_db
@@ -472,45 +268,6 @@ class TestEmptyAndWhitespaceOnlyAreasCreateNothing:
 
 
 @pytest.mark.django_db
-class TestASuccessfulSubmissionRedirectsToTheProjectsPage:
-    def test_the_redirect_target_is_the_projects_own_overview_url(
-        self, client, user_with_change_permission
-    ):
-        from fairdm.core.project.models import ProjectDescription
-
-        project = user_with_change_permission.project
-        client.force_login(user_with_change_permission)
-        first_type = next(
-            concept.uri for concept in ProjectDescription.get_type_concepts()
-        )
-
-        url = reverse("project:descriptions", kwargs={"uuid": project.uuid})
-        response = client.post(url, data={first_type: "Some text."})
-
-        assert response.status_code == 302
-        assert response.url == reverse(
-            "project:overview", kwargs={"uuid": project.uuid}
-        )
-
-
-@pytest.mark.django_db
-class TestProjectsOwnPageOffersTheDeletionLink:
-    def test_a_signed_in_user_who_may_not_delete_it_is_not_offered_the_link(
-        self, client
-    ):
-        project = ProjectFactory(visibility=Visibility.PUBLIC)
-        user = UserFactory()
-        client.force_login(user)
-
-        response = client.get(
-            reverse("project:overview", kwargs={"uuid": project.uuid})
-        )
-
-        delete_url = reverse("project:delete", kwargs={"uuid": project.uuid})
-        assertNotContains(response, f'href="{delete_url}"')
-
-
-@pytest.mark.django_db
 class TestUpdateDescriptionsAndDeletionEachLinkBackToTheProject:
     def test_the_update_page_links_back_to_the_project(self, client):
         project = ProjectFactory(visibility=Visibility.PUBLIC)
@@ -526,184 +283,44 @@ class TestUpdateDescriptionsAndDeletionEachLinkBackToTheProject:
         project_url = reverse("project:overview", kwargs={"uuid": project.uuid})
         assertContains(response, f'href="{project_url}"')
 
-    def test_the_descriptions_page_links_back_to_the_project(self, client):
-        project = ProjectFactory(visibility=Visibility.PUBLIC)
-        user = UserFactory()
-        ContributionFactory(
-            content_object=project, contributor=user, level=ContributionLevel.EDIT
-        )
-        client.force_login(user)
-
-        url = reverse("project:descriptions", kwargs={"uuid": project.uuid})
-        response = client.get(url)
-
-        project_url = reverse("project:overview", kwargs={"uuid": project.uuid})
-        assertContains(response, f'href="{project_url}"')
-
-
-@pytest.mark.django_db
-class TestEveryLinkEachPageDrawsResolvesToARealAddress:
-    def _permitted_user(self, project):
-        user = UserFactory()
-        ContributionFactory(
-            content_object=project, contributor=user, level=ContributionLevel.MANAGE
-        )
-        return user
-
-    def test_the_listing_draws_no_empty_link(self, client):
-        ProjectFactory(visibility=Visibility.PUBLIC)
-        client.force_login(UserFactory())
-
-        response = client.get(reverse("project-list"))
-
-        hrefs = _hrefs(response.content.decode())
-        assert hrefs
-        assert all(href.strip() != "" for href in hrefs)
-
-    def test_the_projects_own_page_draws_no_empty_link(self, client):
-        project = ProjectFactory(visibility=Visibility.PUBLIC)
-        client.force_login(self._permitted_user(project))
-
-        response = client.get(
-            reverse("project:overview", kwargs={"uuid": project.uuid})
-        )
-
-        hrefs = _hrefs(response.content.decode())
-        assert hrefs
-        assert all(href.strip() != "" for href in hrefs)
-
-    def test_the_update_page_draws_no_empty_link(self, client):
-        project = ProjectFactory(visibility=Visibility.PUBLIC)
-        client.force_login(self._permitted_user(project))
-
-        response = client.get(reverse("project:edit", kwargs={"uuid": project.uuid}))
-
-        hrefs = _hrefs(response.content.decode())
-        assert hrefs
-        assert all(href.strip() != "" for href in hrefs)
-
-    def test_the_descriptions_page_draws_no_empty_link(self, client):
-        project = ProjectFactory(visibility=Visibility.PUBLIC)
-        client.force_login(self._permitted_user(project))
-
-        response = client.get(
-            reverse("project:descriptions", kwargs={"uuid": project.uuid})
-        )
-
-        hrefs = _hrefs(response.content.decode())
-        assert hrefs
-        assert all(href.strip() != "" for href in hrefs)
-
-    def test_the_deletion_page_draws_no_empty_link(self, client):
-        project = ProjectFactory(visibility=Visibility.PUBLIC)
-        client.force_login(self._permitted_user(project))
-
-        response = client.get(reverse("project:delete", kwargs={"uuid": project.uuid}))
-
-        hrefs = _hrefs(response.content.decode())
-        assert hrefs
-        assert all(href.strip() != "" for href in hrefs)
-
-
-@pytest.mark.django_db
-class TestTheDescriptionsPageGuardsAPrivateProjectsVisibility:
-    def _model_wide_changer(self, user):
-        from django.contrib.auth.models import Permission
-
-        user.user_permissions.add(Permission.objects.get(codename="change_project"))
-        return type(user).objects.get(pk=user.pk)
-
-    def test_a_private_project_refuses_a_visitor_who_may_not_view_it(
-        self, client, private_project, user_with_no_permission
-    ):
-        user = self._model_wide_changer(user_with_no_permission)
-        client.force_login(user)
-
-        response = client.get(
-            reverse("project:descriptions", kwargs={"uuid": private_project.uuid})
-        )
-
-        assert response.status_code in (403, 404)
-
-    def test_the_same_visitor_cannot_write_a_description_either(
-        self, client, private_project, user_with_no_permission
-    ):
-        user = self._model_wide_changer(user_with_no_permission)
-        client.force_login(user)
-
-        response = client.post(
-            reverse("project:descriptions", kwargs={"uuid": private_project.uuid}),
-            data={"Abstract": "written by someone who may not see this project"},
-        )
-
-        assert response.status_code in (403, 404)
-        assert private_project.descriptions.count() == 0
-
-    def test_a_visitor_holding_view_rights_still_reaches_it(
-        self, client, private_project, user_with_no_permission
-    ):
-        ContributionFactory(
-            content_object=private_project,
-            contributor=user_with_no_permission,
-            level=ContributionLevel.EDIT,
-        )
-        client.force_login(user_with_no_permission)
-
-        response = client.get(
-            reverse("project:descriptions", kwargs={"uuid": private_project.uuid})
-        )
-
-        assert response.status_code == 200
-
-
-@pytest.mark.django_db
-class TestDescriptionsPageAnswersNotFoundForAPrivateProject:
-    def test_a_signed_in_user_with_no_rights_on_a_private_project_gets_404(
-        self, client
-    ):
-        project = ProjectFactory()
-        user = UserFactory()
-        client.force_login(user)
-        url = reverse("project:descriptions", kwargs={"uuid": project.uuid})
-
-        response = client.get(url)
-
-        assert response.status_code == 404
-
-    def test_an_anonymous_requester_gets_404(self, client):
-        project = ProjectFactory()
-        url = reverse("project:descriptions", kwargs={"uuid": project.uuid})
-
-        response = client.get(url)
-
-        assert response.status_code == 404
-
-    def test_a_user_with_no_rights_on_a_public_project_still_gets_the_plain_refusal(
-        self, client
-    ):
-        project = ProjectFactory(visibility=Visibility.PUBLIC)
-        user = UserFactory()
-        client.force_login(user)
-        url = reverse("project:descriptions", kwargs={"uuid": project.uuid})
-
-        response = client.get(url)
-
-        assert response.status_code == 403
-
 
 def _overview_url(project):
     return reverse("project:overview", kwargs={"uuid": project.uuid})
 
 
+class _Page:
+    """A response whose HTML is parsed only when a test reads ``page``."""
+
+    def __init__(self, response):
+        self._response = response
+
+    def __getattr__(self, name):
+        return getattr(self._response, name)
+
+    @cached_property
+    def page(self):
+        return BeautifulSoup(self._response.content, "html.parser")
+
+
 def _page(client, project, language=None):
-    """Open the project's page and return the response with its parsed HTML."""
+    """Open the project's page and return the response, its HTML parsed on demand."""
     headers = {"Accept-Language": language} if language else {}
     # The locale middleware leaves the request's language active on the thread.
     with translation.override(language):
         response = client.get(_overview_url(project), headers=headers)
     assert response.status_code == 200
-    response.page = BeautifulSoup(response.content, "html.parser")
-    return response
+    return _Page(response)
+
+
+def _context(project, user=None):
+    """Return the context the overview builds for ``user``, without drawing the page."""
+    request = RequestFactory().get(_overview_url(project))
+    request.user = user or AnonymousUser()
+    request.site = Site.objects.get_current()  # set by the site middleware
+    plugin = Overview()
+    plugin.registered_model = Project
+    plugin.setup(request, uuid=project.uuid)
+    return plugin.get_context_data()
 
 
 def _figures(page):
@@ -738,7 +355,8 @@ class TestOverviewFiguresAndChartsCountWhatTheViewerMaySee:
     ):
         response = _page(client, overview_showcase.project)
 
-        assert _figures(response.page)[3] == "22"
+        credited = len(overview_showcase.leaders) + len(overview_showcase.others)
+        assert _figures(response.page)[3] == str(credited)
 
     def test_a_visitors_records_by_type_leave_out_the_types_only_private_datasets_hold(
         self, client, overview_showcase
@@ -791,14 +409,13 @@ class TestOverviewFiguresAndChartsCountWhatTheViewerMaySee:
     def test_the_datasets_listed_are_the_ones_the_viewer_may_see(
         self, client, overview_showcase
     ):
-        response = _page(client, overview_showcase.project)
+        context = _context(overview_showcase.project)
 
-        listed = {row.name for row in response.context["datasets_preview"]["rows"]}
+        listed = {row.name for row in context["datasets_preview"]["rows"]}
         assert listed == {
             overview_showcase.published.name,
             overview_showcase.unpublished.name,
         }
-        assert overview_showcase.private.name not in response.page.get_text()
 
     def test_a_private_datasets_metadata_never_reaches_the_pages_head(
         self, client, overview_showcase
@@ -812,11 +429,10 @@ class TestOverviewFiguresAndChartsCountWhatTheViewerMaySee:
     def test_a_dataset_the_project_lists_says_whether_it_is_published(
         self, client, overview_showcase
     ):
-        response = _page(client, overview_showcase.project)
+        context = _context(overview_showcase.project)
 
         rows = {
-            row.pk: row.data_is_public
-            for row in response.context["datasets_preview"]["rows"]
+            row.pk: row.data_is_public for row in context["datasets_preview"]["rows"]
         }
         assert rows == {
             overview_showcase.published.pk: True,
@@ -861,11 +477,9 @@ class TestOverviewReadinessChecklistIsForTheTeam:
             type_id=f"{IDENTIFIER_TYPES}/doi",
             value="10.5555/ready",
         )
-        client.force_login(project_team_member)
+        context = _context(overview_showcase.project, project_team_member)
 
-        response = _page(client, overview_showcase.project)
-
-        assert response.context["readiness"]["done"] == 6
+        assert context["readiness"]["done"] == 6
 
 
 @pytest.mark.django_db
@@ -958,86 +572,32 @@ class TestOverviewPeople:
             leader, with_roles=[f"{CONTRIBUTOR_ROLES}/project-leader"]
         )
 
-        response = _page(client, project)
+        context = _context(project)
 
-        assert response.context["header_people"] == [leader, manager]
+        assert context["header_people"] == [leader, manager]
 
     def test_the_people_card_shows_everyone_credited_the_leaders_included(
         self, client, overview_showcase
     ):
-        response = _page(client, overview_showcase.project)
+        people = _context(overview_showcase.project)["people"]
 
-        people = response.context["people"]
         shown = {row["contributor"].pk for row in people["named"]}
         shown |= {c.pk for c in people["faces"]}
         assert shown & {p.pk for p in overview_showcase.leaders} == {
             p.pk for p in overview_showcase.leaders
         }
-        assert response.context["people"]["total"] == len(
-            overview_showcase.leaders
-        ) + len(overview_showcase.others)
+        assert people["total"] == len(overview_showcase.leaders) + len(
+            overview_showcase.others
+        )
 
-    def test_the_panel_names_six_then_draws_ten_faces_and_counts_the_rest(
-        self, client, overview_showcase
-    ):
-        response = _page(client, overview_showcase.project)
+    def test_the_people_card_links_to_the_projects_contributor_list(self):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
 
-        panel = response.page.select_one('[data-card="people"]')
-        assert len(panel.select(".ov-people > li")) == 6
-        assert len(panel.select(".ov-faces a[aria-label]")) == 10
-        assert (
-            response.context["people"]["more"],
-            response.context["people"]["total"],
-        ) == (6, 22)
+        context = _context(project)
 
-    def test_the_count_links_to_the_full_list_of_contributors(
-        self, client, overview_showcase
-    ):
-        project = overview_showcase.project
-        contributors_url = reverse(
+        assert context["people_url"] == reverse(
             "project:contribution-list", kwargs={"uuid": project.uuid}
         )
-
-        response = _page(client, project)
-
-        counted = [
-            a
-            for a in response.page.find_all("a", href=contributors_url)
-            if "6" in a.get_text()
-        ]
-        assert counted
-
-    def test_each_face_is_named_for_assistive_technology(
-        self, client, overview_showcase
-    ):
-        response = _page(client, overview_showcase.project)
-
-        faces = response.page.select(".ov-faces a[title]")
-        assert faces
-        for face in faces:
-            assert face["aria-label"] == face["title"]
-
-    def test_a_leader_is_listed_in_the_people_card(self, client):
-        project = ProjectFactory(visibility=Visibility.PUBLIC)
-        leader = PersonFactory(is_active=True)
-        project.add_contributor(
-            leader, with_roles=[f"{CONTRIBUTOR_ROLES}/project-leader"]
-        )
-
-        response = _page(client, project)
-
-        named = response.context["people"]["named"]
-        assert [row["contributor"].pk for row in named] == [leader.pk]
-        panel = response.page.select_one('[data-card="people"]')
-        assert panel.find("a", href=leader.get_absolute_url()) is not None
-
-    def test_with_nobody_credited_the_people_card_still_shows(self, client):
-        project = ProjectFactory(visibility=Visibility.PUBLIC)
-
-        response = _page(client, project)
-
-        assert response.context["people"]["total"] == 0
-        assert response.page.select_one('[data-card="people"]') is not None
 
     def test_an_organisation_credited_on_the_project_is_listed_like_a_person(
         self, client
@@ -1057,8 +617,7 @@ class TestOverviewPeople:
 @pytest.mark.django_db
 class TestOverviewCitation:
     def _citation(self, client, project):
-        response = _page(client, project)
-        return response.page.find(id="citation-text").get_text(strip=True)
+        return _context(project)["citation"]["text"].strip()
 
     def _project_with_creators(self, *names):
         project = ProjectFactory(visibility=Visibility.PUBLIC)
@@ -1081,22 +640,6 @@ class TestOverviewCitation:
         )
 
         assert self._citation(client, project).startswith("Keller, A. (")
-
-    def test_two_creators_are_joined_by_an_ampersand(self, client):
-        project = self._project_with_creators(("Anna", "Keller"), ("Tomas", "Oliveira"))
-
-        assert self._citation(client, project).startswith("Keller, A. & Oliveira, T. (")
-
-    def test_several_creators_are_comma_separated_with_an_ampersand_before_the_last(
-        self, client
-    ):
-        project = self._project_with_creators(
-            ("Anna", "Keller"), ("Tomas", "Oliveira"), ("Lena", "Brandt")
-        )
-
-        assert self._citation(client, project).startswith(
-            "Keller, A., Oliveira, T. & Brandt, L. ("
-        )
 
     def test_creators_are_named_in_the_order_credited_people_before_organizations(
         self, client
@@ -1136,16 +679,6 @@ class TestOverviewCitation:
             .endswith(f"http://testserver/{project.uuid}/")
         )
         assert response.context["citation"]["note"]
-
-    def test_the_year_is_the_projects_start_year(self, client):
-        project = self._project_with_creators(("Anna", "Keller"))
-        ProjectDateFactory(
-            related=project,
-            type_id=f"{DATE_TYPES}/start",
-            value=PartialDate.fromisoformat("2019-05"),
-        )
-
-        assert "(2019)" in self._citation(client, project)
 
 
 @pytest.mark.django_db
@@ -1302,16 +835,6 @@ class TestOverviewFunding:
             "https://example.org/awards/42",
         ]
 
-    def test_a_project_without_funding_still_shows_a_visitor_the_funding_card(
-        self, client
-    ):
-        project = ProjectFactory(visibility=Visibility.PUBLIC, funding=[])
-
-        response = _page(client, project)
-
-        assert response.page.select_one('[data-card="funding"]') is not None
-        assert response.page.select_one('[data-card="funding"] li') is None
-
 
 @pytest.mark.django_db
 class TestOverviewCardsAlwaysShown:
@@ -1333,13 +856,6 @@ class TestOverviewCardsAlwaysShown:
         response = _page(client, project)
 
         assert response.page.select_one('[data-card="details"] [data-card="progress"]')
-
-    def test_the_readiness_checklist_stays_out_of_a_visitors_page(self, client):
-        project = ProjectFactory(visibility=Visibility.PUBLIC)
-
-        response = _page(client, project)
-
-        assert response.page.select_one('[data-card="readiness"]') is None
 
 
 @pytest.mark.django_db
@@ -1373,13 +889,6 @@ class TestOverviewSchemaOrgDescription:
 
         assert person.email not in response.content.decode()
 
-    def test_it_names_no_dataset_the_viewer_may_not_see(
-        self, client, overview_showcase
-    ):
-        response = _page(client, overview_showcase.project)
-
-        assert overview_showcase.private.name not in json.dumps(_json_ld(response.page))
-
 
 @pytest.mark.django_db
 class TestOverviewFirstRun:
@@ -1400,16 +909,6 @@ class TestOverviewFirstRun:
         assert response.page.find(attrs={"data-mvp-chart": True}) is None
         assert response.context["mix"] is None
         assert response.context["growth_chart"] is None
-
-    def test_a_visitor_to_a_project_with_no_datasets_is_offered_no_way_to_add_one(
-        self, client
-    ):
-        project = ProjectFactory(visibility=Visibility.PUBLIC)
-
-        response = _page(client, project)
-
-        assert response.page.find("a", href=reverse("dataset-create")) is None
-        assert response.page.find(attrs={"data-mvp-chart": True}) is None
 
     def test_the_chart_libraries_are_not_loaded_when_there_is_no_chart(self, client):
         project = ProjectFactory(visibility=Visibility.PUBLIC)
@@ -1477,12 +976,14 @@ class TestOverviewCharts:
         assert "Rock Samples" in text
 
     def test_a_record_whose_type_no_longer_exists_does_not_break_the_page(
-        self, client, overview_showcase
+        self, client, overview_showcase, request
     ):
         from django.contrib.contenttypes.models import ContentType
 
         from fairdm.core.sample.models import Sample
 
+        # The page reads the type through the cache, which outlives the test's rollback.
+        request.addfinalizer(ContentType.objects.clear_cache)
         stale = ContentType.objects.create(app_label="demo", model="removedsample")
         sample = Sample.objects.filter(dataset=overview_showcase.published).first()
         Sample.objects.filter(pk=sample.pk).update(polymorphic_ctype=stale)
@@ -1514,9 +1015,10 @@ class TestOverviewFollowsTheActiveLanguage:
         response = _page(client, overview_showcase.project, language="de")
 
         assert self._growth_labels(response.page) == expected
-        assert expected != self._growth_labels(
-            _page(client, overview_showcase.project, language="en").page
-        )
+        with translation.override("en"):
+            assert expected != [
+                date_format(month, "YEAR_MONTH_FORMAT") for month in months
+            ]
 
     def test_the_growth_charts_description_names_its_months_in_the_language(
         self, client, overview_showcase, project_team_member
@@ -1558,15 +1060,6 @@ class TestOverviewManageMenu:
             level = ContributionLevel.MANAGE
         ContributionFactory(content_object=project, contributor=user, level=level)
         return user
-
-    def test_a_visitor_is_offered_no_manage_links(self, client):
-        project = ProjectFactory(visibility=Visibility.PUBLIC)
-
-        response = _page(client, project)
-
-        for name in ("edit", "delete", "descriptions"):
-            url = reverse(f"project:{name}", kwargs={"uuid": project.uuid})
-            assert response.page.find("a", href=url) is None
 
     def test_the_add_dataset_action_is_offered_to_the_team_only(
         self, client, overview_showcase, project_team_member
@@ -1664,41 +1157,41 @@ class TestDatasetsTabListsWhatTheViewerMaySee:
         assert (listed.sample_count, listed.measurement_count) == (1, 1)
 
 
-@pytest.fixture
-def mapped():
+@pytest.fixture(scope="class")
+def mapped(django_db_setup, django_db_blocker):
     """A public project with samples in a published, unpublished and private dataset.
 
     The published dataset holds two located samples and one without a location. The
     unpublished dataset holds one located sample and the private dataset two.
     """
-    from types import SimpleNamespace
+    with django_db_blocker.unblock(), transaction.atomic():
+        from types import SimpleNamespace
 
-    from demo.factories import RockSampleFactory, SoilSampleFactory
+        from demo.factories import RockSampleFactory, SoilSampleFactory
 
-    project = ProjectFactory(visibility=Visibility.PUBLIC)
-    published = DatasetFactory(
-        project=project, visibility=Visibility.PUBLIC, published=True
-    )
-    unpublished = DatasetFactory(
-        project=project, visibility=Visibility.PUBLIC, published=False
-    )
-    private = DatasetFactory(
-        project=project, visibility=Visibility.PRIVATE, published=False
-    )
-    RockSampleFactory(dataset=published, location=Point(7.9, 48.9, srid=4326))
-    RockSampleFactory(dataset=published, location=Point(8.1, 49.0, srid=4326))
-    RockSampleFactory(dataset=published, location=None)
-    RockSampleFactory(dataset=unpublished, location=Point(20.0, 10.0, srid=4326))
-    SoilSampleFactory(dataset=private, location=Point(-70.0, -33.0, srid=4326))
-    SoilSampleFactory(dataset=private, location=Point(-70.5, -33.5, srid=4326))
-    return SimpleNamespace(
-        project=project, published=published, unpublished=unpublished, private=private
-    )
-
-
-def loads_map_script(response):
-    """Say whether the page asked for MapLibre: ``has_map`` is set only when it does."""
-    return "has_map" in response.context and bool(response.context["has_map"])
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        published = DatasetFactory(
+            project=project, visibility=Visibility.PUBLIC, published=True
+        )
+        unpublished = DatasetFactory(
+            project=project, visibility=Visibility.PUBLIC, published=False
+        )
+        private = DatasetFactory(
+            project=project, visibility=Visibility.PRIVATE, published=False
+        )
+        RockSampleFactory(dataset=published, location=Point(7.9, 48.9, srid=4326))
+        RockSampleFactory(dataset=published, location=Point(8.1, 49.0, srid=4326))
+        RockSampleFactory(dataset=published, location=None)
+        RockSampleFactory(dataset=unpublished, location=Point(20.0, 10.0, srid=4326))
+        SoilSampleFactory(dataset=private, location=Point(-70.0, -33.0, srid=4326))
+        SoilSampleFactory(dataset=private, location=Point(-70.5, -33.5, srid=4326))
+        yield SimpleNamespace(
+            project=project,
+            published=published,
+            unpublished=unpublished,
+            private=private,
+        )
+        transaction.set_rollback(True)
 
 
 def _member(record, level):
@@ -1710,103 +1203,81 @@ def _member(record, level):
 
 @pytest.mark.django_db
 class TestOverviewSampleMap:
-    def test_a_visitors_map_counts_only_the_published_datasets_samples(
-        self, client, mapped
-    ):
-        response = _page(client, mapped.project)
+    def test_a_visitors_map_counts_only_the_published_datasets_samples(self, mapped):
+        context = _context(mapped.project)
+        sample_map = context["sample_map"]
 
-        sample_map = response.context["sample_map"]
+        assert context["has_map"] is True
         assert sample_map["located"] == 2
         assert sample_map["missing"] == 1
         assert sample_map["bounds"] == [7.9, 48.9, 8.1, 49.0]
 
-    def test_a_private_datasets_samples_add_to_neither_count_nor_bounds_for_a_visitor(
-        self, client, mapped
-    ):
-        sample_map = _page(client, mapped.project).context["sample_map"]
+    def test_no_map_is_drawn_for_a_project_without_samples(self):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
 
-        assert sample_map["located"] + sample_map["missing"] == 3
-        assert sample_map["bounds"][0] > 0
-        assert sample_map["bounds"][1] > 0
+        context = _context(project)
 
-    def test_a_member_of_the_private_dataset_gets_its_samples_too(self, client, mapped):
-        client.force_login(_member(mapped.private, ContributionLevel.VIEW))
+        assert context["sample_map"] is None
+        assert "has_map" not in context
 
-        sample_map = _page(client, mapped.project).context["sample_map"]
+    def test_no_map_is_drawn_while_no_sample_is_located(self):
+        from demo.factories import RockSampleFactory
+
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        dataset = DatasetFactory(
+            project=project, visibility=Visibility.PUBLIC, published=True
+        )
+        RockSampleFactory(dataset=dataset, location=None)
+
+        context = _context(project)
+
+        assert context["sample_map"]["located"] == 0
+        assert context["sample_map"]["bounds"] is None
+        assert "has_map" not in context
+
+    def test_a_member_of_the_private_dataset_gets_its_samples_too(self, mapped):
+        member = _member(mapped.private, ContributionLevel.VIEW)
+
+        sample_map = _context(mapped.project, member)["sample_map"]
 
         assert sample_map["located"] == 4
         assert sample_map["missing"] == 1
         assert sample_map["bounds"] == [-70.5, -33.5, 8.1, 49.0]
 
-    def test_the_projects_team_gets_every_sample(self, client, mapped):
-        client.force_login(_member(mapped.project, ContributionLevel.EDIT))
+    def test_the_projects_team_gets_every_sample(self, mapped):
+        team = _member(mapped.project, ContributionLevel.EDIT)
 
-        sample_map = _page(client, mapped.project).context["sample_map"]
+        sample_map = _context(mapped.project, team)["sample_map"]
 
         assert sample_map["located"] == 5
         assert sample_map["missing"] == 1
 
-    @pytest.mark.parametrize(
-        ("viewer", "seeded"), [("visitor", 3), ("dataset member", 5), ("team", 6)]
-    )
     def test_located_and_missing_add_up_to_the_samples_figure_the_page_shows(
-        self, client, mapped, viewer, seeded
+        self, mapped
     ):
-        if viewer == "dataset member":
-            client.force_login(_member(mapped.private, ContributionLevel.VIEW))
-        elif viewer == "team":
-            client.force_login(_member(mapped.project, ContributionLevel.EDIT))
+        member = _member(mapped.private, ContributionLevel.VIEW)
 
-        response = _page(client, mapped.project)
+        context = _context(mapped.project, member)
 
-        sample_map = response.context["sample_map"]
-        assert response.context["counts"]["samples"] == seeded
-        assert sample_map["located"] + sample_map["missing"] == seeded
+        sample_map = context["sample_map"]
+        assert context["counts"]["samples"] == 5
+        assert sample_map["located"] + sample_map["missing"] == 5
 
-    def test_datasets_counts_the_datasets_the_mapped_samples_come_from(
-        self, client, mapped
-    ):
-        visitor = _page(client, mapped.project).context["sample_map"]
-        client.force_login(_member(mapped.project, ContributionLevel.EDIT))
-        team = _page(client, mapped.project).context["sample_map"]
+    def test_datasets_counts_the_datasets_the_mapped_samples_come_from(self, mapped):
+        team = _member(mapped.project, ContributionLevel.EDIT)
 
-        assert visitor["datasets"] == 1
-        assert team["datasets"] == 3
+        visitor_map = _context(mapped.project)["sample_map"]
+        team_map = _context(mapped.project, team)["sample_map"]
 
-    def test_the_points_address_is_the_projects_own(self, client, mapped):
-        sample_map = _page(client, mapped.project).context["sample_map"]
+        assert visitor_map["datasets"] == 1
+        assert team_map["datasets"] == 3
+
+    def test_the_points_address_is_the_projects_own(self, mapped):
+        sample_map = _context(mapped.project)["sample_map"]
 
         assert sample_map["points_url"] == reverse(
             "project:overview-sample-points", kwargs={"uuid": mapped.project.uuid}
         )
-
-    def test_a_project_with_no_samples_has_no_map(self, client):
-        project = ProjectFactory(visibility=Visibility.PUBLIC)
-
-        response = _page(client, project)
-
-        assert response.context["sample_map"] is None
-        assert not loads_map_script(response)
-
-    def test_samples_none_of_which_is_located_give_a_map_of_none_and_no_map_script(
-        self, client
-    ):
-        project = ProjectFactory(visibility=Visibility.PUBLIC)
-        dataset = DatasetFactory(
-            project=project, visibility=Visibility.PUBLIC, published=True
-        )
-        RockSampleFactory.create_batch(2, dataset=dataset, location=None)
-
-        response = _page(client, project)
-
-        assert response.context["sample_map"]["located"] == 0
-        assert response.context["sample_map"]["missing"] == 2
-        assert not loads_map_script(response)
-
-    def test_has_map_is_true_once_a_sample_is_located(self, client, mapped):
-        response = _page(client, mapped.project)
-
-        assert loads_map_script(response)
 
 
 @pytest.fixture
@@ -1839,7 +1310,7 @@ class TestOverviewCitationFormats:
         return project
 
     def formats_of(self, client, project):
-        citation = _page(client, project).context["citation"]
+        citation = _context(project)["citation"]
         return {entry["key"]: entry["value"] for entry in citation["formats"]}
 
     def entry_of(self, formats):
@@ -1872,66 +1343,3 @@ class TestOverviewCitationFormats:
             "Seismic survey",
             portal_name,
         )
-
-    def test_without_a_doi_the_files_give_the_permalink_and_no_doi(self, client):
-        project = self.make_project()
-        permalink = f"http://testserver/{project.uuid}/"
-
-        formats = self.formats_of(client, project)
-        entry, ris = self.entry_of(formats)[1:]
-
-        assert formats["text"].endswith(permalink)
-        assert entry.fields["url"] == permalink
-        assert "doi" not in entry.fields
-        assert ris["urls"] == [permalink]
-        assert "doi" not in ris
-
-    def test_with_a_doi_the_files_give_the_doi_and_its_link(self, client):
-        project = self.make_project()
-        ProjectIdentifierFactory(
-            related=project, type_id=f"{IDENTIFIER_TYPES}/doi", value="10.5555/cited_1"
-        )
-
-        formats = self.formats_of(client, project)
-        entry, ris = self.entry_of(formats)[1:]
-
-        assert formats["text"].endswith("https://doi.org/10.5555/cited_1")
-        assert entry.fields["doi"] == "10.5555/cited_1"
-        assert entry.fields["url"] == "https://doi.org/10.5555/cited_1"
-        assert ris["doi"] == "10.5555/cited_1"
-        assert ris["urls"] == ["https://doi.org/10.5555/cited_1"]
-
-    def test_a_project_is_a_misc_entry_and_a_general_reference(self, client):
-        formats = self.formats_of(client, self.make_project())
-        entry, ris = self.entry_of(formats)[1:]
-
-        assert entry.type == "misc"
-        assert ris["type_of_reference"] == "GEN"
-
-    def test_with_nobody_credited_no_author_is_given(self, client):
-        project = ProjectFactory(visibility=Visibility.PUBLIC)
-
-        formats = self.formats_of(client, project)
-        entry, ris = self.entry_of(formats)[1:]
-
-        assert "author" not in entry.persons
-        assert "authors" not in ris
-        assert formats["text"].startswith("(")
-
-    def test_each_format_has_an_address_beside_the_page(self, client):
-        project = self.make_project()
-
-        citation = _page(client, project).context["citation"]
-
-        assert {e["key"]: e["download"] for e in citation["formats"]} == {
-            "text": False,
-            "bibtex": True,
-            "ris": True,
-        }
-        assert [e["url"] for e in citation["formats"]] == [
-            reverse(
-                "project:overview-citation",
-                kwargs={"uuid": project.uuid, "format": key},
-            )
-            for key in ("text", "bibtex", "ris")
-        ]

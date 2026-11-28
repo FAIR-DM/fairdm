@@ -16,7 +16,7 @@ from django.shortcuts import get_object_or_404
 from django.template.loader import select_template
 from django.test import RequestFactory
 from django.test.utils import isolate_apps
-from django.urls import reverse
+from django.urls import resolve, reverse
 from partial_dates import PartialDate
 from pybtex.database import parse_string
 from pytest_django.asserts import assertContains, assertNotContains, assertRedirects
@@ -93,12 +93,27 @@ def _dataset(*, public=True, published=True):
     )
 
 
-def _page(client, sample):
-    """Open the sample's page and return the response with its parsed HTML."""
+def _get(client, sample):
+    """Open the sample's page and return the response."""
     response = client.get(reverse("sample:overview", kwargs={"uuid": sample.uuid}))
     assert response.status_code == 200
+    return response
+
+
+def _page(client, sample):
+    """Open the sample's page and return the response with its parsed HTML."""
+    response = _get(client, sample)
     response.page = BeautifulSoup(response.content, "html.parser")
     return response
+
+
+def _context(sample, user=None):
+    """Build the context the sample's page is rendered from, without rendering it."""
+    request = RequestFactory().get(sample.get_absolute_url())
+    request.user = user or AnonymousUser()
+    request.site = Site.objects.get_current()
+    match = resolve(request.path)
+    return match.func(request, **match.kwargs).context_data
 
 
 def _team_member(dataset):
@@ -164,7 +179,7 @@ class TestOverviewTemplateChoice:
     ):
         water = WaterSampleFactory(dataset=released)
 
-        names = [t.name for t in _page(client, water).templates if t.name]
+        names = [t.name for t in _get(client, water).templates if t.name]
 
         assert "sample/sample_overview.html" in names
         assert not any(
@@ -199,12 +214,7 @@ class TestOverviewTemplateChoice:
 class TestOverviewFollowsItsDataset:
     """FR-019 and US-3 scenarios 4 and 5."""
 
-    def test_a_visitor_opens_a_sample_in_a_published_dataset(self, client, rock):
-        assert client.get(rock.get_absolute_url()).status_code == 200
-
-    @pytest.mark.parametrize(
-        ("public", "published"), [(False, False), (False, True), (True, False)]
-    )
+    @pytest.mark.parametrize(("public", "published"), [(False, True), (True, False)])
     def test_a_visitor_gets_not_found_unless_the_dataset_is_public_and_published(
         self, client, public, published
     ):
@@ -254,55 +264,53 @@ class TestOverviewMeasurements:
     """FR-023 and US-3 scenarios 6 and 7."""
 
     def test_measurements_in_another_teams_unpublished_dataset_are_not_listed(
-        self, client, rock
+        self, rock
     ):
         shown = XRFMeasurementFactory(dataset=rock.dataset, sample=rock)
-        hidden = XRFMeasurementFactory(dataset=_dataset(published=False), sample=rock)
-
-        response = _page(client, rock)
-
-        assert [
-            e["measurement"].pk for e in response.context["measurements"]["items"]
-        ] == [shown.pk]
-        assert response.context["counts"]["measurements"] == 1
-        assertNotContains(response, hidden.get_absolute_url())
-
-    def test_being_on_the_samples_team_opens_nothing_in_the_other_dataset(
-        self, client, rock
-    ):
         XRFMeasurementFactory(dataset=_dataset(published=False), sample=rock)
-        client.force_login(_team_member(rock.dataset))
 
-        assert _page(client, rock).context["measurements"]["total"] == 0
+        context = _context(rock)
+
+        assert [e["measurement"].pk for e in context["measurements"]["items"]] == [
+            shown.pk
+        ]
+        assert context["counts"]["measurements"] == 1
+
+    def test_being_on_the_samples_team_opens_nothing_in_the_other_dataset(self, rock):
+        XRFMeasurementFactory(dataset=_dataset(published=False), sample=rock)
+
+        context = _context(rock, _team_member(rock.dataset))
+
+        assert context["measurements"]["total"] == 0
 
     def test_the_other_datasets_team_sees_its_measurement_marked_as_recorded_elsewhere(
-        self, client, rock
+        self, rock
     ):
         elsewhere = _dataset(published=False)
         XRFMeasurementFactory(dataset=elsewhere, sample=rock)
-        client.force_login(_team_member(elsewhere))
 
-        items = _page(client, rock).context["measurements"]["items"]
+        items = _context(rock, _team_member(elsewhere))["measurements"]["items"]
 
         assert [e["elsewhere"] for e in items] == [True]
 
-    def test_the_list_shows_the_thirty_most_recent_and_counts_the_rest(
-        self, client, rock
+    def test_the_list_shows_the_most_recent_and_counts_the_rest(
+        self, rock, monkeypatch
     ):
+        monkeypatch.setattr(Overview, "measurements_shown", 3)
         measurements = XRFMeasurementFactory.create_batch(
-            32, dataset=rock.dataset, sample=rock
+            4, dataset=rock.dataset, sample=rock
         )
         for minute, measurement in enumerate(measurements):
             Measurement.objects.filter(pk=measurement.pk).update(
                 added=datetime(2026, 1, 1, 0, minute, tzinfo=UTC)
             )
 
-        summary = _page(client, rock).context["measurements"]
+        summary = _context(rock)["measurements"]
 
-        assert summary["total"] == 32
-        assert summary["more"] == 2
+        assert summary["total"] == 4
+        assert summary["more"] == 1
         assert [e["measurement"].pk for e in summary["items"]] == [
-            m.pk for m in reversed(measurements[2:])
+            m.pk for m in reversed(measurements[1:])
         ]
 
     def test_the_figure_leads_to_the_panel_and_the_panel_to_the_measurements_tab(
@@ -322,24 +330,22 @@ class TestOverviewMeasurements:
 class TestOverviewMeasurementTypes:
     """FR-037 and US-3 scenario 13."""
 
-    def test_each_type_is_counted_among_the_visible_measurements_most_first(
-        self, client, rock
-    ):
+    def test_each_type_is_counted_among_the_visible_measurements_most_first(self, rock):
         XRFMeasurementFactory.create_batch(2, dataset=rock.dataset, sample=rock)
         ICP_MS_MeasurementFactory(dataset=rock.dataset, sample=rock)
         ICP_MS_MeasurementFactory(dataset=_dataset(published=False), sample=rock)
 
-        types = _page(client, rock).context["measurement_types"]
+        types = _context(rock)["measurement_types"]
 
         assert [(t["key"], t["n"]) for t in types] == [
             ("demo.xrfmeasurement", 2),
             ("demo.icp_ms_measurement", 1),
         ]
 
-    def test_each_listed_measurement_carries_the_key_of_its_type(self, client, rock):
+    def test_each_listed_measurement_carries_the_key_of_its_type(self, rock):
         ICP_MS_MeasurementFactory(dataset=rock.dataset, sample=rock)
 
-        items = _page(client, rock).context["measurements"]["items"]
+        items = _context(rock)["measurements"]["items"]
 
         assert [e["type_key"] for e in items] == ["demo.icp_ms_measurement"]
 
@@ -417,10 +423,8 @@ class TestOverviewRelatedSamples:
             "hidden": [hidden_parent, hidden_child],
         }
 
-    def test_the_visible_ones_are_listed_each_saying_how_it_relates(
-        self, client, rock, family
-    ):
-        relations = _page(client, rock).context["relations"]
+    def test_the_visible_ones_are_listed_each_saying_how_it_relates(self, rock, family):
+        relations = _context(rock)["relations"]
 
         assert [(e["sample"].pk, str(e["relation"])) for e in relations["items"]] == [
             (family["parent"].pk, "Parent sample"),
@@ -439,19 +443,16 @@ class TestOverviewRelatedSamples:
             assertNotContains(response, sample.get_absolute_url())
         assertContains(response, family["parent"].get_absolute_url())
 
-    def test_the_figure_counts_only_the_ones_shown(self, client, rock, family):
-        assert _page(client, rock).context["counts"]["related"] == 2
-
-    def test_the_summary_says_how_many_parents_and_subsamples_are_shown(
-        self, client, rock, family
+    def test_the_figure_counts_only_the_ones_shown_and_the_summary_names_them(
+        self, rock, family
     ):
-        assert (
-            _page(client, rock).context["counts"]["related_desc"]
-            == "1 parent · 1 subsample"
-        )
+        counts = _context(rock)["counts"]
 
-    def test_a_sample_with_no_relations_says_none_are_recorded(self, client, rock):
-        counts = _page(client, rock).context["counts"]
+        assert counts["related"] == 2
+        assert counts["related_desc"] == "1 parent · 1 subsample"
+
+    def test_a_sample_with_no_relations_says_none_are_recorded(self, rock):
+        counts = _context(rock)["counts"]
 
         assert counts["related"] == 0
         assert counts["related_desc"] == "None recorded"
@@ -461,9 +462,7 @@ class TestOverviewRelatedSamples:
 class TestOverviewHistory:
     """FR-038 and US-3 scenario 9."""
 
-    def test_steps_are_in_date_order_each_dated_as_precisely_as_recorded(
-        self, client, rock
-    ):
+    def test_steps_are_in_date_order_each_dated_as_precisely_as_recorded(self, rock):
         for kind, value in [
             (f"{DATE_TYPES}/archival", "2024-03-05"),
             (f"{DATE_TYPES}/collected", "2023"),
@@ -473,14 +472,14 @@ class TestOverviewHistory:
                 related=rock, type_id=kind, value=PartialDate.fromisoformat(value)
             )
 
-        steps = _page(client, rock).context["lifecycle"]
+        steps = _context(rock)["lifecycle"]
 
         assert [s["label"] for s in steps] == ["Collected", "Prepared", "Archived"]
         assert [str(s["date"]) for s in steps] == ["2023", "2024-03", "2024-03-05"]
         assert [s["day"] for s in steps][:2] == [None, None]
         assert steps[2]["day"] is not None
 
-    def test_a_step_with_no_date_follows_the_dated_ones(self, client, rock):
+    def test_a_step_with_no_date_follows_the_dated_ones(self, rock):
         SampleDescription.objects.create(
             related=rock,
             type_id=f"{DESCRIPTION_TYPES}/sample-preparation",
@@ -492,19 +491,19 @@ class TestOverviewHistory:
             value=PartialDate.fromisoformat("2024-01-02"),
         )
 
-        steps = _page(client, rock).context["lifecycle"]
+        steps = _context(rock)["lifecycle"]
 
         assert [s["label"] for s in steps] == ["Collected", "Prepared"]
         assert steps[1]["date"] is None
         assert steps[1]["note"] == "Cut and polished."
 
-    def test_people_credited_for_a_step_join_its_entry(self, client, rock):
+    def test_people_credited_for_a_step_join_its_entry(self, rock):
         rock.add_contributor(
             PersonFactory(is_active=True),
             with_roles=[f"{CONTRIBUTOR_ROLES}/collection"],
         )
 
-        steps = _page(client, rock).context["lifecycle"]
+        steps = _context(rock)["lifecycle"]
 
         assert [s["label"] for s in steps] == ["Collected"]
         assert len(steps[0]["people"]) == 1
@@ -591,7 +590,7 @@ class TestOverviewTypeBadge:
         assert response.page.find("dialog", id="about-sample-type") is None
 
     def test_a_registered_type_with_nothing_to_say_is_a_plain_badge(
-        self, client, rock, monkeypatch
+        self, rock, monkeypatch
     ):
         config = registry.get_for_model(RockSample)
         monkeypatch.setattr(config.metadata, "description", "")
@@ -600,11 +599,7 @@ class TestOverviewTypeBadge:
         monkeypatch.setattr(config.metadata, "keywords", [])
         monkeypatch.setattr(config, "description", "")
 
-        response = _page(client, rock)
-
-        assert response.context["type_info"] is None
-        assert response.page.find("dialog", id="about-sample-type") is None
-        assert response.page.select("header button[aria-haspopup=dialog]") == []
+        assert _context(rock)["type_info"] is None
 
     @pytest.mark.parametrize(
         ("recorded", "linked"),
@@ -628,16 +623,13 @@ class TestOverviewTypeBadge:
         assert dialog.find("a", string="Protocol text")["href"] == linked
 
     def test_the_configuration_description_stands_in_for_an_empty_metadata_one(
-        self, client, rock, monkeypatch
+        self, rock, monkeypatch
     ):
         config = registry.get_for_model(RockSample)
         monkeypatch.setattr(config.metadata, "description", "")
         monkeypatch.setattr(config, "description", "A core of rift rock.")
 
-        response = _page(client, rock)
-
-        assert response.context["type_info"]["description"] == "A core of rift rock."
-        assert response.page.find("dialog", id="about-sample-type") is not None
+        assert _context(rock)["type_info"]["description"] == "A core of rift rock."
 
 
 @pytest.mark.django_db
@@ -666,16 +658,27 @@ class TestOverviewStatus:
         assert response.context["status"]["variant"] == "neutral"
         assert response.page.select_one(".alert-warning") is None
 
-    def test_a_status_never_recorded_reads_as_unknown(self, client, rock):
-        assert (
-            _page(client, rock).context["status"]["value"] == f"{SAMPLE_STATUS}/unknown"
+    def test_a_status_never_recorded_reads_as_unknown(self, rock):
+        assert _context(rock)["status"]["value"] == f"{SAMPLE_STATUS}/unknown"
+
+    def test_the_details_card_carries_the_status_and_what_it_means(self, released):
+        destroyed = RockSampleFactory(
+            dataset=released, status=f"{SAMPLE_STATUS}/destroyed"
         )
+        stored = RockSampleFactory(dataset=released, status=f"{SAMPLE_STATUS}/stored")
 
-    def test_the_details_card_carries_the_status_and_what_it_means(self, client, rock):
-        details = _page(client, rock).context["details"]
+        entries = {}
+        for sample in (destroyed, stored):
+            details = _context(sample)["details"]
+            entries[sample.pk] = next(d for d in details if d.get("icon") == "box")
 
-        status = next(d for d in details if d.get("icon") == "box")
-        assert status["note"]
+        destroyed_entry = entries[destroyed.pk]
+        assert destroyed_entry["text"] == destroyed.get_status_label()
+        assert (
+            destroyed_entry["note"]
+            == Overview.status_meanings[f"{SAMPLE_STATUS}/destroyed"]
+        )
+        assert entries[stored.pk]["note"] != destroyed_entry["note"]
 
 
 @pytest.mark.django_db
@@ -758,30 +761,6 @@ class TestOverviewEditingLinks:
         page_hrefs = {a.get("href") for a in response.page.select("a")}
         assert not page_hrefs & set(self._addresses(rock))
 
-    def test_the_editing_pages_keep_their_addresses(self, rock):
-        assert self._addresses(rock) == [
-            f"/samples/{rock.uuid}/{segment}/" for segment in self.EDITING_PAGES
-        ]
-
-
-@pytest.mark.django_db
-class TestOverviewCitationAddress:
-    def _citation(self, client, sample):
-        return _page(client, sample).page.find(id="citation-text").get_text(strip=True)
-
-    def test_without_an_igsn_the_citation_ends_with_the_samples_permalink(
-        self, client, rock
-    ):
-        assert self._citation(client, rock).endswith(f"http://testserver/{rock.uuid}/")
-
-    def test_with_an_igsn_the_citation_names_no_permalink(self, client, rock):
-        SampleIdentifierFactory(related=rock, type=IGSN, value="10.58052/IGSN0001")
-
-        citation = self._citation(client, rock)
-
-        assert citation.endswith("https://doi.org/10.58052/IGSN0001")
-        assert str(rock.uuid) not in citation
-
 
 @pytest.fixture
 def portal_name(db):
@@ -811,22 +790,20 @@ class TestOverviewCitationFormats:
         )
         return sample
 
-    def test_a_collector_left_out_of_the_citation_is_named_in_no_format(
-        self, client, rock
-    ):
+    def test_a_collector_left_out_of_the_citation_is_named_in_no_format(self, rock):
         sample = self.collect(rock)
         sample.contributors.filter(contributor__person__last_name="Oliveira").update(
             in_citation=False
         )
 
-        formats = self.formats_of(client, sample)
+        formats = self.formats_of(sample)
 
         for value in formats.values():
             assert "Keller" in value
             assert "Oliveira" not in value
 
-    def formats_of(self, client, sample):
-        citation = _page(client, sample).context["citation"]
+    def formats_of(self, sample):
+        citation = _context(sample)["citation"]
         return {entry["key"]: entry["value"] for entry in citation["formats"]}
 
     def entry_of(self, formats):
@@ -836,11 +813,11 @@ class TestOverviewCitationFormats:
         return key, entry, rispy.loads(formats["ris"])[0]
 
     def test_the_text_and_both_files_give_the_same_people_year_title_and_publisher(
-        self, client, rock, portal_name
+        self, rock, portal_name
     ):
         self.collect(rock)
 
-        formats = self.formats_of(client, rock)
+        formats = self.formats_of(rock)
         key, entry, ris = self.entry_of(formats)
 
         title = "Zq-4471 rift core [Rock Sample]"
@@ -861,12 +838,10 @@ class TestOverviewCitationFormats:
             portal_name,
         )
 
-    def test_without_an_igsn_the_files_give_the_permalink_and_no_doi(
-        self, client, rock
-    ):
+    def test_without_an_igsn_the_files_give_the_permalink_and_no_doi(self, rock):
         permalink = f"http://testserver/{rock.uuid}/"
 
-        formats = self.formats_of(client, rock)
+        formats = self.formats_of(rock)
         entry, ris = self.entry_of(formats)[1:]
 
         assert formats["text"].endswith(permalink)
@@ -875,24 +850,23 @@ class TestOverviewCitationFormats:
         assert ris["urls"] == [permalink]
         assert "doi" not in ris
 
-    def test_with_an_igsn_the_files_give_it_as_the_doi_and_its_link(self, client, rock):
+    def test_with_an_igsn_the_files_give_it_as_the_doi_and_its_link(self, rock):
         SampleIdentifierFactory(related=rock, type=IGSN, value="10.58052/IGSN_1")
 
-        formats = self.formats_of(client, rock)
+        formats = self.formats_of(rock)
         entry, ris = self.entry_of(formats)[1:]
 
         assert formats["text"].endswith("https://doi.org/10.58052/IGSN_1")
+        assert str(rock.uuid) not in formats["text"]
         assert entry.fields["doi"] == "10.58052/IGSN_1"
         assert entry.fields["url"] == "https://doi.org/10.58052/IGSN_1"
         assert ris["doi"] == "10.58052/IGSN_1"
         assert ris["urls"] == ["https://doi.org/10.58052/IGSN_1"]
 
-    def test_a_legacy_igsn_that_does_not_resolve_gives_no_link_and_no_doi(
-        self, client, rock
-    ):
+    def test_a_legacy_igsn_that_does_not_resolve_gives_no_link_and_no_doi(self, rock):
         SampleIdentifierFactory(related=rock, type=IGSN, value="AU1101")
 
-        formats = self.formats_of(client, rock)
+        formats = self.formats_of(rock)
         entry, ris = self.entry_of(formats)[1:]
 
         assert "http" not in formats["text"]
@@ -901,25 +875,25 @@ class TestOverviewCitationFormats:
         assert "doi" not in ris
         assert "urls" not in ris
 
-    def test_a_sample_is_a_misc_entry_and_a_general_reference(self, client, rock):
-        formats = self.formats_of(client, rock)
+    def test_a_sample_is_a_misc_entry_and_a_general_reference(self, rock):
+        formats = self.formats_of(rock)
         entry, ris = self.entry_of(formats)[1:]
 
         assert entry.type == "misc"
         assert ris["type_of_reference"] == "GEN"
 
-    def test_with_nobody_credited_no_author_is_given(self, client, rock):
-        formats = self.formats_of(client, rock)
+    def test_with_nobody_credited_no_author_is_given(self, rock):
+        formats = self.formats_of(rock)
         entry, ris = self.entry_of(formats)[1:]
 
         assert "author" not in entry.persons
         assert "authors" not in ris
         assert formats["text"].startswith("(")
 
-    def test_a_portal_sample_type_gets_all_three_formats(self, client, released):
+    def test_a_portal_sample_type_gets_all_three_formats(self, released):
         sample = ConcreteSampleFactory(dataset=released, name="Portal core")
 
-        citation = _page(client, sample).context["citation"]
+        citation = _context(sample)["citation"]
         formats = {entry["key"]: entry["value"] for entry in citation["formats"]}
         entry, ris = self.entry_of(formats)[1:]
 

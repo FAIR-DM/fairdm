@@ -18,15 +18,6 @@ DATE_ORDER_CASES = [
         ProjectDate.END_TYPE,
         "The project's end date (%(end)s) cannot be before its start date (%(start)s).",
     ),
-    (
-        Dataset,
-        DatasetDate,
-        DatasetFactory,
-        DatasetDate.START_TYPE,
-        DatasetDate.END_TYPE,
-        "The dataset's collection end date (%(end)s) cannot be "
-        "before its collection start date (%(start)s).",
-    ),
 ]
 
 

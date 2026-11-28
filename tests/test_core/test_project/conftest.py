@@ -1,6 +1,7 @@
 """Shared fixtures for Project tests."""
 
 import pytest
+from django.db import transaction
 
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.vocabularies import CONTRIBUTOR_ROLES
@@ -47,13 +48,7 @@ def user_with_no_permission(db):
     return user
 
 
-@pytest.fixture
-def overview_showcase(db):
-    """A public project holding public, public-unpublished and private datasets.
-
-    The private dataset carries the only soil samples, the only ICP-MS measurements and the only
-    CC0 licence, so anything of theirs on a visitor's page is a leak.
-    """
+def _build_overview_showcase():
     from datetime import UTC, datetime
     from types import SimpleNamespace
 
@@ -66,6 +61,8 @@ def overview_showcase(db):
         WaterSampleFactory,
         XRFMeasurementFactory,
     )
+    from fairdm.core.measurement.models import Measurement
+    from fairdm.core.sample.models import Sample
     from fairdm.factories import DatasetFactory, PersonFactory
 
     project = ProjectFactory(visibility=Visibility.PUBLIC, status=2)
@@ -81,7 +78,7 @@ def overview_showcase(db):
                 f"{CONTRIBUTOR_ROLES}/creator",
             ],
         )
-    others = [PersonFactory(name=f"Other {n:02d}", is_active=True) for n in range(20)]
+    others = [PersonFactory(name=f"Other {n:02d}", is_active=True) for n in range(2)]
     for person in others:
         project.add_contributor(person, with_roles=[f"{CONTRIBUTOR_ROLES}/other"])
 
@@ -102,9 +99,6 @@ def overview_showcase(db):
     soils = SoilSampleFactory.create_batch(3, dataset=private)
     ICP_MS_MeasurementFactory(dataset=private, sample=soils[0])
 
-    from fairdm.core.measurement.models import Measurement
-    from fairdm.core.sample.models import Sample
-
     # Two months apart, so the running total has a shape to draw.
     Sample.objects.filter(pk__in=[s.pk for s in rocks]).update(
         added=datetime(2026, 1, 15, tzinfo=UTC)
@@ -122,6 +116,27 @@ def overview_showcase(db):
         unpublished=unpublished,
         private=private,
     )
+
+
+@pytest.fixture(scope="class")
+def _overview_showcase_built(django_db_setup, django_db_blocker):
+    """Build the showcase once for a test class: it is the slowest part of these tests.
+
+    Each test rolls back to this point, and the class rolls back to where it started.
+    """
+    with django_db_blocker.unblock(), transaction.atomic():
+        yield _build_overview_showcase()
+        transaction.set_rollback(True)
+
+
+@pytest.fixture
+def overview_showcase(_overview_showcase_built, db):
+    """A public project holding public, public-unpublished and private datasets.
+
+    The private dataset carries the only soil samples, the only ICP-MS measurements
+    and the only CC0 licence, so anything of theirs on a visitor's page is a leak.
+    """
+    return _overview_showcase_built
 
 
 @pytest.fixture

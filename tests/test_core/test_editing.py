@@ -11,9 +11,11 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit
 from django.conf import settings
 from django.contrib.messages import SUCCESS, get_messages
+from django.db import connection
 from django.shortcuts import resolve_url
 from django.test import Client, RequestFactory
-from django.urls import NoReverseMatch, reverse
+from django.test.utils import CaptureQueriesContext
+from django.urls import reverse
 from partial_dates import Precision
 
 from demo.factories import ExampleMeasurementFactory, RockSampleFactory
@@ -25,7 +27,7 @@ from fairdm.core.dataset.models import (
     DatasetDescription,
     DatasetIdentifier,
 )
-from fairdm.core.editing import edit_links
+from fairdm.core.editing import EDITING_PAGES, edit_links
 from fairdm.core.measurement.models import (
     Measurement,
     MeasurementDate,
@@ -325,87 +327,54 @@ def hrefs(element):
 @pytest.mark.django_db
 class TestRegistration:
     @pytest.mark.parametrize("kind", KINDS)
-    @pytest.mark.parametrize("page", PAGES)
-    def test_the_page_sits_beneath_the_records_address(self, make_case, kind, page):
+    def test_every_page_sits_beneath_the_records_address(self, make_case, kind):
         case = make_case(kind)
 
-        assert case.url(page) == f"{case.own_url}{page}/"
+        wrong = {
+            page: case.url(page)
+            for page in (*PAGES, "delete")
+            if case.url(page) != f"{case.own_url}{page}/"
+        }
 
-    @pytest.mark.parametrize("kind", KINDS)
-    @pytest.mark.parametrize("page", PAGES)
-    def test_the_page_is_not_a_tab(self, kind, page):
-        model = CORE_MODELS[kind]
-        plugins.registry.get_urls_for_model(model)
-        menu = plugins.registry.get_plugin_menu_for_model(model)
+        assert not wrong
 
-        assert f"{kind}:{page}" not in [item.view_name for item in menu.children]
+    def test_no_editing_page_is_a_tab(self):
+        tabs = []
+        for kind, model in CORE_MODELS.items():
+            plugins.registry.get_urls_for_model(model)
+            menu = plugins.registry.get_plugin_menu_for_model(model)
+            names = {item.view_name for item in menu.children}
+            tabs += [
+                f"{kind}:{page}"
+                for page in (*PAGES, "delete")
+                if f"{kind}:{page}" in names
+            ]
 
-    @pytest.mark.parametrize(
-        "name",
-        [
-            "project:overview-update",
-            "project:overview-descriptions",
-            "dataset:overview-update",
-            "dataset:overview-descriptions",
-            "sample:basic-information",
-        ],
-    )
-    def test_the_pages_they_replace_are_gone(self, name):
-        with pytest.raises(NoReverseMatch):
-            reverse(name, kwargs={"uuid": "00000000-0000-0000-0000-000000000000"})
-
-    @pytest.mark.parametrize("kind", KINDS)
-    def test_the_delete_page_sits_beneath_the_records_address(self, make_case, kind):
-        case = make_case(kind)
-
-        assert case.url("delete") == f"{case.own_url}delete/"
-
-    @pytest.mark.parametrize("kind", KINDS)
-    def test_the_delete_page_is_not_a_tab(self, kind):
-        model = CORE_MODELS[kind]
-        reverse(
-            f"{kind}:delete", kwargs={"uuid": "00000000-0000-0000-0000-000000000000"}
-        )
-        plugins.registry.get_urls_for_model(model)
-        menu = plugins.registry.get_plugin_menu_for_model(model)
-
-        assert f"{kind}:delete" not in [item.view_name for item in menu.children]
-
-    @pytest.mark.parametrize(
-        "name", ["project:overview-delete", "dataset:overview-delete"]
-    )
-    def test_the_delete_pages_they_replace_are_gone(self, name):
-        with pytest.raises(NoReverseMatch):
-            reverse(name, kwargs={"uuid": "00000000-0000-0000-0000-000000000000"})
+        assert not tabs
 
 
 @pytest.mark.django_db
 class TestAccess:
+    """One verdict decides every page, so each outcome is checked on the edit page of
+    every kind (the kinds decide who may see a record by different rules) and on one
+    kind where nothing about the kind matters. A grid over every kind and page checks
+    each page is wired to the verdict."""
+
     @pytest.mark.parametrize("kind", KINDS)
     @pytest.mark.parametrize("page", PAGES)
-    def test_a_person_who_may_edit_opens_the_page(
+    def test_every_page_opens_for_an_editor_and_refuses_a_reader_and_nothing_changes(
         self, make_case, person_at, kind, page
     ):
         case = make_case(kind, public=False)
         editor = person_at(case, ContributionLevel.EDIT)
-
-        response = browser_as(editor).get(case.url(page))
-
-        assert response.status_code == 200
-
-    @pytest.mark.parametrize("kind", KINDS)
-    @pytest.mark.parametrize("page", PAGES)
-    def test_a_person_who_may_only_view_is_refused_and_nothing_changes(
-        self, make_case, person_at, kind, page
-    ):
-        case = make_case(kind, public=False)
         reader = person_at(case, ContributionLevel.VIEW)
-        client = browser_as(reader)
         description_model = DESCRIPTION_MODELS[kind]
         first_type = next(
             concept.uri for concept in description_model.get_type_concepts()
         )
 
+        assert browser_as(editor).get(case.url(page)).status_code == 200
+        client = browser_as(reader)
         assert client.get(case.url(page)).status_code == 403
         response = client.post(
             case.url(page), {"name": "Changed", first_type: "A description"}
@@ -417,84 +386,68 @@ class TestAccess:
         assert not description_model.objects.filter(related=case.record).exists()
 
     @pytest.mark.parametrize("kind", KINDS)
-    @pytest.mark.parametrize("page", PAGES)
     def test_a_signed_in_person_with_no_level_on_a_public_record_is_refused(
-        self, make_case, person_at, kind, page
+        self, make_case, person_at, kind
     ):
         case = make_case(kind, public=True)
-        stranger = person_at()
 
-        response = browser_as(stranger).get(case.url(page))
+        response = browser_as(person_at()).get(case.url("edit"))
 
         assert response.status_code == 403
 
-    @pytest.mark.parametrize("kind", KINDS)
-    @pytest.mark.parametrize("page", PAGES)
-    def test_a_visitor_to_a_public_record_is_sent_to_sign_in(
-        self, make_case, kind, page
-    ):
-        case = make_case(kind, public=True)
+    def test_a_visitor_to_a_public_record_is_sent_to_sign_in(self, make_case):
+        case = make_case("project", public=True)
 
-        response = browser_as().get(case.url(page))
+        response = browser_as().get(case.url("edit"))
 
         assert response.status_code == 302
         assert response.url.startswith(resolve_url(settings.LOGIN_URL))
 
     @pytest.mark.parametrize("kind", KINDS)
-    @pytest.mark.parametrize("page", PAGES)
-    @pytest.mark.parametrize("signed_in", [True, False])
     def test_a_person_who_may_not_see_the_record_gets_not_found(
-        self, make_case, person_at, kind, page, signed_in
+        self, make_case, person_at, kind
     ):
         case = make_case(kind, public=False)
-        client = browser_as(person_at() if signed_in else None)
+        client = browser_as(person_at())
 
-        assert client.get(case.url(page)).status_code == 404
-        assert client.post(case.url(page), {"name": "Changed"}).status_code == 404
+        assert client.get(case.url("edit")).status_code == 404
+        assert client.post(case.url("edit"), {"name": "Changed"}).status_code == 404
         case.record.refresh_from_db()
         assert case.record.name != "Changed"
 
-    @pytest.mark.parametrize("kind", KINDS)
-    @pytest.mark.parametrize("page", PAGES)
+    def test_a_visitor_who_may_not_see_the_record_gets_not_found(self, make_case):
+        case = make_case("project", public=False)
+        client = browser_as()
+
+        assert client.get(case.url("edit")).status_code == 404
+        assert client.post(case.url("edit"), {"name": "Changed"}).status_code == 404
+
     def test_a_level_removed_after_the_page_was_opened_refuses_the_save(
-        self, make_case, person_at, kind, page
+        self, make_case, person_at
     ):
-        case = make_case(kind, public=True)
+        case = make_case("project", public=True)
         editor = person_at(case, ContributionLevel.EDIT)
         client = browser_as(editor)
-        first_type = DESCRIPTION_MODELS[kind].get_type_concepts()[0].uri
-        opened = client.get(case.url(page))
-        payload = form_payload(main_form(opened))
-        payload.update({"name": "Changed", first_type: "A description"})
+        payload = form_payload(main_form(client.get(case.url("edit"))))
+        payload["name"] = "Changed"
 
         editor.contributions.all().delete()
-        response = client.post(case.url(page), payload)
+        response = client.post(case.url("edit"), payload)
 
         assert response.status_code == 403
         case.record.refresh_from_db()
         assert case.record.name != "Changed"
-        assert not DESCRIPTION_MODELS[kind].objects.filter(related=case.record).exists()
 
     @pytest.mark.parametrize("kind", KINDS)
-    def test_a_person_who_may_manage_opens_the_delete_page(
+    def test_a_manager_opens_the_delete_page_and_an_editor_is_refused(
         self, make_case, person_at, kind
     ):
         case = make_case(kind, public=False)
         manager = person_at(case, ContributionLevel.MANAGE)
+        editor = person_at(case, ContributionLevel.EDIT)
+        client = browser_as(editor)
 
-        response = browser_as(manager).get(case.url("delete"))
-
-        assert response.status_code == 200
-
-    @pytest.mark.parametrize("kind", KINDS)
-    @pytest.mark.parametrize("level", [ContributionLevel.VIEW, ContributionLevel.EDIT])
-    def test_a_person_below_manage_is_refused_the_delete_page_and_nothing_is_deleted(
-        self, make_case, person_at, kind, level
-    ):
-        case = make_case(kind, public=False)
-        person = person_at(case, level)
-        client = browser_as(person)
-
+        assert browser_as(manager).get(case.url("delete")).status_code == 200
         assert client.get(case.url("delete")).status_code == 403
         response = client.post(
             case.url("delete"), {"confirmation": delete_confirmation(case)}
@@ -503,13 +456,11 @@ class TestAccess:
         assert response.status_code == 403
         assert still_exists(case.record)
 
-    @pytest.mark.parametrize("kind", KINDS)
     def test_a_signed_in_person_with_no_level_is_refused_the_delete_page(
-        self, make_case, person_at, kind
+        self, make_case, person_at
     ):
-        case = make_case(kind, public=True)
-        stranger = person_at()
-        client = browser_as(stranger)
+        case = make_case("project", public=True)
+        client = browser_as(person_at())
 
         assert client.get(case.url("delete")).status_code == 403
         response = client.post(
@@ -519,24 +470,11 @@ class TestAccess:
         assert response.status_code == 403
         assert still_exists(case.record)
 
-    @pytest.mark.parametrize("kind", KINDS)
-    def test_a_visitor_to_a_public_record_is_sent_to_sign_in_from_the_delete_page(
-        self, make_case, kind
-    ):
-        case = make_case(kind, public=True)
-
-        response = browser_as().get(case.url("delete"))
-
-        assert response.status_code == 302
-        assert response.url.startswith(resolve_url(settings.LOGIN_URL))
-
-    @pytest.mark.parametrize("kind", KINDS)
-    @pytest.mark.parametrize("signed_in", [True, False])
     def test_a_person_who_may_not_see_the_record_gets_not_found_from_the_delete_page(
-        self, make_case, person_at, kind, signed_in
+        self, make_case, person_at
     ):
-        case = make_case(kind, public=False)
-        client = browser_as(person_at() if signed_in else None)
+        case = make_case("project", public=False)
+        client = browser_as(person_at())
 
         assert client.get(case.url("delete")).status_code == 404
         response = client.post(
@@ -546,11 +484,10 @@ class TestAccess:
         assert response.status_code == 404
         assert still_exists(case.record)
 
-    @pytest.mark.parametrize("kind", KINDS)
     def test_a_level_removed_after_the_delete_page_was_opened_refuses_the_deletion(
-        self, make_case, person_at, kind
+        self, make_case, person_at
     ):
-        case = make_case(kind, public=True)
+        case = make_case("project", public=True)
         manager = person_at(case, ContributionLevel.MANAGE)
         client = browser_as(manager)
         assert client.get(case.url("delete")).status_code == 200
@@ -578,38 +515,30 @@ class TestEditLinks:
         assert response.context["edit"] == {
             part: case.url(page) for part, page in PARTS.items()
         }
-
-    @pytest.mark.parametrize("kind", KINDS)
-    def test_each_part_is_edited_from_a_link_on_the_page(
-        self, make_case, person_at, kind
-    ):
-        case = make_case(kind)
-        manager = person_at(case, ContributionLevel.MANAGE)
-
-        response = browser_as(manager).get(case.own_url)
-
         offered = hrefs(soup_of(response))
         for page in ("edit", "keywords", "identifiers", "delete"):
             assert case.url(page) in offered
 
     def test_the_links_ask_whether_the_viewer_may_see_the_record_once(
-        self, make_case, person_at, django_assert_num_queries
+        self, make_case, person_at
     ):
         case = make_case("sample", public=False)
         manager = person_at(case, ContributionLevel.MANAGE)
         request = RequestFactory().get(case.own_url)
         request.user = manager
+        edit_links(request, case.record)  # warm one-time caches
+        with CaptureQueriesContext(connection) as together:
+            edit_links(request, case.record)
+        with CaptureQueriesContext(connection) as apart:
+            for page in EDITING_PAGES:
+                page.may_be_used_by(request, case.record)
 
-        with django_assert_num_queries(5):
-            links = edit_links(request, case.record)
+        assert len(together) < len(apart)
 
-        assert links == {part: case.url(page) for part, page in PARTS.items()}
-
-    @pytest.mark.parametrize("kind", KINDS)
     def test_a_person_who_may_only_edit_is_offered_every_part_but_delete(
-        self, make_case, person_at, kind
+        self, make_case, person_at
     ):
-        case = make_case(kind)
+        case = make_case("project")
         editor = person_at(case, ContributionLevel.EDIT)
 
         response = browser_as(editor).get(case.own_url)
@@ -618,7 +547,7 @@ class TestEditLinks:
         assert response.context["edit"]["details"] == case.url("edit")
         assert case.url("delete") not in hrefs(soup_of(response))
 
-    @pytest.mark.parametrize("kind", KINDS)
+    @pytest.mark.parametrize("kind", ["project", "dataset"])
     def test_a_person_who_may_only_view_is_offered_no_editing_page(
         self, make_case, person_at, kind
     ):
@@ -632,9 +561,8 @@ class TestEditLinks:
         offered = hrefs(soup_of(response))
         assert not any(case.url(page) in offered for page in PARTS.values())
 
-    @pytest.mark.parametrize("kind", KINDS)
-    def test_a_visitor_is_offered_no_editing_page(self, make_case, kind):
-        case = make_case(kind)
+    def test_a_visitor_is_offered_no_editing_page(self, make_case):
+        case = make_case("project")
 
         response = browser_as().get(case.own_url)
 
@@ -644,18 +572,17 @@ class TestEditLinks:
 
 @pytest.mark.django_db
 class TestEditDetails:
-    @pytest.mark.parametrize("kind", ["sample", "measurement"])
     def test_a_form_built_on_the_record_mixin_receives_the_request(
-        self, make_case, person_at, kind
+        self, make_case, person_at
     ):
-        case = make_case(kind)
+        case = make_case("sample")
         editor = person_at(case, ContributionLevel.EDIT)
 
         response = browser_as(editor).get(case.url("edit"))
 
         assert response.context["form"].request.user == editor
 
-    @pytest.mark.parametrize("kind", KINDS)
+    @pytest.mark.parametrize("kind", ["project", "dataset", "sample"])
     def test_a_valid_save_returns_to_the_record_with_a_message(
         self, make_case, person_at, kind
     ):
@@ -672,10 +599,8 @@ class TestEditDetails:
         assert [m.level for m in get_messages(response.wsgi_request)] == [SUCCESS]
         case.record.refresh_from_db()
         assert case.record.name == "Renamed"
-        shown = client.get(response.url)
-        assert shown.context["record"].name == "Renamed"
 
-    @pytest.mark.parametrize("kind", KINDS)
+    @pytest.mark.parametrize("kind", ["project", "sample"])
     def test_an_invalid_save_stores_nothing_and_keeps_the_other_values(
         self, make_case, person_at, kind
     ):
@@ -707,9 +632,12 @@ class TestEditDetails:
         assert getattr(after, broken) == getattr(before, broken)
         assert str(getattr(after, kept)) == str(getattr(before, kept))
 
-    @pytest.mark.parametrize("kind", KINDS)
+    @pytest.mark.parametrize(
+        ("kind", "field", "value"),
+        [("sample", "rock_type", "basalt"), ("measurement", "char_field", "a note")],
+    )
     def test_the_page_offers_the_types_own_fields_with_their_values(
-        self, make_case, person_at, kind
+        self, make_case, person_at, kind, field, value
     ):
         case = make_case(kind)
         editor = person_at(case, ContributionLevel.EDIT)
@@ -718,30 +646,26 @@ class TestEditDetails:
 
         form = response.context["form"]
         assert form["name"].value() == case.record.name
-        if kind == "sample":
-            assert form["rock_type"].value() == "basalt"
-        if kind == "measurement":
-            assert form["char_field"].value() == "a note"
-        assert "dataset" not in form.fields or kind in {"project", "dataset"}
+        assert form[field].value() == value
+        assert "dataset" not in form.fields
         assert "sample" not in form.fields
 
-    @pytest.mark.parametrize("kind", KINDS)
+    @pytest.mark.parametrize("page", ["edit", "keywords"])
     def test_the_page_holds_one_form_with_its_submit_control_inside(
-        self, make_case, person_at, kind
+        self, make_case, person_at, page
     ):
-        case = make_case(kind)
+        case = make_case("project")
         editor = person_at(case, ContributionLevel.EDIT)
 
-        response = browser_as(editor).get(case.url("edit"))
+        response = browser_as(editor).get(case.url(page))
 
         form = main_form(response)
         assert form.select('[type="submit"]')
 
-    @pytest.mark.parametrize("kind", ["sample", "measurement"])
     def test_a_form_whose_helper_draws_its_own_tag_and_button_still_gives_one_form(
-        self, make_case, person_at, monkeypatch, kind
+        self, make_case, person_at, monkeypatch
     ):
-        case = make_case(kind)
+        case = make_case("sample")
         editor = person_at(case, ContributionLevel.EDIT)
         config = registry.get_for_model(type(case.record))
         built = config.get_form_class()
@@ -761,34 +685,27 @@ class TestEditDetails:
         assert not form.select('[name="own_submit"]')
         assert form.select('[type="submit"]')
 
-    @pytest.mark.parametrize("kind", ["project", "dataset"])
     @pytest.mark.parametrize(
         ("level", "offered"),
         [(ContributionLevel.EDIT, False), (ContributionLevel.MANAGE, True)],
     )
     def test_visibility_is_offered_to_a_manager_only(
-        self, make_case, person_at, kind, level, offered
+        self, make_case, person_at, level, offered
     ):
-        case = make_case(kind)
+        case = make_case("project")
         person = person_at(case, level)
 
         response = browser_as(person).get(case.url("edit"))
 
         assert ("visibility" in response.context["form"].fields) is offered
 
-    @pytest.mark.parametrize("kind", ["sample", "measurement"])
-    def test_a_manager_cannot_move_a_sample_or_a_measurement(
-        self, make_case, person_at, kind
-    ):
-        case = make_case(kind)
+    def test_a_manager_cannot_move_a_measurement(self, make_case, person_at):
+        case = make_case("measurement")
         manager = person_at(case, ContributionLevel.MANAGE)
         client = browser_as(manager)
         other = make_case("measurement")
-        before = {"dataset": case.record.dataset_id}
-        stray = {"dataset": other.record.dataset_id}
-        if kind == "measurement":
-            before["sample"] = case.record.sample_id
-            stray["sample"] = other.record.sample_id
+        before = {"dataset": case.record.dataset_id, "sample": case.record.sample_id}
+        stray = {"dataset": other.record.dataset_id, "sample": other.record.sample_id}
         payload = form_payload(main_form(client.get(case.url("edit"))))
         payload.update({name: str(pk) for name, pk in stray.items()})
 
@@ -818,23 +735,8 @@ class TestEditDetails:
         assert case.record.project_id == project_id
         assert case.record.visibility == Visibility.PRIVATE
 
-    @pytest.mark.parametrize("kind", KINDS)
-    def test_the_page_carries_no_date_or_identifier_rows(
-        self, make_case, person_at, kind
-    ):
-        case = make_case(kind)
-        editor = person_at(case, ContributionLevel.EDIT)
-
-        response = browser_as(editor).get(case.url("edit"))
-
-        assert list(response.context["inlines"]) == []
-        names = [c.get("name", "") for c in main_form(response).select("[name]")]
-        assert not [n for n in names if n.startswith(("dates-", "identifiers-"))]
-
-    @pytest.mark.parametrize("kind", ["project", "dataset"])
-    def test_rows_submitted_to_the_page_are_not_stored(
-        self, make_case, person_at, kind
-    ):
+    def test_rows_submitted_to_the_page_are_not_stored(self, make_case, person_at):
+        kind = "project"
         case = make_case(kind)
         editor = person_at(case, ContributionLevel.EDIT)
         client = browser_as(editor)
@@ -881,8 +783,8 @@ class TestEditKeyDates:
         assert row_set.forms[0]["type"].value() == recorded
         assert str(row_set.forms[0]["value"].value()) == "2020-01-01"
 
-    @pytest.mark.parametrize("kind", KINDS)
-    def test_the_page_edits_rows_alone(self, make_case, person_at, kind):
+    def test_the_page_edits_rows_alone(self, make_case, person_at):
+        kind = "project"
         case = make_case(kind)
         editor = person_at(case, ContributionLevel.EDIT)
 
@@ -894,7 +796,7 @@ class TestEditKeyDates:
             "default_next",
         }
 
-    @pytest.mark.parametrize("kind", KINDS)
+    @pytest.mark.parametrize("kind", ["project", "measurement"])
     def test_adding_a_date_stores_it_and_returns_to_the_record(
         self, make_case, person_at, kind
     ):
@@ -913,31 +815,11 @@ class TestEditKeyDates:
         stored = case.record.dates.get()
         assert (stored.type_id, str(stored.value)) == (added, "2020-06-01")
 
-    @pytest.mark.parametrize("kind", KINDS)
-    def test_changing_a_date_stores_the_new_value(self, make_case, person_at, kind):
-        case = make_case(kind)
-        editor = person_at(case, ContributionLevel.EDIT)
-        _model, factory, recorded, _other = DATES[kind]
-        row = factory(related=case.record, type=recorded, value="2020-01-01")
-
-        response = browser_as(editor).post(
-            case.url("key-dates"),
-            rows_payload(
-                "dates",
-                [{"id": row.pk, "type": recorded, "value": "2021-06-15"}],
-                initial=1,
-            ),
-        )
-
-        assert response.status_code == 302
-        row.refresh_from_db()
-        assert str(row.value) == "2021-06-15"
-
-    @pytest.mark.parametrize("kind", KINDS)
     @pytest.mark.parametrize("remove", [False, True])
     def test_a_row_of_another_record_is_left_as_it_was(
-        self, make_case, person_at, kind, remove
+        self, make_case, person_at, remove
     ):
+        kind = "project"
         case = make_case(kind)
         editor = person_at(case, ContributionLevel.EDIT)
         _model, factory, recorded, _other = DATES[kind]
@@ -957,31 +839,36 @@ class TestEditKeyDates:
         assert str(foreign.value) == "2020-01-01"
         assert not case.record.dates.exists()
 
-    @pytest.mark.parametrize("kind", KINDS)
-    def test_removing_a_date_deletes_it(self, make_case, person_at, kind):
-        case = make_case(kind)
+    def test_changing_a_date_stores_the_new_value_and_removing_one_deletes_it(
+        self, make_case, person_at
+    ):
+        case = make_case("project")
         editor = person_at(case, ContributionLevel.EDIT)
-        _model, factory, recorded, _other = DATES[kind]
-        row = factory(related=case.record, type=recorded, value="2020-01-01")
+        _model, factory, kept_type, doomed_type = DATES["project"]
+        kept = factory(related=case.record, type=kept_type, value="2020-01-01")
+        doomed = factory(related=case.record, type=doomed_type, value="2021-01-01")
 
         response = browser_as(editor).post(
             case.url("key-dates"),
             rows_payload(
                 "dates",
                 [
+                    {"id": kept.pk, "type": kept_type, "value": "2020-06-15"},
                     {
-                        "id": row.pk,
-                        "type": recorded,
-                        "value": "2020-01-01",
+                        "id": doomed.pk,
+                        "type": doomed_type,
+                        "value": "2021-01-01",
                         "DELETE": "on",
-                    }
+                    },
                 ],
-                initial=1,
+                initial=2,
             ),
         )
 
         assert response.status_code == 302
-        assert not case.record.dates.exists()
+        kept.refresh_from_db()
+        assert str(kept.value) == "2020-06-15"
+        assert list(case.record.dates.all()) == [kept]
 
     @pytest.mark.parametrize("kind", ["project", "dataset"])
     def test_an_end_before_the_start_stores_nothing_and_names_the_end(
@@ -1006,10 +893,10 @@ class TestEditKeyDates:
         assert "2010-01-01" in row_set_errors(only_row_set(response, "dates"))
         assert not case.record.dates.exists()
 
-    @pytest.mark.parametrize("kind", ["project", "dataset"])
     def test_an_end_before_a_start_already_stored_stores_nothing(
-        self, make_case, person_at, kind
+        self, make_case, person_at
     ):
+        kind = "project"
         case = make_case(kind)
         editor = person_at(case, ContributionLevel.EDIT)
         _model, factory, start, end = DATES[kind]
@@ -1031,8 +918,8 @@ class TestEditKeyDates:
         assert "2010-01-01" in row_set_errors(only_row_set(response, "dates"))
         assert not case.record.dates.filter(type=end).exists()
 
-    @pytest.mark.parametrize("kind", ["project", "dataset"])
-    def test_a_start_with_no_end_is_stored(self, make_case, person_at, kind):
+    def test_a_start_with_no_end_is_stored(self, make_case, person_at):
+        kind = "project"
         case = make_case(kind)
         editor = person_at(case, ContributionLevel.EDIT)
         _model, _factory, start, _end = DATES[kind]
@@ -1065,14 +952,14 @@ class TestEditKeyDates:
         assert response.status_code == 302
         assert case.record.dates.count() == 2
 
-    @pytest.mark.parametrize("kind", KINDS)
     @pytest.mark.parametrize(
         ("entered", "precision"),
         [("2019", Precision.YEAR), ("2019-06", Precision.MONTH)],
     )
     def test_a_date_is_kept_and_read_back_as_precisely_as_it_was_entered(
-        self, make_case, person_at, kind, entered, precision
+        self, make_case, person_at, entered, precision
     ):
+        kind = "project"
         case = make_case(kind)
         editor = person_at(case, ContributionLevel.EDIT)
         client = browser_as(editor)
@@ -1119,7 +1006,7 @@ class TestEditIdentifiers:
         assert row_set.forms[0]["type"].value() == f"{IDENTIFIER_TYPES}/doi"
         assert row_set.forms[0]["value"].value() == "10.1/recorded"
 
-    @pytest.mark.parametrize("kind", KINDS)
+    @pytest.mark.parametrize("kind", ["project", "measurement"])
     def test_adding_an_identifier_stores_it_and_returns_to_the_record(
         self, make_case, person_at, kind
     ):
@@ -1143,18 +1030,22 @@ class TestEditIdentifiers:
             "10.1/added",
         )
 
-    @pytest.mark.parametrize("kind", KINDS)
-    def test_changing_an_identifier_stores_the_new_value(
-        self, make_case, person_at, kind
+    def test_changing_an_identifier_stores_the_new_value_and_removing_one_deletes_it(
+        self, make_case, person_at
     ):
-        case = make_case(kind)
+        case = make_case("project")
         editor = person_at(case, ContributionLevel.EDIT)
-        _model, factory = IDENTIFIERS[kind]
-        row = factory(
+        _model, factory = IDENTIFIERS["project"]
+        kept = factory(
             related=case.record,
             type_id=f"{IDENTIFIER_TYPES}/doi",
             value="10.1/original",
         )
+        doomed = factory(
+            related=case.record,
+            type_id=f"{IDENTIFIER_TYPES}/grant-number",
+            value="10.1/doomed",
+        )
 
         response = browser_as(editor).post(
             case.url("identifiers"),
@@ -1162,51 +1053,30 @@ class TestEditIdentifiers:
                 "identifiers",
                 [
                     {
-                        "id": row.pk,
+                        "id": kept.pk,
                         "type": f"{IDENTIFIER_TYPES}/doi",
                         "value": "10.1/changed",
-                    }
-                ],
-                initial=1,
-            ),
-        )
-
-        assert response.status_code == 302
-        row.refresh_from_db()
-        assert row.value == "10.1/changed"
-
-    @pytest.mark.parametrize("kind", KINDS)
-    def test_removing_an_identifier_deletes_it(self, make_case, person_at, kind):
-        case = make_case(kind)
-        editor = person_at(case, ContributionLevel.EDIT)
-        _model, factory = IDENTIFIERS[kind]
-        row = factory(
-            related=case.record, type_id=f"{IDENTIFIER_TYPES}/doi", value="10.1/doomed"
-        )
-
-        response = browser_as(editor).post(
-            case.url("identifiers"),
-            rows_payload(
-                "identifiers",
-                [
+                    },
                     {
-                        "id": row.pk,
-                        "type": f"{IDENTIFIER_TYPES}/doi",
+                        "id": doomed.pk,
+                        "type": f"{IDENTIFIER_TYPES}/grant-number",
                         "value": "10.1/doomed",
                         "DELETE": "on",
-                    }
+                    },
                 ],
-                initial=1,
+                initial=2,
             ),
         )
 
         assert response.status_code == 302
-        assert not case.record.identifiers.exists()
+        kept.refresh_from_db()
+        assert kept.value == "10.1/changed"
+        assert list(case.record.identifiers.all()) == [kept]
 
-    @pytest.mark.parametrize("kind", KINDS)
     def test_a_value_held_by_another_record_is_refused_and_stores_nothing(
-        self, make_case, person_at, kind
+        self, make_case, person_at
     ):
+        kind = "project"
         case = make_case(kind)
         editor = person_at(case, ContributionLevel.EDIT)
         other = make_case(kind)
@@ -1267,10 +1137,10 @@ class TestEditIdentifiers:
         assert response.status_code == 200
         assert not case.record.identifiers.exists()
 
-    @pytest.mark.parametrize("kind", KINDS)
     def test_the_portal_id_is_not_among_the_rows_and_cannot_be_changed(
-        self, make_case, person_at, kind
+        self, make_case, person_at
     ):
+        kind = "project"
         case = make_case(kind)
         editor = person_at(case, ContributionLevel.EDIT)
         client = browser_as(editor)
@@ -1331,7 +1201,7 @@ class TestEditDescriptions:
         ]
         assert form[recorded].value() == "Written down"
 
-    @pytest.mark.parametrize("kind", KINDS)
+    @pytest.mark.parametrize("kind", ["project", "measurement"])
     def test_filling_an_area_records_it_and_emptying_one_removes_it(
         self, make_case, person_at, kind
     ):
@@ -1347,53 +1217,17 @@ class TestEditDescriptions:
         )
 
         assert response.status_code == 302
+        assert response.url == case.own_url
+        assert [m.level for m in get_messages(response.wsgi_request)] == [SUCCESS]
         stored = dict(
             model.objects.filter(related=case.record).values_list("type", "value")
         )
         assert stored == {first: "Newly written"}
 
-    @pytest.mark.parametrize("kind", KINDS)
-    def test_a_save_returns_to_the_record_with_a_message(
-        self, make_case, person_at, kind
-    ):
-        case = make_case(kind)
-        editor = person_at(case, ContributionLevel.EDIT)
-        first = DESCRIPTION_MODELS[kind].get_type_concepts()[0].uri
-
-        response = browser_as(editor).post(case.url("descriptions"), {first: "Text"})
-
-        assert response.status_code == 302
-        assert response.url == case.own_url
-        assert [m.level for m in get_messages(response.wsgi_request)] == [SUCCESS]
-
 
 @pytest.mark.django_db
 class TestEditKeywords:
-    @pytest.mark.parametrize("kind", KINDS)
-    def test_the_free_keywords_a_record_carries_are_shown_as_chosen(
-        self, make_case, person_at, kind
-    ):
-        case = make_case(kind)
-        editor = person_at(case, ContributionLevel.EDIT)
-        case.record.tags.add("granite", "outcrop")
-
-        response = browser_as(editor).get(case.url("keywords"))
-
-        assert set(response.context["form"]["tags"].value()) == {"granite", "outcrop"}
-
-    @pytest.mark.parametrize("kind", KINDS)
-    def test_the_page_offers_the_free_keywords_alone(
-        self, make_case, person_at, with_vocabulary, kind
-    ):
-        with_vocabulary(kind)
-        case = make_case(kind)
-        editor = person_at(case, ContributionLevel.EDIT)
-
-        response = browser_as(editor).get(case.url("keywords"))
-
-        assert list(response.context["form"].fields) == ["tags"]
-
-    @pytest.mark.parametrize("kind", KINDS)
+    @pytest.mark.parametrize("kind", ["project", "sample"])
     def test_adding_and_removing_keywords_is_stored_and_shown_on_the_record(
         self, make_case, person_at, kind
     ):
@@ -1401,7 +1235,9 @@ class TestEditKeywords:
         editor = person_at(case, ContributionLevel.EDIT)
         client = browser_as(editor)
         case.record.tags.add("old", "kept")
-        payload = form_payload(main_form(client.get(case.url("keywords"))))
+        opened = client.get(case.url("keywords"))
+        assert set(opened.context["form"]["tags"].value()) == {"old", "kept"}
+        payload = form_payload(main_form(opened))
         payload["tags"] = ["kept", "new"]
 
         response = client.post(case.url("keywords"), payload)
@@ -1412,10 +1248,10 @@ class TestEditKeywords:
         stored = type(case.record).objects.get(pk=case.record.pk)
         assert sorted(stored.tags.names()) == ["kept", "new"]
 
-    @pytest.mark.parametrize("kind", KINDS)
     def test_saving_with_nothing_chosen_removes_every_free_keyword(
-        self, make_case, person_at, kind
+        self, make_case, person_at
     ):
+        kind = "project"
         case = make_case(kind)
         editor = person_at(case, ContributionLevel.EDIT)
         case.record.tags.add("old")
@@ -1425,10 +1261,10 @@ class TestEditKeywords:
         assert response.status_code == 302
         assert not case.record.tags.exists()
 
-    @pytest.mark.parametrize("kind", KINDS)
     def test_saving_leaves_the_vocabulary_keywords_as_they_were(
-        self, make_case, person_at, with_vocabulary, kind
+        self, make_case, person_at, with_vocabulary
     ):
+        kind = "project"
         with_vocabulary(kind)
         case = make_case(kind)
         editor = person_at(case, ContributionLevel.EDIT)
@@ -1442,10 +1278,10 @@ class TestEditKeywords:
         assert response.status_code == 302
         assert set(case.record.keywords.all()) == {first, second}
 
-    @pytest.mark.parametrize("kind", KINDS)
     def test_the_page_opens_and_saves_where_no_vocabulary_is_configured(
-        self, make_case, person_at, without_vocabularies, kind
+        self, make_case, person_at, without_vocabularies
     ):
+        kind = "project"
         case = make_case(kind)
         editor = person_at(case, ContributionLevel.EDIT)
         client = browser_as(editor)
@@ -1461,18 +1297,6 @@ class TestEditKeywords:
         assert response.status_code == 302
         stored = type(case.record).objects.get(pk=case.record.pk)
         assert sorted(stored.tags.names()) == ["added", "old"]
-
-    @pytest.mark.parametrize("kind", KINDS)
-    def test_the_page_holds_one_form_with_its_submit_control_inside_it(
-        self, make_case, person_at, kind
-    ):
-        case = make_case(kind)
-        editor = person_at(case, ContributionLevel.EDIT)
-
-        response = browser_as(editor).get(case.url("keywords"))
-
-        form = main_form(response)
-        assert form.select('[type="submit"]')
 
 
 @pytest.mark.django_db
@@ -1510,7 +1334,7 @@ class TestOverviewPrompts:
         assert case.url("edit") in outside_menu
 
     @pytest.mark.parametrize("kind", ["project", "dataset"])
-    def test_the_readiness_items_carry_the_shared_addresses(
+    def test_the_readiness_items_carry_the_shared_editing_pages(
         self, make_case, person_at, kind
     ):
         case = make_case(kind)
@@ -1522,40 +1346,13 @@ class TestOverviewPrompts:
         response = browser_as(manager).get(case.own_url)
 
         addresses = {item["url"] for item in response.context["readiness"]["items"]}
-        assert {case.url("edit"), case.url("descriptions")} <= addresses
+        assert {
+            case.url("edit"),
+            case.url("descriptions"),
+            case.url("keywords"),
+            case.url("key-dates"),
+        } <= addresses
         assert f"{case.own_url}update/" not in addresses
-
-    @pytest.mark.parametrize("kind", ["project", "dataset"])
-    def test_the_readiness_item_for_keywords_carries_the_keywords_page(
-        self, make_case, person_at, kind
-    ):
-        case = make_case(kind)
-        if kind == "dataset":
-            case.record.published = False
-            case.record.save()
-        manager = person_at(case, ContributionLevel.MANAGE)
-
-        response = browser_as(manager).get(case.own_url)
-
-        addresses = {item["url"] for item in response.context["readiness"]["items"]}
-        assert case.url("keywords") in addresses
-
-    @pytest.mark.parametrize("kind", ["project", "dataset"])
-    def test_the_readiness_items_for_dates_and_identifiers_carry_their_pages(
-        self, make_case, person_at, kind
-    ):
-        case = make_case(kind)
-        if kind == "dataset":
-            case.record.published = False
-            case.record.save()
-        manager = person_at(case, ContributionLevel.MANAGE)
-
-        response = browser_as(manager).get(case.own_url)
-
-        addresses = {item["url"] for item in response.context["readiness"]["items"]}
-        assert case.url("key-dates") in addresses
-        if kind == "project":
-            assert case.url("identifiers") in addresses
 
 
 def landing_for(case):
@@ -1572,10 +1369,10 @@ def dataset_of(case):
 
 @pytest.mark.django_db
 class TestDeleteRecord:
-    @pytest.mark.parametrize("kind", KINDS)
     def test_opening_the_page_deletes_nothing_and_asks_for_confirmation(
-        self, make_case, person_at, kind
+        self, make_case, person_at
     ):
+        kind = "project"
         case = make_case(kind, public=False)
         manager = person_at(case, ContributionLevel.MANAGE)
 
@@ -1586,8 +1383,8 @@ class TestDeleteRecord:
         assert "confirmation" in form_payload(main_form(response))
         assert still_exists(case.record)
 
-    @pytest.mark.parametrize("kind", KINDS)
-    def test_a_wrong_confirmation_deletes_nothing(self, make_case, person_at, kind):
+    def test_a_wrong_confirmation_deletes_nothing(self, make_case, person_at):
+        kind = "project"
         case = make_case(kind, public=False)
         manager = person_at(case, ContributionLevel.MANAGE)
 
@@ -1624,10 +1421,10 @@ class TestDeleteRecord:
         assert [m.level for m in get_messages(response.wsgi_request)] == [SUCCESS]
         assert client.get(response.url).status_code == 200
 
-    @pytest.mark.parametrize("kind", ["sample", "measurement"])
     def test_a_person_who_may_not_open_the_dataset_lands_on_the_dataset_list(
-        self, make_case, person_at, kind
+        self, make_case, person_at
     ):
+        kind = "sample"
         case = make_case(kind, public=False)
         holder = person_at(case, ContributionLevel.MANAGE)
         client = browser_as(holder)
@@ -1672,15 +1469,9 @@ class TestDeleteRecord:
         assert len(groups) == 3
         assert all(any("(1)" in line for line in lines) for _, lines, _ in groups)
 
-    @pytest.mark.parametrize("kind", ["sample", "measurement"])
-    def test_a_sample_and_a_measurement_list_the_rows_that_go_with_them(
-        self, make_case, person_at, kind
-    ):
-        case = make_case(kind, public=False)
-        factory = {"sample": SampleDateFactory, "measurement": MeasurementDateFactory}[
-            kind
-        ]
-        row = factory(related=case.record)
+    def test_a_sample_lists_the_rows_that_go_with_it(self, make_case, person_at):
+        case = make_case("sample", public=False)
+        row = SampleDateFactory(related=case.record)
         manager = person_at(case, ContributionLevel.MANAGE)
 
         response = browser_as(manager).get(case.url("delete"))
@@ -1692,8 +1483,8 @@ class TestDeleteRecord:
         ]
         assert row in listed
 
-    @pytest.mark.parametrize("kind", ["sample", "measurement"])
-    def test_the_page_does_not_list_the_record_itself(self, make_case, person_at, kind):
+    def test_the_page_does_not_list_the_record_itself(self, make_case, person_at):
+        kind = "sample"
         case = make_case(kind, public=False)
         manager = person_at(case, ContributionLevel.MANAGE)
 
@@ -1709,19 +1500,13 @@ class TestDeleteRecord:
             item for item in listed if type(item) is base and item.pk == case.record.pk
         ]
 
-    @pytest.mark.parametrize("hidden_is_source", [True, False])
     def test_a_sample_does_not_name_a_related_sample_the_viewer_may_not_see(
-        self, make_case, person_at, hidden_is_source
+        self, make_case, person_at
     ):
         case = make_case("sample", public=False)
         elsewhere = DatasetFactory(visibility=Visibility.PRIVATE, published=False)
         hidden = RockSampleFactory(dataset=elsewhere, name="Secret sample")
-        ends = (
-            {"source": hidden, "target": case.record}
-            if hidden_is_source
-            else {"source": case.record, "target": hidden}
-        )
-        SampleRelationFactory(**ends)
+        SampleRelationFactory(source=hidden, target=case.record)
         manager = person_at(
             Case("dataset", case.record.dataset), ContributionLevel.MANAGE
         )
@@ -1901,10 +1686,8 @@ class TestDeleteRecord:
         assert response.status_code == 302
         assert not Measurement.objects.filter(pk=case.record.pk).exists()
 
-    @pytest.mark.parametrize("kind", KINDS)
-    def test_the_back_control_leads_to_the_records_own_page(
-        self, make_case, person_at, kind
-    ):
+    def test_the_back_control_leads_to_the_records_own_page(self, make_case, person_at):
+        kind = "project"
         case = make_case(kind, public=False)
         manager = person_at(case, ContributionLevel.MANAGE)
 

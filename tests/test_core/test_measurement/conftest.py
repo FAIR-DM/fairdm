@@ -1,7 +1,6 @@
 """Test fixtures for Measurement model tests."""
 
 import pytest
-from django.contrib.auth import get_user_model
 
 from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 from fairdm.core.measurement.models import (
@@ -21,13 +20,6 @@ from fairdm.factories import (
     ProjectFactory,
 )
 from fairdm.registry import registry
-
-User = get_user_model()
-
-
-@pytest.fixture
-def user(db):
-    return PersonFactory()
 
 
 @pytest.fixture
@@ -56,26 +48,8 @@ def second_sample(db, second_dataset):
 
 
 @pytest.fixture
-def user_no_rights(db):
-    return PersonFactory(is_active=True)
-
-
-@pytest.fixture
 def measurement(db, sample):
     return ExampleMeasurementFactory(sample=sample)
-
-
-@pytest.fixture
-def example_measurement(db, sample):
-    from demo.models import ExampleMeasurement
-
-    return ExampleMeasurement.objects.create(
-        name="Test Measurement",
-        sample=sample,
-        dataset=sample.dataset,
-        char_field="Example text",
-        integer_field=42,
-    )
 
 
 @pytest.fixture

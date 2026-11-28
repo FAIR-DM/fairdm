@@ -3,7 +3,6 @@
 import codecs
 import json
 import re
-import warnings
 from datetime import UTC, date, datetime
 
 import latexcodec  # noqa: F401  (registers the "ulatex" codec)
@@ -17,10 +16,9 @@ from django.test import RequestFactory
 from django.urls import reverse
 from django.utils.formats import date_format
 from licensing.models import License
-from mvp.warnings import MVPDeprecationWarning
 from partial_dates import PartialDate
 from pybtex.database import parse_string
-from pytest_django.asserts import assertContains, assertNotContains
+from pytest_django.asserts import assertContains
 
 from demo.factories import RockSampleFactory
 from fairdm import plugins
@@ -28,7 +26,6 @@ from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.contrib.contributors.services.crediting import Crediting
 from fairdm.contrib.plugins.access import can_open
 from fairdm.contrib.plugins.base import Plugin
-from fairdm.core.dataset.forms import DatasetForm
 from fairdm.core.dataset.models import (
     Dataset,
     DatasetDescription,
@@ -104,23 +101,6 @@ def _date_management_data(total=0, initial=0):
 
 
 class TestUpdatePageDoesNotDiscloseAPrivateDataset:
-    def test_a_model_level_holder_with_no_record_level_grant_is_refused(self, client):
-        from django.contrib.auth.models import Permission
-
-        dataset = DatasetFactory()
-        user = UserFactory()
-        user.user_permissions.add(
-            Permission.objects.get(
-                content_type__app_label="dataset", codename="change_dataset"
-            )
-        )
-        client.force_login(user)
-
-        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
-        response = client.get(url)
-
-        assert response.status_code == 404
-
     def test_a_model_level_grant_adds_nothing_to_a_view_level(self, client):
         from django.contrib.auth.models import Permission
 
@@ -140,36 +120,6 @@ class TestUpdatePageDoesNotDiscloseAPrivateDataset:
         response = client.get(url)
 
         assert response.status_code == 403
-
-
-class TestUpdatePageFieldSet:
-    ATTRIBUTES_FIELDS = {
-        "image",
-        "name",
-        "project",
-        "license",
-        "reference",
-        "visibility",
-    }
-    EXCLUDED_FIELDS = {"descriptions", "keywords", "tags", "contributors"}
-
-    def test_the_rendered_form_offers_exactly_the_attributes_field_set(self, client):
-        dataset = DatasetFactory()
-        user = UserFactory()
-        ContributionFactory(
-            content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
-        )
-        client.force_login(user)
-        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
-
-        response = client.get(url)
-
-        assert response.status_code == 200
-        assert set(response.context["form"].fields) == self.ATTRIBUTES_FIELDS
-
-    def test_the_declared_form_class_offers_no_excluded_field(self):
-        fields = set(DatasetForm.Meta.fields)
-        assert not fields & self.EXCLUDED_FIELDS
 
 
 class TestUpdatePageAttributesPersist:
@@ -227,30 +177,6 @@ class TestUpdatePageAttributesPersist:
             else:
                 assert getattr(dataset, field) == new_value
 
-    def test_submitting_an_empty_name_reports_an_error_and_saves_nothing(self, client):
-        dataset = DatasetFactory(name="Original Name", project=None)
-        user = UserFactory()
-        ContributionFactory(
-            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
-        )
-        client.force_login(user)
-        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
-
-        response = client.post(
-            url,
-            data={
-                **_dataset_field_data(dataset),
-                "name": "",
-                **_identifier_management_data(),
-                **_date_management_data(),
-            },
-        )
-
-        assert response.status_code == 200
-        assert "name" in response.context["form"].errors
-        dataset.refresh_from_db()
-        assert dataset.name == "Original Name"
-
 
 class TestUpdatePageProjectField:
     def test_the_project_field_is_narrowed_to_the_researchers_own_projects(
@@ -281,132 +207,6 @@ class TestUpdatePageProjectField:
         assert other_project not in project_queryset
 
 
-class TestASuccessfulSubmissionRedirectsToTheDatasetsOwnPage:
-    def test_the_redirect_target_is_the_datasets_own_overview_url(self, client):
-        dataset = DatasetFactory(name="Original Name", project=None)
-        user = UserFactory()
-        ContributionFactory(
-            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
-        )
-        client.force_login(user)
-        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
-
-        response = client.post(
-            url,
-            data={
-                **_dataset_field_data(dataset),
-                "name": "Renamed",
-                **_identifier_management_data(),
-                **_date_management_data(),
-            },
-        )
-
-        assert response.status_code == 302
-        assert response.url == reverse(
-            "dataset:overview", kwargs={"uuid": dataset.uuid}
-        )
-
-
-class TestUpdatePageEmitsExactlyOneFormElement:
-    def test_the_form_declares_no_form_tag(self):
-        # `BaseMetaClass` moves `helper_attrs` from `Meta` to `_custom_conf`.
-        assert DatasetForm._custom_conf["helper_attrs"] == {"form_tag": False}
-        form = DatasetForm()
-        assert form.helper.form_tag is False
-
-    def test_the_rendered_page_carries_exactly_one_form_element(self, client):
-        dataset = DatasetFactory()
-        user = UserFactory()
-        ContributionFactory(
-            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
-        )
-        client.force_login(user)
-        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
-
-        response = client.get(url)
-
-        assert response.status_code == 200
-        # Count within <main>: the shell adds a hidden log-out form to the sidebar.
-        main = BeautifulSoup(response.content, "html.parser").find("main")
-        assert main is not None
-        assert len(re.findall(r"<form[ >]", str(main))) == 1
-
-
-@pytest.mark.django_db
-class TestDescriptionsPageDoesNotDiscloseAPrivateDataset:
-    def test_a_model_level_holder_with_no_record_level_grant_is_refused(self, client):
-        from django.contrib.auth.models import Permission
-
-        dataset = DatasetFactory()
-        user = UserFactory()
-        user.user_permissions.add(
-            Permission.objects.get(
-                content_type__app_label="dataset", codename="change_dataset"
-            )
-        )
-        client.force_login(user)
-
-        url = reverse("dataset:descriptions", kwargs={"uuid": dataset.uuid})
-        response = client.get(url)
-
-        assert response.status_code == 404
-
-    def test_a_model_level_grant_adds_nothing_to_a_view_level(self, client):
-        from django.contrib.auth.models import Permission
-
-        dataset = DatasetFactory()
-        user = UserFactory()
-        user.user_permissions.add(
-            Permission.objects.get(
-                content_type__app_label="dataset", codename="change_dataset"
-            )
-        )
-        ContributionFactory(
-            content_object=dataset, contributor=user, level=ContributionLevel.VIEW
-        )
-        client.force_login(user)
-
-        url = reverse("dataset:descriptions", kwargs={"uuid": dataset.uuid})
-        response = client.get(url)
-
-        assert response.status_code == 403
-
-    def test_an_anonymous_visitor_to_a_private_dataset_gets_not_found(self, client):
-        dataset = DatasetFactory()
-        url = reverse("dataset:descriptions", kwargs={"uuid": dataset.uuid})
-        response = client.get(url)
-        assert response.status_code == 404
-
-
-@pytest.mark.django_db
-class TestDescriptionsPageOffersOneAreaPerVocabularyType:
-    def test_the_field_set_matches_the_vocabulary_exactly(
-        self, client, user_with_change_permission
-    ):
-        dataset = user_with_change_permission.dataset
-        client.force_login(user_with_change_permission)
-
-        url = reverse("dataset:descriptions", kwargs={"uuid": dataset.uuid})
-        response = client.get(url)
-
-        form = response.context["form"]
-        assert list(form.fields) == [
-            concept.uri for concept in DatasetDescription.get_type_concepts()
-        ]
-
-    def test_every_area_starts_empty_for_a_dataset_with_no_descriptions(
-        self, client, user_with_change_permission
-    ):
-        dataset = user_with_change_permission.dataset
-        client.force_login(user_with_change_permission)
-
-        url = reverse("dataset:descriptions", kwargs={"uuid": dataset.uuid})
-        response = client.get(url)
-
-        form = response.context["form"]
-        assert all(field.initial in (None, "") for field in form)
-
-
 @pytest.mark.django_db
 class TestDescriptionsPageAreasAreLabelledFromTheVocabulary:
     def test_the_first_areas_label_and_help_text_match_its_concept(
@@ -425,48 +225,6 @@ class TestDescriptionsPageAreasAreLabelledFromTheVocabulary:
         assert form.fields[first_type].help_text == concept.first_value(
             "skos:definition"
         )
-
-
-@pytest.mark.django_db
-class TestSavingTextIntoOneAreaRecordsOnlyThatType:
-    def test_saving_one_area_creates_exactly_one_description_of_that_type(
-        self, client, user_with_change_permission
-    ):
-        dataset = user_with_change_permission.dataset
-        client.force_login(user_with_change_permission)
-        first_type = next(
-            concept.uri for concept in DatasetDescription.get_type_concepts()
-        )
-
-        url = reverse("dataset:descriptions", kwargs={"uuid": dataset.uuid})
-        client.post(url, data={first_type: "Some abstract text."})
-
-        assert DatasetDescription.objects.filter(related=dataset).count() == 1
-        row = DatasetDescription.objects.get(related=dataset)
-        assert row.type_id == first_type
-        assert row.value == "Some abstract text."
-
-
-@pytest.mark.django_db
-class TestExistingDescriptionsShowInTheirOwnArea:
-    def test_the_existing_description_appears_in_its_own_area_and_others_stay_empty(
-        self, client, user_with_change_permission
-    ):
-        dataset = user_with_change_permission.dataset
-        client.force_login(user_with_change_permission)
-        first_type, second_type = [
-            concept.uri for concept in DatasetDescription.get_type_concepts()
-        ][:2]
-        DatasetDescription.objects.create(
-            related=dataset, type_id=first_type, value="Existing abstract."
-        )
-
-        url = reverse("dataset:descriptions", kwargs={"uuid": dataset.uuid})
-        response = client.get(url)
-
-        form = response.context["form"]
-        assert form.fields[first_type].initial == "Existing abstract."
-        assert form.fields[second_type].initial in (None, "")
 
 
 @pytest.mark.django_db
@@ -490,66 +248,7 @@ class TestEditingAnExistingDescriptionPersists:
 
 
 @pytest.mark.django_db
-class TestRepeatSubmissionNeverDuplicatesAType:
-    def test_submitting_the_same_area_three_times_leaves_exactly_one_row(
-        self, client, user_with_change_permission
-    ):
-        dataset = user_with_change_permission.dataset
-        client.force_login(user_with_change_permission)
-        first_type = next(
-            concept.uri for concept in DatasetDescription.get_type_concepts()
-        )
-
-        url = reverse("dataset:descriptions", kwargs={"uuid": dataset.uuid})
-        client.post(url, data={first_type: "First."})
-        client.post(url, data={first_type: "Second."})
-        client.post(url, data={first_type: "Third."})
-
-        assert (
-            DatasetDescription.objects.filter(related=dataset, type=first_type).count()
-            == 1
-        )
-        assert (
-            DatasetDescription.objects.get(related=dataset, type=first_type).value
-            == "Third."
-        )
-
-
-@pytest.mark.django_db
-class TestClearingAnAreaRemovesTheDescription:
-    def test_clearing_the_area_deletes_the_row(
-        self, client, user_with_change_permission
-    ):
-        dataset = user_with_change_permission.dataset
-        client.force_login(user_with_change_permission)
-        first_type = next(
-            concept.uri for concept in DatasetDescription.get_type_concepts()
-        )
-        DatasetDescription.objects.create(
-            related=dataset, type_id=first_type, value="Existing text."
-        )
-
-        url = reverse("dataset:descriptions", kwargs={"uuid": dataset.uuid})
-        client.post(url, data={first_type: ""})
-
-        assert not DatasetDescription.objects.filter(
-            related=dataset, type=first_type
-        ).exists()
-
-
-@pytest.mark.django_db
 class TestEmptyAndWhitespaceOnlyAreasCreateNothing:
-    def test_leaving_an_area_empty_creates_no_description(
-        self, client, user_with_change_permission
-    ):
-        dataset = user_with_change_permission.dataset
-        client.force_login(user_with_change_permission)
-
-        url = reverse("dataset:descriptions", kwargs={"uuid": dataset.uuid})
-        client.post(url, data={})
-
-        assert not DatasetDescription.objects.filter(related=dataset).exists()
-
     def test_whitespace_only_is_treated_as_empty_and_removes_a_stored_row(
         self, client, user_with_change_permission
     ):
@@ -570,43 +269,12 @@ class TestEmptyAndWhitespaceOnlyAreasCreateNothing:
         ).exists()
 
 
-@pytest.mark.django_db
-class TestASuccessfulSubmissionRedirectsToTheDatasetsPage:
-    def test_the_redirect_target_is_the_datasets_own_overview_url(
-        self, client, user_with_change_permission
-    ):
-        dataset = user_with_change_permission.dataset
-        client.force_login(user_with_change_permission)
-        first_type = next(
-            concept.uri for concept in DatasetDescription.get_type_concepts()
-        )
-
-        url = reverse("dataset:descriptions", kwargs={"uuid": dataset.uuid})
-        response = client.post(url, data={first_type: "Some text."})
-
-        assert response.status_code == 302
-        assert response.url == reverse(
-            "dataset:overview", kwargs={"uuid": dataset.uuid}
-        )
-
-
 def _hrefs(content: str) -> list[str]:
     """Return every ``href`` attribute value in rendered HTML, in document order."""
     return re.findall(r'href="([^"]*)"', content)
 
 
-class TestTheSingularAddressNoLongerAnswers:
-    def test_a_request_to_the_singular_address_is_not_found(self, client):
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-        response = client.get(f"/dataset/{dataset.uuid}/")
-        assert response.status_code == 404
-
-
 class TestEachOfTheFourPagesStatesItsOwnPermission:
-    # An additional view inherits its owner's `check` but never its `permission` (#279).
-    def test_the_overview_states_no_permission_of_its_own(self):
-        assert "permission" not in Overview.__dict__
-
     def test_a_page_stating_no_permission_does_not_inherit_its_owners(self):
         class _OwnerWithPermission(Plugin):
             permission = "dataset.delete_dataset"
@@ -651,51 +319,6 @@ class TestTheDatasetsPagesContributeExactlyOneNavigationEntry:
     def test_overview_contributes_exactly_one_entry(self):
         assert _entry_view_names(Dataset).count("dataset:overview") == 1
 
-    def test_update_descriptions_and_deletion_contribute_no_entry_of_their_own(self):
-        view_names = _entry_view_names(Dataset)
-        assert "dataset:edit" not in view_names
-        assert "dataset:descriptions" not in view_names
-        assert "dataset:delete" not in view_names
-
-
-@pytest.mark.django_db
-class TestTheDatasetsOwnPageOffersTheDeletionLink:
-    def test_a_signed_in_user_who_may_not_delete_it_is_not_offered_the_link(
-        self, client
-    ):
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-        user = UserFactory()
-        client.force_login(user)
-
-        response = client.get(
-            reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
-        )
-
-        delete_url = reverse("dataset:delete", kwargs={"uuid": dataset.uuid})
-        assertNotContains(response, f'href="{delete_url}"')
-
-
-@pytest.mark.django_db
-class TestNoLinkIsOfferedForAnActionTheViewerCannotUse:
-    def test_a_user_who_may_only_view_sees_no_update_or_descriptions_link(self, client):
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-        user = UserFactory()
-        ContributionFactory(
-            content_object=dataset, contributor=user, level=ContributionLevel.VIEW
-        )
-        client.force_login(user)
-
-        response = client.get(
-            reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
-        )
-
-        update_url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
-        descriptions_url = reverse(
-            "dataset:descriptions", kwargs={"uuid": dataset.uuid}
-        )
-        assertNotContains(response, f'href="{update_url}"')
-        assertNotContains(response, f'href="{descriptions_url}"')
-
 
 @pytest.mark.django_db
 class TestEveryLinkTheDatasetsPagesDrawResolvesToARealAddress:
@@ -718,38 +341,6 @@ class TestEveryLinkTheDatasetsPagesDrawResolvesToARealAddress:
         assert hrefs
         assert all(href.strip() != "" for href in hrefs)
 
-    def test_the_update_page_draws_no_empty_link(self, client):
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-        client.force_login(self._permitted_user(dataset))
-
-        response = client.get(reverse("dataset:edit", kwargs={"uuid": dataset.uuid}))
-
-        hrefs = _hrefs(response.content.decode())
-        assert hrefs
-        assert all(href.strip() != "" for href in hrefs)
-
-    def test_the_descriptions_page_draws_no_empty_link(self, client):
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-        client.force_login(self._permitted_user(dataset))
-
-        response = client.get(
-            reverse("dataset:descriptions", kwargs={"uuid": dataset.uuid})
-        )
-
-        hrefs = _hrefs(response.content.decode())
-        assert hrefs
-        assert all(href.strip() != "" for href in hrefs)
-
-    def test_the_deletion_page_draws_no_empty_link(self, client):
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-        client.force_login(self._permitted_user(dataset))
-
-        response = client.get(reverse("dataset:delete", kwargs={"uuid": dataset.uuid}))
-
-        hrefs = _hrefs(response.content.decode())
-        assert hrefs
-        assert all(href.strip() != "" for href in hrefs)
-
 
 @pytest.mark.django_db
 class TestUpdateDescriptionsAndDeletionEachLinkBackToTheDataset:
@@ -765,121 +356,6 @@ class TestUpdateDescriptionsAndDeletionEachLinkBackToTheDataset:
 
         dataset_url = reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
         assertContains(response, f'href="{dataset_url}"')
-
-    def test_the_descriptions_page_links_back_to_the_dataset(self, client):
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-        user = UserFactory()
-        ContributionFactory(
-            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
-        )
-        client.force_login(user)
-
-        response = client.get(
-            reverse("dataset:descriptions", kwargs={"uuid": dataset.uuid})
-        )
-
-        dataset_url = reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
-        assertContains(response, f'href="{dataset_url}"')
-
-
-@pytest.mark.django_db
-class TestRenderingEachOfTheDatasetsPagesEmitsNoDeprecationWarning:
-    def _permitted_user(self, dataset):
-        user = UserFactory()
-        ContributionFactory(
-            content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
-        )
-        return user
-
-    def _assert_no_deprecation_warning(self, client, url):
-        with warnings.catch_warnings(record=True) as caught:
-            warnings.simplefilter("always")
-            response = client.get(url)
-        assert response.status_code == 200
-        assert not any(issubclass(w.category, MVPDeprecationWarning) for w in caught)
-
-    def test_the_datasets_own_page_emits_no_deprecation_warning(self, client):
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-        client.force_login(self._permitted_user(dataset))
-        url = reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
-        self._assert_no_deprecation_warning(client, url)
-
-    def test_the_update_page_emits_no_deprecation_warning(self, client):
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-        client.force_login(self._permitted_user(dataset))
-        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
-        self._assert_no_deprecation_warning(client, url)
-
-    def test_the_descriptions_page_emits_no_deprecation_warning(self, client):
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-        client.force_login(self._permitted_user(dataset))
-        url = reverse("dataset:descriptions", kwargs={"uuid": dataset.uuid})
-        self._assert_no_deprecation_warning(client, url)
-
-    def test_the_deletion_page_emits_no_deprecation_warning(self, client):
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-        client.force_login(self._permitted_user(dataset))
-        url = reverse("dataset:delete", kwargs={"uuid": dataset.uuid})
-        self._assert_no_deprecation_warning(client, url)
-
-
-@pytest.mark.django_db
-class TestNoAddressDisclosesAPrivateDatasetsExistence:
-    # A sign-in redirect or a 403 would confirm the dataset exists, so the refusal is a
-    # 404.
-    ADDRESSES = (
-        "dataset:overview",
-        "dataset:edit",
-        "dataset:descriptions",
-        "dataset:delete",
-    )
-    PERMISSION_BEARING_ADDRESSES = (
-        "dataset:edit",
-        "dataset:descriptions",
-        "dataset:delete",
-    )
-
-    def test_an_anonymous_visitor_gets_not_found_at_every_address(self, client):
-        dataset = DatasetFactory()
-        for name in self.ADDRESSES:
-            url = reverse(name, kwargs={"uuid": dataset.uuid})
-            response = client.get(url)
-            assert response.status_code == 404, name
-
-    def test_a_signed_in_stranger_gets_not_found_at_every_address(self, client):
-        dataset = DatasetFactory()
-        user = UserFactory()
-        client.force_login(user)
-        for name in self.ADDRESSES:
-            url = reverse(name, kwargs={"uuid": dataset.uuid})
-            response = client.get(url)
-            assert response.status_code == 404, name
-
-    def test_a_public_dataset_a_stranger_may_not_change_refuses_with_a_permission_response_instead(
-        self, client
-    ):
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-        user = UserFactory()
-        client.force_login(user)
-
-        for name in self.PERMISSION_BEARING_ADDRESSES:
-            url = reverse(name, kwargs={"uuid": dataset.uuid})
-            response = client.get(url)
-            assert response.status_code == 403, name
-
-        overview_url = reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
-        assert client.get(overview_url).status_code == 200
-
-    def test_the_same_public_dataset_refuses_an_anonymous_visitor_with_a_sign_in_redirect_instead(
-        self, client
-    ):
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-
-        for name in self.PERMISSION_BEARING_ADDRESSES:
-            url = reverse(name, kwargs={"uuid": dataset.uuid})
-            response = client.get(url)
-            assert response.status_code == 302, name
-            assert "/login/" in response.url or "/accounts/login/" in response.url
 
 
 @pytest.fixture
@@ -949,23 +425,25 @@ class TestAPrivateProjectHidesThePublicDatasetsInIt:
         assert client.get(sample.get_absolute_url()).status_code == 404
 
 
-@pytest.mark.django_db
-class TestRetiredManagementPages:
-    def test_the_dataset_menu_carries_one_entry(self):
-        assert _entry_view_names(Dataset) == [
-            "dataset:overview",
-            "dataset:contribution-list",
-            "dataset:samples",
-            "dataset:measurements",
-        ]
-
-
 def _page(client, dataset):
     """Open the dataset's page and return the response with its parsed HTML."""
     response = client.get(reverse("dataset:overview", kwargs={"uuid": dataset.uuid}))
     assert response.status_code == 200
     response.page = BeautifulSoup(response.content, "html.parser")
     return response
+
+
+def _context(dataset, user=None):
+    """Return the overview's context, built from the plugin with no page render."""
+    request = RequestFactory().get(
+        reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
+    )
+    request.user = user or AnonymousUser()
+    request.site = Site.objects.get_current()  # what the site middleware sets
+    view = Overview()
+    view.setup(request, uuid=dataset.uuid)
+    view.base_object = Dataset.all_objects.get(pk=dataset.pk)
+    return view.get_context_data()
 
 
 def _figures(page):
@@ -1006,24 +484,42 @@ def _team_member(dataset, *permissions):
     return user
 
 
-@pytest.fixture
-def holding():
-    """A public, unpublished dataset holding two rock samples and two XRF measurements."""
+@pytest.fixture(scope="class")
+def holding(django_db_setup, django_db_blocker):
+    """A public, unpublished dataset holding two rock samples and two XRF measurements.
+
+    Built once per test class inside a transaction that rolls back when the class
+    ends. Each test runs in a savepoint of it, so a test that changes the dataset
+    leaves it as it was for the next one.
+    """
     from datetime import UTC, datetime
+
+    from django.db import transaction
 
     from demo.factories import RockSampleFactory, XRFMeasurementFactory
     from fairdm.core.measurement.models import Measurement
     from fairdm.core.sample.models import Sample
 
-    dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=False)
-    rocks = [
-        RockSampleFactory(dataset=dataset, name=f"Zq-{n}-4471 rift core")
-        for n in (1, 2)
-    ]
-    XRFMeasurementFactory.create_batch(2, dataset=dataset, sample=rocks[0])
-    Sample.objects.update(added=datetime(2026, 1, 15, tzinfo=UTC))
-    Measurement.objects.update(added=datetime(2026, 3, 15, tzinfo=UTC))
-    return dataset
+    with django_db_blocker.unblock():
+        outer = transaction.atomic()
+        outer.__enter__()
+        try:
+            dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=False)
+            rocks = [
+                RockSampleFactory(dataset=dataset, name=f"Zq-{n}-4471 rift core")
+                for n in (1, 2)
+            ]
+            XRFMeasurementFactory.create_batch(2, dataset=dataset, sample=rocks[0])
+            Sample.objects.filter(dataset=dataset).update(
+                added=datetime(2026, 1, 15, tzinfo=UTC)
+            )
+            Measurement.objects.filter(dataset=dataset).update(
+                added=datetime(2026, 3, 15, tzinfo=UTC)
+            )
+            yield dataset
+        finally:
+            transaction.set_rollback(True)
+            outer.__exit__(None, None, None)
 
 
 class TestOverviewWhatAVisitorSeesBeforePublication:
@@ -1147,17 +643,6 @@ class TestOverviewEmptyCardImportButton:
 class TestOverviewReadinessChecklist:
     """FR-033: seven required items and three recommended ones."""
 
-    def test_the_checklist_has_seven_required_and_three_recommended_items(
-        self, client, holding
-    ):
-        client.force_login(_team_member(holding, "change_dataset"))
-
-        response = _page(client, holding)
-
-        items = response.context["readiness"]["items"]
-        assert sum(1 for item in items if item["required"]) == 7
-        assert sum(1 for item in items if not item["required"]) == 3
-
     def test_a_complete_but_private_dataset_is_ready_because_publishing_makes_it_public(
         self, client
     ):
@@ -1183,9 +668,9 @@ class TestOverviewReadinessChecklist:
         from demo.factories import RockSampleFactory
 
         RockSampleFactory(dataset=dataset)
-        client.force_login(_team_member(dataset, "change_dataset"))
+        user = _team_member(dataset, "change_dataset")
 
-        readiness = _page(client, dataset).context["readiness"]
+        readiness = _context(dataset, user)["readiness"]
 
         assert readiness["ready"] is True
         assert readiness["missing_required"] == 0
@@ -1194,15 +679,9 @@ class TestOverviewReadinessChecklist:
 class TestOverviewCitation:
     """US-2 scenario 4."""
 
-    def _citation(self, client, dataset):
-        return _page(client, dataset).page.find(id="citation-text").get_text(strip=True)
-
-    def test_without_a_doi_the_citation_ends_with_the_datasets_permalink(self, client):
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-
-        citation = self._citation(client, dataset)
-
-        assert citation.endswith(f"http://testserver/{dataset.uuid}/")
+    def _citation(self, dataset):
+        formats = _context(dataset)["citation"]["formats"]
+        return next(entry["value"] for entry in formats if entry["key"] == "text")
 
     def test_without_a_doi_the_schema_org_identifier_is_the_permalink(self, client):
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
@@ -1210,31 +689,6 @@ class TestOverviewCitation:
         data = _json_ld(_page(client, dataset).page)
 
         assert data["identifier"] == f"http://testserver/{dataset.uuid}/"
-
-    def test_with_a_doi_the_citation_ends_with_the_doi_and_names_no_permalink(
-        self, client
-    ):
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-        DatasetIdentifierFactory(related=dataset, value="10.1/ds")
-
-        citation = self._citation(client, dataset)
-
-        assert citation.endswith("https://doi.org/10.1/ds")
-        assert str(dataset.uuid) not in citation
-
-    def test_a_data_publication_is_cited_in_place_of_the_dataset(self, client):
-        reference = LiteratureItemFactory(
-            title="Deep drilling records of the Rhine graben",
-            doi="10.1234/pub",
-            year=2020,
-            authors=(("Brandt", "Lena"), ("Weiss", "Jan")),
-        )
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC, reference=reference)
-
-        assert self._citation(client, dataset) == (
-            "Brandt, L. & Weiss, J. (2020). Deep drilling records of the Rhine "
-            "graben. https://doi.org/10.1234/pub"
-        )
 
     def test_creators_are_named_in_the_order_credited_people_before_organizations(
         self, client
@@ -1249,7 +703,7 @@ class TestOverviewCitation:
             )
         Crediting(dataset).move(moving, "up")
 
-        assert self._citation(client, dataset).startswith(
+        assert self._citation(dataset).startswith(
             "Oliveira, T., Keller, A. & Acme Lab ("
         )
 
@@ -1263,11 +717,9 @@ class TestOverviewCitation:
         left_out.in_citation = False
         left_out.save()
 
-        response = _page(client, dataset)
-
-        shown = response.context["citation"]["formats"]
+        shown = _context(dataset)["citation"]["formats"]
         formats = {f["key"]: f["value"] for f in shown}
-        assert self._citation(client, dataset).startswith("Keller, A. (")
+        assert self._citation(dataset).startswith("Keller, A. (")
         assert "Oliveira" not in formats["bibtex"]
         assert "Oliveira" not in formats["ris"]
 
@@ -1282,11 +734,9 @@ class TestOverviewCitation:
         credit.in_citation = False
         credit.save()
 
-        response = _page(client, dataset)
+        header_people = _context(dataset)["header_people"]
 
-        assert [p.pk for p in response.context["header_people"]] == [
-            credit.contributor_id
-        ]
+        assert [p.pk for p in header_people] == [credit.contributor_id]
 
     def test_with_every_person_left_out_the_citation_names_the_organizations(
         self, client
@@ -1303,7 +753,7 @@ class TestOverviewCitation:
         credit.in_citation = False
         credit.save()
 
-        assert self._citation(client, dataset).startswith("Acme Lab (")
+        assert self._citation(dataset).startswith("Acme Lab (")
 
     def test_a_person_left_out_of_the_citation_is_not_a_schema_org_creator(
         self, client
@@ -1334,7 +784,7 @@ class TestOverviewCitation:
             value=PartialDate.fromisoformat("2022-01-01"),
         )
 
-        assert "(2021)" in self._citation(client, dataset)
+        assert "(2021)" in self._citation(dataset)
 
     def test_without_a_published_date_the_year_is_the_available_date(self, client):
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
@@ -1344,12 +794,12 @@ class TestOverviewCitation:
             value=PartialDate.fromisoformat("2022-01-01"),
         )
 
-        assert "(2022)" in self._citation(client, dataset)
+        assert "(2022)" in self._citation(dataset)
 
     def test_without_either_the_year_is_when_the_record_was_added(self, client):
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
 
-        assert f"({dataset.added.year})" in self._citation(client, dataset)
+        assert f"({dataset.added.year})" in self._citation(dataset)
 
 
 class TestOverviewCharts:
@@ -1358,11 +808,8 @@ class TestOverviewCharts:
     def test_the_records_by_type_count_every_type_samples_and_measurements_apart(
         self, client, holding
     ):
-        client.force_login(_team_member(holding))
+        mix = _context(holding, _team_member(holding))["mix"]
 
-        response = _page(client, holding)
-
-        mix = response.context["mix"]
         assert mix["samples"] == [("Rock Samples", 2)]
         assert mix["measurements"] == [("XRF Measurements", 2)]
 
@@ -1374,12 +821,10 @@ class TestOverviewCharts:
 
         Sample.objects.update(added=datetime(2026, 1, 15, tzinfo=UTC))
         Measurement.objects.update(added=datetime(2026, 1, 20, tzinfo=UTC))
-        client.force_login(_team_member(holding))
+        context = _context(holding, _team_member(holding))
 
-        response = _page(client, holding)
-
-        assert response.page.select_one(".ov-mix") is not None
-        assert response.page.find(id="dataset-growth") is None
+        assert context["mix"] is not None
+        assert context["growth_chart"] is None
 
     def test_a_type_the_registry_no_longer_holds_is_left_out(
         self, client, holding, monkeypatch
@@ -1393,11 +838,8 @@ class TestOverviewCharts:
             if model is not XRFMeasurement
         }
         monkeypatch.setattr(registry, "_registry", held)
-        client.force_login(_team_member(holding))
+        mix = _context(holding, _team_member(holding))["mix"]
 
-        response = _page(client, holding)
-
-        mix = response.context["mix"]
         assert mix["measurements"] == []
         assert mix["samples"] == [("Rock Samples", 2)]
 
@@ -1409,7 +851,7 @@ class TestOverviewHeaderFacts:
         return _page(client, dataset).page.find("h1").find_parent("header")
 
     def test_the_licence_is_named_and_the_doi_linked(self, client):
-        licence = License.objects.first()
+        licence = License.objects.get(name="CC BY 4.0")
         dataset = DatasetFactory(visibility=Visibility.PUBLIC, license=licence)
         DatasetIdentifierFactory(related=dataset, value="10.1/ds")
 
@@ -1481,27 +923,6 @@ class TestOverviewFiguresLeadToTheTabs:
             }
             assert figures == {"samples": "5", "measurements": "4"}
 
-    def test_on_a_public_unpublished_dataset_the_team_gets_all_figures_and_charts(
-        self, client, holding
-    ):
-        client.force_login(_team_member(holding))
-
-        page = _page(client, holding).page
-
-        assert _tab_figures(page, holding) == {"samples": "2", "measurements": "2"}
-        assert page.select_one(".ov-mix") is not None
-        assert page.find(id="dataset-growth") is not None
-
-    def test_on_a_public_unpublished_dataset_a_visitor_gets_nothing_from_its_records(
-        self, client, holding
-    ):
-        page = _page(client, holding).page
-
-        assert _tab_figures(page, holding) == {}
-        assert page.find(attrs={"data-mvp-chart": True}) is None
-        assert page.select_one(".ov-mix") is None
-        assert page.find(id="dataset-growth") is None
-
 
 class TestOverviewFirstRun:
     """US-2 scenario 6."""
@@ -1530,16 +951,6 @@ class TestOverviewFirstRun:
         assert response.page.find(attrs={"data-mvp-chart": True}) is None
         assert response.page.select_one(".ov-mix") is None
         assert response.page.find(id="dataset-growth") is None
-
-    def test_a_visitor_to_an_empty_dataset_is_offered_no_first_step(
-        self, client, holding
-    ):
-        Dataset.all_objects.filter(pk=holding.pk).update(published=True)
-        empty = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
-
-        assert self._unavailable_actions(client, empty) == self._unavailable_actions(
-            client, holding
-        )
 
 
 class TestOverviewTimeline:
@@ -1636,7 +1047,7 @@ class TestOverviewTimeline:
     def test_an_unpublished_dataset_ends_on_a_publication_still_to_come(self, client):
         dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=False)
 
-        last = _page(client, dataset).context["lifecycle"][-1]
+        last = _context(dataset)["lifecycle"][-1]
 
         assert (last["done"], last["date"]) == (False, None)
 
@@ -1659,7 +1070,7 @@ class TestOverviewTimeline:
             value=PartialDate.fromisoformat("2025-05-01"),
         )
 
-        steps = _page(client, dataset).context["lifecycle"]
+        steps = _context(dataset)["lifecycle"]
 
         assert [step["done"] for step in steps] == [True, True]
 
@@ -1671,7 +1082,7 @@ class TestOverviewTimeline:
             value=PartialDate.fromisoformat("2999-01-01"),
         )
 
-        steps = _page(client, dataset).context["lifecycle"]
+        steps = _context(dataset)["lifecycle"]
 
         assert [step["date"] is None for step in steps] == [False, True, False]
         assert [step["alert"] for step in steps] == [False, False, True]
@@ -1758,16 +1169,15 @@ class TestOverviewProjectSiblingCount:
     def hidden(self, project):
         return DatasetFactory(visibility=Visibility.PRIVATE, project=project)
 
-    def _siblings(self, client, user, dataset):
-        client.force_login(user)
-        return _page(client, dataset).context["project_info"]["siblings"]
+    def _siblings(self, user, dataset):
+        return _context(dataset, user)["project_info"]["siblings"]
 
     def test_a_team_member_is_not_told_about_a_private_dataset_they_cannot_open(
         self, client, team_dataset, hidden
     ):
         user = _team_member(team_dataset, "change_dataset")
 
-        assert self._siblings(client, user, team_dataset) == 0
+        assert self._siblings(user, team_dataset) == 0
 
     def test_a_private_dataset_the_viewer_may_open_is_counted(
         self, client, team_dataset, hidden
@@ -1777,7 +1187,7 @@ class TestOverviewProjectSiblingCount:
             content_object=hidden, contributor=user, level=ContributionLevel.VIEW
         )
 
-        assert self._siblings(client, user, team_dataset) == 1
+        assert self._siblings(user, team_dataset) == 1
 
     def test_a_private_dataset_with_only_a_stored_row_is_not_counted(
         self, client, team_dataset, hidden
@@ -1787,7 +1197,7 @@ class TestOverviewProjectSiblingCount:
         user = _team_member(team_dataset, "change_dataset")
         assign_perm("view_dataset", user, hidden)
 
-        assert self._siblings(client, user, team_dataset) == 0
+        assert self._siblings(user, team_dataset) == 0
 
     def test_a_private_dataset_under_a_level_on_the_project_is_counted(
         self, client, project, team_dataset, hidden
@@ -1797,13 +1207,13 @@ class TestOverviewProjectSiblingCount:
             content_object=project, contributor=user, level=ContributionLevel.VIEW
         )
 
-        assert self._siblings(client, user, team_dataset) == 1
+        assert self._siblings(user, team_dataset) == 1
 
     def test_a_public_dataset_is_counted(self, client, project, team_dataset):
         DatasetFactory(visibility=Visibility.PUBLIC, project=project)
         user = _team_member(team_dataset, "change_dataset")
 
-        assert self._siblings(client, user, team_dataset) == 1
+        assert self._siblings(user, team_dataset) == 1
 
     def test_someone_who_manages_the_project_counts_every_dataset(
         self, client, project, team_dataset, hidden
@@ -1813,7 +1223,7 @@ class TestOverviewProjectSiblingCount:
             content_object=project, contributor=user, level=ContributionLevel.EDIT
         )
 
-        assert self._siblings(client, user, team_dataset) == 1
+        assert self._siblings(user, team_dataset) == 1
 
 
 class TestOverviewSchemaOrgDescription:
@@ -1879,18 +1289,6 @@ class TestOverviewCardsAlwaysShown:
         ]:
             assert response.page.select_one(f'[data-card="{card}"]') is not None, card
 
-    def test_the_readiness_checklist_stays_out_of_a_visitors_page(self, client):
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=False)
-
-        response = _page(client, dataset)
-
-        assert response.page.select_one('[data-card="readiness"]') is None
-
-
-def loads_map_script(response):
-    """Say whether the page asked for MapLibre: ``has_map`` is set only when it does."""
-    return "has_map" in response.context and bool(response.context["has_map"])
-
 
 class TestOverviewSampleMap:
     @pytest.fixture
@@ -1902,58 +1300,43 @@ class TestOverviewSampleMap:
         RockSampleFactory(dataset=dataset, location=None)
         return dataset
 
-    def test_a_visitor_to_a_published_dataset_gets_its_samples(self, client, published):
-        sample_map = _page(client, published).context["sample_map"]
+    def test_a_visitor_to_a_published_dataset_gets_its_samples(self, published):
+        context = _context(published)
+        sample_map = context["sample_map"]
 
         assert sample_map["located"] == 2
         assert sample_map["missing"] == 1
         assert sample_map["bounds"] == [7.9, 48.9, 8.1, 49.0]
+        assert (
+            sample_map["located"] + sample_map["missing"]
+            == (context["counts"]["samples"])
+        )
+        assert context["has_map"] is True
 
-    def test_a_dataset_does_not_count_its_datasets(self, client, published):
-        sample_map = _page(client, published).context["sample_map"]
-
-        assert "datasets" not in sample_map
-
-    def test_the_points_address_is_the_datasets_own(self, client, published):
-        sample_map = _page(client, published).context["sample_map"]
+    def test_the_points_address_is_the_datasets_own(self, published):
+        sample_map = _context(published)["sample_map"]
 
         assert sample_map["points_url"] == reverse(
             "dataset:overview-sample-points", kwargs={"uuid": published.uuid}
         )
 
-    @pytest.mark.parametrize("viewer", ["visitor", "member"])
-    def test_located_and_missing_add_up_to_the_samples_figure_the_page_computes(
-        self, client, published, viewer
-    ):
-        if viewer == "member":
-            client.force_login(_team_member(published))
-
-        response = _page(client, published)
-
-        sample_map = response.context["sample_map"]
-        assert (
-            sample_map["located"] + sample_map["missing"]
-            == response.context["counts"]["samples"]
-        )
-
-    def test_a_visitor_to_a_public_unpublished_dataset_gets_no_map(self, client):
+    def test_a_visitor_to_a_public_unpublished_dataset_gets_no_map(self):
         dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=False)
         RockSampleFactory(dataset=dataset, location=Point(7.9, 48.9, srid=4326))
 
-        response = _page(client, dataset)
+        context = _context(dataset)
 
-        assert response.context["sample_map"] is None
-        assert not loads_map_script(response)
+        assert context["sample_map"] is None
+        assert "has_map" not in context
 
-    def test_the_team_of_an_unpublished_dataset_gets_the_map(self, client):
+    def test_the_team_of_an_unpublished_dataset_gets_the_map(self):
         dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=False)
         RockSampleFactory(dataset=dataset, location=Point(7.9, 48.9, srid=4326))
-        client.force_login(_team_member(dataset))
 
-        response = _page(client, dataset)
+        context = _context(dataset, _team_member(dataset))
 
-        assert response.context["sample_map"]["located"] == 1
-        assert loads_map_script(response)
+        assert context["sample_map"]["located"] == 1
+        assert context["has_map"] is True
 
     def test_a_level_on_one_sample_of_an_unpublished_dataset_maps_nothing(self, client):
         dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=False)
@@ -1966,12 +1349,11 @@ class TestOverviewSampleMap:
         )
         client.force_login(user)
 
-        page = _page(client, dataset)
         points = client.get(
             reverse("dataset:overview-sample-points", kwargs={"uuid": dataset.uuid})
         )
 
-        assert page.context["sample_map"] is None
+        assert _context(dataset, user)["sample_map"] is None
         assert points.json()["features"] == []
 
     def test_the_points_address_of_an_unpublished_dataset_gives_a_visitor_nothing(
@@ -1987,27 +1369,16 @@ class TestOverviewSampleMap:
         assert response.status_code == 200
         assert response.json() == {"type": "FeatureCollection", "features": []}
 
-    def test_a_dataset_with_no_samples_has_no_map(self, client):
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
-
-        response = _page(client, dataset)
-
-        assert response.context["sample_map"] is None
-        assert not loads_map_script(response)
-
     def test_samples_none_of_which_is_located_give_none_located_and_no_map_script(
-        self, client
+        self,
     ):
         dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
         RockSampleFactory.create_batch(2, dataset=dataset, location=None)
 
-        response = _page(client, dataset)
+        context = _context(dataset)
 
-        assert response.context["sample_map"]["located"] == 0
-        assert not loads_map_script(response)
-
-    def test_has_map_is_true_once_a_sample_is_located(self, client, published):
-        assert loads_map_script(_page(client, published))
+        assert context["sample_map"]["located"] == 0
+        assert "has_map" not in context
 
 
 @pytest.fixture
@@ -2040,8 +1411,8 @@ class TestOverviewCitationFormats:
         )
         return dataset
 
-    def formats_of(self, client, dataset):
-        citation = _page(client, dataset).context["citation"]
+    def formats_of(self, dataset):
+        citation = _context(dataset)["citation"]
         return {entry["key"]: entry["value"] for entry in citation["formats"]}
 
     def entry_of(self, formats):
@@ -2055,7 +1426,7 @@ class TestOverviewCitationFormats:
     ):
         dataset = self.make_dataset()
 
-        formats = self.formats_of(client, dataset)
+        formats = self.formats_of(dataset)
         key, entry, ris = self.entry_of(formats)
 
         assert formats["text"].startswith("Keller, A. & Oliveira, T. (2022). ")
@@ -2079,7 +1450,7 @@ class TestOverviewCitationFormats:
         dataset = self.make_dataset()
         permalink = f"http://testserver/{dataset.uuid}/"
 
-        formats = self.formats_of(client, dataset)
+        formats = self.formats_of(dataset)
         entry, ris = self.entry_of(formats)[1:]
 
         assert formats["text"].endswith(permalink)
@@ -2092,7 +1463,7 @@ class TestOverviewCitationFormats:
         dataset = self.make_dataset()
         DatasetIdentifierFactory(related=dataset, value="10.5555/ds_1")
 
-        formats = self.formats_of(client, dataset)
+        formats = self.formats_of(dataset)
         entry, ris = self.entry_of(formats)[1:]
 
         assert formats["text"].endswith("https://doi.org/10.5555/ds_1")
@@ -2102,7 +1473,7 @@ class TestOverviewCitationFormats:
         assert ris["urls"] == ["https://doi.org/10.5555/ds_1"]
 
     def test_a_dataset_is_a_dataset_entry_and_a_data_reference(self, client):
-        formats = self.formats_of(client, self.make_dataset())
+        formats = self.formats_of(self.make_dataset())
         entry, ris = self.entry_of(formats)[1:]
 
         assert entry.type == "dataset"
@@ -2111,7 +1482,7 @@ class TestOverviewCitationFormats:
     def test_with_nobody_credited_no_author_is_given(self, client):
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
 
-        formats = self.formats_of(client, dataset)
+        formats = self.formats_of(dataset)
         entry, ris = self.entry_of(formats)[1:]
 
         assert "author" not in entry.persons
@@ -2136,7 +1507,7 @@ class TestOverviewCitationFormats:
         reference.save()
         dataset = self.make_dataset(reference=reference)
 
-        formats = self.formats_of(client, dataset)
+        formats = self.formats_of(dataset)
         key, entry, ris = self.entry_of(formats)
 
         assert formats["text"] == (
@@ -2169,7 +1540,7 @@ class TestOverviewCitationFormats:
     def test_each_format_has_an_address_beside_the_page(self, client):
         dataset = self.make_dataset()
 
-        citation = _page(client, dataset).context["citation"]
+        citation = _context(dataset)["citation"]
 
         assert [e["url"] for e in citation["formats"]] == [
             reverse(

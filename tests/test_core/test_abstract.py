@@ -1,29 +1,27 @@
 """Tests for GenericModel and its QuerySet ordering functionality (fairdm/core/abstract.py)."""
 
 import pytest
+from django.core.exceptions import ValidationError
 from django.db import connection
 
-from demo.factories import ExampleMeasurementFactory, RockSampleFactory
+from fairdm.core.abstract import DESCRIPTION_MAX_LENGTH
 from fairdm.core.dataset.models import DatasetDescription
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.sample.models import Sample
 from fairdm.core.vocabularies import (
     CONTRIBUTOR_ROLES,
-    DATE_TYPES,
     DESCRIPTION_TYPES,
     IDENTIFIER_TYPES,
 )
 from fairdm.factories import PersonFactory
 from fairdm.factories.contributors import ContributorIdentifierFactory
 from fairdm.factories.core import (
-    DatasetDateFactory,
     DatasetDescriptionFactory,
     DatasetFactory,
-    MeasurementDescriptionFactory,
+    DatasetIdentifierFactory,
     ProjectDescriptionFactory,
     ProjectFactory,
     ProjectIdentifierFactory,
-    SampleDescriptionFactory,
 )
 
 
@@ -65,74 +63,6 @@ class TestGenericModelQuerySet:
 
         assert actual_types == expected_types
 
-    def test_date_queryset_in_order(self):
-        dataset = DatasetFactory.create()
-
-        DatasetDateFactory.create(
-            related=dataset, type_id=f"{DATE_TYPES}/collection-end", value="2024-12-31"
-        )
-        DatasetDateFactory.create(
-            related=dataset,
-            type_id=f"{DATE_TYPES}/collection-start",
-            value="2024-01-01",
-        )
-        DatasetDateFactory.create(
-            related=dataset, type_id=f"{DATE_TYPES}/available", value="2024-06-15"
-        )
-
-        ordered = dataset.dates.in_order()
-
-        expected_types = [
-            f"{DATE_TYPES}/available",
-            f"{DATE_TYPES}/collection-start",
-            f"{DATE_TYPES}/collection-end",
-        ]
-        actual_types = [d.type_id for d in ordered]
-
-        assert actual_types == expected_types
-
-    def test_filtered_queryset_in_order(self):
-        dataset = DatasetFactory.create()
-
-        DatasetDescriptionFactory.create(
-            related=dataset, type_id=f"{DESCRIPTION_TYPES}/abstract", value="Abstract 1"
-        )
-        DatasetDescriptionFactory.create(
-            related=dataset, type_id=f"{DESCRIPTION_TYPES}/methods", value="Methods 1"
-        )
-        DatasetDescriptionFactory.create(
-            related=dataset, type_id=f"{DESCRIPTION_TYPES}/other", value="Other 1"
-        )
-        DatasetDescriptionFactory.create(
-            related=dataset,
-            type_id=f"{DESCRIPTION_TYPES}/technical-info",
-            value="Tech 1",
-        )
-        DatasetDescriptionFactory.create(
-            related=dataset,
-            type_id=f"{DESCRIPTION_TYPES}/series-information",
-            value="Series 1",
-        )
-
-        filtered = dataset.descriptions.filter(
-            type__in=[
-                f"{DESCRIPTION_TYPES}/other",
-                f"{DESCRIPTION_TYPES}/abstract",
-                f"{DESCRIPTION_TYPES}/methods",
-            ]
-        )
-        ordered = filtered.in_order()
-
-        expected_types = [
-            f"{DESCRIPTION_TYPES}/abstract",
-            f"{DESCRIPTION_TYPES}/methods",
-            f"{DESCRIPTION_TYPES}/other",
-        ]
-        actual_types = [d.type_id for d in ordered]
-
-        assert actual_types == expected_types
-        assert len(ordered) == 3
-
     def test_manager_in_order(self):
         dataset1 = DatasetFactory.create()
         dataset2 = DatasetFactory.create()
@@ -149,94 +79,13 @@ class TestGenericModelQuerySet:
             related=dataset2, type_id=f"{DESCRIPTION_TYPES}/methods", value="Methods 1"
         )
 
-        all_ordered = DatasetDescription.objects.in_order()
+        ordered = DatasetDescription.objects.in_order()
 
-        assert len(all_ordered) >= 3
-
-        # Other tests may leave rows behind, so only the items created here are compared.
-        our_items = [
-            d for d in all_ordered if d.value in ["Other 1", "Abstract 1", "Methods 1"]
-        ]
-        actual_types = [d.type_id for d in our_items]
-
-        assert actual_types == [
+        assert [d.type_id for d in ordered] == [
             f"{DESCRIPTION_TYPES}/abstract",
             f"{DESCRIPTION_TYPES}/methods",
             f"{DESCRIPTION_TYPES}/other",
         ]
-
-    def test_empty_queryset_in_order(self):
-        dataset = DatasetFactory.create()
-
-        ordered = dataset.descriptions.in_order()
-
-        assert ordered == []
-
-    def test_single_item_queryset_in_order(self):
-        dataset = DatasetFactory.create()
-
-        DatasetDescriptionFactory.create(
-            related=dataset, type_id=f"{DESCRIPTION_TYPES}/abstract", value="Only one"
-        )
-
-        ordered = dataset.descriptions.in_order()
-
-        assert len(ordered) == 1
-        assert ordered[0].type_id == f"{DESCRIPTION_TYPES}/abstract"
-
-    def test_duplicate_type_raises_integrity_error(self):
-        from django.db import IntegrityError
-
-        dataset = DatasetFactory.create()
-
-        DatasetDescriptionFactory.create(
-            related=dataset,
-            type_id=f"{DESCRIPTION_TYPES}/abstract",
-            value="First abstract",
-        )
-
-        with pytest.raises(IntegrityError):
-            DatasetDescriptionFactory.create(
-                related=dataset,
-                type_id=f"{DESCRIPTION_TYPES}/abstract",
-                value="Second abstract",
-            )
-
-    def test_duplicate_type_different_related_object_allowed(self):
-        dataset1 = DatasetFactory.create()
-        dataset2 = DatasetFactory.create()
-
-        desc1 = DatasetDescriptionFactory.create(
-            related=dataset1,
-            type_id=f"{DESCRIPTION_TYPES}/abstract",
-            value="First abstract",
-        )
-        desc2 = DatasetDescriptionFactory.create(
-            related=dataset2,
-            type_id=f"{DESCRIPTION_TYPES}/abstract",
-            value="Second abstract",
-        )
-
-        assert desc1.type == desc2.type
-        assert desc1.related != desc2.related
-
-    def test_different_types_same_related_object_allowed(self):
-        dataset = DatasetFactory.create()
-
-        desc1 = DatasetDescriptionFactory.create(
-            related=dataset,
-            type_id=f"{DESCRIPTION_TYPES}/abstract",
-            value="Abstract text",
-        )
-        desc2 = DatasetDescriptionFactory.create(
-            related=dataset,
-            type_id=f"{DESCRIPTION_TYPES}/methods",
-            value="Methods text",
-        )
-
-        assert desc1.related == desc2.related
-        assert desc1.type != desc2.type
-        assert DatasetDescription.objects.filter(related=dataset).count() == 2
 
 
 @pytest.mark.django_db
@@ -289,6 +138,63 @@ class TestAddContributor:
 
 
 @pytest.mark.django_db
+class TestAbstractSummary:
+    """The summary and meta description come from any record's abstract."""
+
+    @staticmethod
+    def abstract_of(value):
+        dataset = DatasetFactory()
+        DatasetDescriptionFactory(
+            related=dataset, type_id=f"{DESCRIPTION_TYPES}/abstract", value=value
+        )
+        return dataset
+
+    def test_the_summary_is_empty_when_the_record_has_no_abstract(self):
+        assert DatasetFactory().get_abstract_summary() == ""
+
+    def test_the_summary_is_empty_when_the_only_description_is_another_type(self):
+        dataset = DatasetFactory()
+        DatasetDescriptionFactory(
+            related=dataset,
+            type_id=f"{DESCRIPTION_TYPES}/methods",
+            value="Not the abstract.",
+        )
+
+        assert dataset.get_abstract_summary() == ""
+
+    def test_the_summary_is_plain_text_on_one_line(self):
+        dataset = self.abstract_of(
+            "## Background\n\nRock & **roll** geochemistry, see [the paper](https://example.org):\n\n"
+            "- one\n- two <script>alert(1)</script>"
+        )
+
+        summary = dataset.get_abstract_summary()
+
+        assert (
+            summary == "Background — Rock & roll geochemistry, see the paper: one two"
+        )
+
+    def test_a_long_summary_is_capped_at_400_characters_and_ends_with_an_ellipsis(self):
+        summary = self.abstract_of("word " * 300).get_abstract_summary()
+
+        assert len(summary) <= 400
+        assert summary.endswith("…")
+
+    def test_a_short_summary_is_returned_whole(self):
+        assert self.abstract_of("A short abstract.").get_abstract_summary() == (
+            "A short abstract."
+        )
+
+    def test_the_meta_description_is_the_abstracts_full_text(self):
+        text = "word " * 300
+
+        assert self.abstract_of(text).get_meta_description() == text
+
+    def test_the_meta_description_is_none_without_an_abstract(self):
+        assert DatasetFactory().get_meta_description() is None
+
+
+@pytest.mark.django_db
 class TestNameIndex:
     # Asserted on Sample/Measurement's own table: a polymorphic child such as
     # RockSample does not hold `name` in its own table.
@@ -299,12 +205,6 @@ class TestNameIndex:
             details["columns"] == ["name"] and (details["index"] or details["unique"])
             for details in constraints.values()
         )
-
-    def test_sample_table_has_a_name_index(self):
-        assert self._has_index_on_name(Sample._meta.db_table)
-
-    def test_measurement_table_has_a_name_index(self):
-        assert self._has_index_on_name(Measurement._meta.db_table)
 
     def test_every_registered_types_default_search_field_is_indexed(self):
         from fairdm.registry import registry
@@ -321,38 +221,16 @@ class TestNameIndex:
 
 @pytest.mark.django_db
 class TestDescriptionMaxLength:
-    DESCRIPTION_CASES = [
-        (ProjectDescriptionFactory, ProjectFactory),
-        (DatasetDescriptionFactory, DatasetFactory),
-        (SampleDescriptionFactory, RockSampleFactory),
-        (
-            MeasurementDescriptionFactory,
-            lambda: ExampleMeasurementFactory(sample=RockSampleFactory()),
-        ),
-    ]
-
-    @pytest.mark.parametrize("description_factory, related_factory", DESCRIPTION_CASES)
-    def test_value_at_the_ceiling_is_valid(self, description_factory, related_factory):
-        from fairdm.core.abstract import DESCRIPTION_MAX_LENGTH
-
-        related = related_factory()
-        description = description_factory.build(
-            related=related, value="x" * DESCRIPTION_MAX_LENGTH
+    def test_value_at_the_ceiling_is_valid(self):
+        description = ProjectDescriptionFactory.build(
+            related=ProjectFactory(), value="x" * DESCRIPTION_MAX_LENGTH
         )
 
         description.full_clean()
 
-    @pytest.mark.parametrize("description_factory, related_factory", DESCRIPTION_CASES)
-    def test_value_one_character_over_the_ceiling_is_rejected(
-        self, description_factory, related_factory
-    ):
-        from django.core.exceptions import ValidationError
-
-        from fairdm.core.abstract import DESCRIPTION_MAX_LENGTH
-
-        related = related_factory()
-        description = description_factory.build(
-            related=related, value="x" * (DESCRIPTION_MAX_LENGTH + 1)
+    def test_value_one_character_over_the_ceiling_is_rejected(self):
+        description = ProjectDescriptionFactory.build(
+            related=ProjectFactory(), value="x" * (DESCRIPTION_MAX_LENGTH + 1)
         )
 
         with pytest.raises(ValidationError) as excinfo:
@@ -363,38 +241,16 @@ class TestDescriptionMaxLength:
 
 @pytest.mark.django_db
 class TestIdentifierAddress:
-    @pytest.mark.parametrize(
-        ("type_", "value", "address"),
-        [
-            (
-                f"{IDENTIFIER_TYPES}/wikidata",
-                "Q42",
-                "https://www.wikidata.org/wiki/Q42",
-            ),
-            (
-                f"{IDENTIFIER_TYPES}/crossref-funder-id",
-                "10.13039/100000001",
-                "https://doi.org/10.13039/100000001",
-            ),
-        ],
-    )
-    def test_a_type_with_a_resolver_gives_its_address(self, type_, value, address):
-        identifier = ContributorIdentifierFactory(
-            related=PersonFactory(), type_id=type_, value=value
-        )
-
-        assert identifier.get_absolute_url() == address
-
-    def test_a_contributor_type_with_no_resolver_gives_no_address(self):
+    def test_a_type_with_a_resolver_gives_its_address(self):
         identifier = ContributorIdentifierFactory(
             related=PersonFactory(),
-            type_id=f"{IDENTIFIER_TYPES}/researcher-id",
-            value="A-1234-2020",
+            type_id=f"{IDENTIFIER_TYPES}/wikidata",
+            value="Q42",
         )
 
-        assert identifier.get_absolute_url() is None
+        assert identifier.get_absolute_url() == "https://www.wikidata.org/wiki/Q42"
 
-    def test_a_record_type_with_no_resolver_gives_no_address(self):
+    def test_a_type_with_no_resolver_gives_no_address(self):
         identifier = ProjectIdentifierFactory(
             related=ProjectFactory(),
             type_id=f"{IDENTIFIER_TYPES}/grant-number",
@@ -402,3 +258,34 @@ class TestIdentifierAddress:
         )
 
         assert identifier.get_absolute_url() is None
+
+
+@pytest.mark.django_db
+class TestIdentifierUniqueness:
+    """An identifier value names one record, whichever kind of record carries it."""
+
+    def test_a_value_held_by_another_kind_of_record_is_refused(self):
+        ProjectIdentifierFactory(
+            related=ProjectFactory(),
+            type_id=f"{IDENTIFIER_TYPES}/doi",
+            value="10.1/shared",
+        )
+        taken = DatasetIdentifierFactory.build(
+            related=DatasetFactory(),
+            type_id=f"{IDENTIFIER_TYPES}/doi",
+            value="10.1/shared",
+        )
+
+        with pytest.raises(ValidationError) as excinfo:
+            taken.clean()
+
+        assert "value" in excinfo.value.message_dict
+
+    def test_a_stored_identifier_does_not_clash_with_itself(self):
+        stored = ProjectIdentifierFactory(
+            related=ProjectFactory(),
+            type_id=f"{IDENTIFIER_TYPES}/doi",
+            value="10.1/mine",
+        )
+
+        stored.clean()

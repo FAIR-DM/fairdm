@@ -18,7 +18,6 @@ from fairdm.core.vocabularies import (
     IDENTIFIER_TYPES,
 )
 from fairdm.factories import (
-    OrganizationFactory,
     PersonFactory,
     ProjectDescriptionFactory,
     ProjectFactory,
@@ -28,160 +27,36 @@ from fairdm.factories.core import ProjectDateFactory
 
 
 @pytest.mark.django_db
-class TestAdminSearchByName:
-    def test_search_by_exact_name(self, admin_client):
-        ProjectFactory(name="Climate Research Study")
-        ProjectFactory(name="Ocean Temperature Analysis")
-        ProjectFactory(name="Solar Energy Project")
+class TestAdminSearch:
+    def test_the_search_matches_the_name_and_an_identifier_of_the_project(self, rf):
+        from django.contrib.admin.sites import AdminSite
 
-        url = reverse("admin:project_project_changelist")
-        response = admin_client.get(url, {"q": "Climate Research Study"})
+        from fairdm.core.project.admin import ProjectAdmin
+        from fairdm.core.project.models import Project
 
-        assert response.status_code == 200
-        content = response.content.decode()
-        assert "Climate Research Study" in content
-        assert "Ocean Temperature" not in content or "no results" in content.lower()
-
-    def test_search_by_partial_name(self, admin_client):
-        ProjectFactory(name="Climate Research Study")
-
-        url = reverse("admin:project_project_changelist")
-        response = admin_client.get(url, {"q": "Research"})
-
-        assert response.status_code == 200
-        content = response.content.decode()
-        assert "Climate Research Study" in content
-
-    def test_search_by_uuid(self, admin_client):
-        project1 = ProjectFactory(name="Climate Research Study")
-
-        url = reverse("admin:project_project_changelist")
-        response = admin_client.get(url, {"q": project1.uuid})
-
-        assert response.status_code == 200
-        content = response.content.decode()
-        assert project1.name in content
-
-    def test_search_by_external_identifier(self, admin_client):
-        project = ProjectFactory(name="Climate Research Study")
+        climate = ProjectFactory(name="Climate Research Study")
         ProjectIdentifierFactory(
-            related=project,
+            related=climate,
             type_id=f"{IDENTIFIER_TYPES}/doi",
             value="10.1234/climate-example",
         )
+        ocean = ProjectFactory(name="Ocean Temperature Analysis")
+        admin_instance = ProjectAdmin(Project, AdminSite())
+        request = rf.get("/")
 
-        url = reverse("admin:project_project_changelist")
-        response = admin_client.get(url, {"q": "10.1234/climate-example"})
+        def found(term):
+            queryset, _ = admin_instance.get_search_results(
+                request, Project.objects.all(), term
+            )
+            return set(queryset)
 
-        assert response.status_code == 200
-        content = response.content.decode()
-        assert project.name in content
-
-    def test_search_by_owning_organisation(self, admin_client):
-        owner = OrganizationFactory(name="Example Research Institute")
-        project = ProjectFactory(name="Climate Research Study", owner=owner)
-
-        url = reverse("admin:project_project_changelist")
-        response = admin_client.get(url, {"q": "Example Research Institute"})
-
-        assert response.status_code == 200
-        content = response.content.decode()
-        assert project.name in content
-
-
-@pytest.mark.django_db
-class TestAdminFilterByStatus:
-    def test_filter_by_concept_status(self, admin_client):
-        ProjectFactory(name="Concept Project", status=0)
-        ProjectFactory(name="Active Project", status=1)
-        ProjectFactory(name="Completed Project", status=2)
-
-        url = reverse("admin:project_project_changelist")
-        response = admin_client.get(url, {"status__exact": "0"})
-
-        assert response.status_code == 200
-        content = response.content.decode()
-        assert "Concept Project" in content
-        assert "Active Project" not in content or "no results" in content.lower()
-
-    def test_filter_by_visibility(self, admin_client):
-        from fairdm.utils.choices import Visibility
-
-        ProjectFactory(name="Public Project", visibility=Visibility.PUBLIC)
-        ProjectFactory(name="Private Project", visibility=Visibility.PRIVATE)
-
-        url = reverse("admin:project_project_changelist")
-        response = admin_client.get(
-            url, {"visibility__exact": str(Visibility.PUBLIC.value)}
-        )
-
-        assert response.status_code == 200
-        content = response.content.decode()
-        assert "Public Project" in content
-
-    def test_filter_by_added_date(self, admin_client):
-        concept_project = ProjectFactory(name="Concept Project", status=0)
-
-        url = reverse("admin:project_project_changelist")
-
-        from django.utils import timezone
-
-        today = timezone.now().date()
-        response = admin_client.get(
-            url, {"added__year": str(today.year), "added__month": str(today.month)}
-        )
-
-        assert response.status_code == 200
-        content = response.content.decode()
-        assert concept_project.name in content
+        assert found("Climate") == {climate}
+        assert found("10.1234/climate-example") == {climate}
+        assert found("Ocean") == {ocean}
 
 
 @pytest.mark.django_db
 class TestAdminInlineEditing:
-    def test_inline_description_shown_in_change_form(self, admin_client):
-        project = ProjectFactory(name="Test Project")
-        url = reverse("admin:project_project_change", args=[project.pk])
-        response = admin_client.get(url)
-
-        assert response.status_code == 200
-        content = response.content.decode()
-        assert 'name="descriptions-TOTAL_FORMS"' in content
-
-    def test_can_add_description_via_inline(self, admin_client):
-        project = ProjectFactory(name="Test Project")
-        url = reverse("admin:project_project_change", args=[project.pk])
-
-        form_data = {
-            "name": project.name,
-            "status": project.status,
-            "visibility": project.visibility,
-            "descriptions-TOTAL_FORMS": "1",
-            "descriptions-INITIAL_FORMS": "0",
-            "descriptions-MIN_NUM_FORMS": "0",
-            "descriptions-MAX_NUM_FORMS": "1000",
-            "descriptions-0-related": project.pk,
-            "descriptions-0-type": f"{DESCRIPTION_TYPES}/abstract",
-            "descriptions-0-value": "This is a test description added via inline form.",
-            # Empty inline formsets still need their management forms.
-            "dates-TOTAL_FORMS": "0",
-            "dates-INITIAL_FORMS": "0",
-            "dates-MIN_NUM_FORMS": "0",
-            "dates-MAX_NUM_FORMS": "1000",
-            "identifiers-TOTAL_FORMS": "0",
-            "identifiers-INITIAL_FORMS": "0",
-            "identifiers-MIN_NUM_FORMS": "0",
-            "identifiers-MAX_NUM_FORMS": "1000",
-            "_continue": "Save and continue editing",
-        }
-
-        response = admin_client.post(url, data=form_data)
-
-        assert response.status_code in [200, 302]
-        descriptions = ProjectDescription.objects.filter(related=project)
-        assert descriptions.count() > 0, (
-            f"Expected descriptions to be created, but found {descriptions.count()}"
-        )
-
     def test_can_add_description_date_and_identifier_via_inline(self, admin_client):
         project = ProjectFactory(name="Test Project")
         url = reverse("admin:project_project_change", args=[project.pk])
@@ -216,8 +91,7 @@ class TestAdminInlineEditing:
 
         response = admin_client.post(url, data=form_data)
 
-        assert response.status_code in [200, 302]
-
+        assert response.status_code == 302
         assert ProjectDescription.objects.filter(
             related=project, type_id=f"{DESCRIPTION_TYPES}/abstract"
         ).exists()
@@ -272,9 +146,7 @@ class TestAdminDateInlineOrdering:
 
 @pytest.mark.django_db
 class TestAdminListDisplayColumns:
-    def test_columns_reflect_presence_and_absence_of_abstract_and_start_date(
-        self, admin_client, rf
-    ):
+    def test_columns_reflect_presence_and_absence_of_abstract_and_start_date(self, rf):
         with_both = ProjectFactory(name="Fully Described Project")
         ProjectDate.objects.create(
             related=with_both, type_id=f"{DATE_TYPES}/start", value="2024-01-01"
@@ -286,18 +158,13 @@ class TestAdminListDisplayColumns:
         )
         without_either = ProjectFactory(name="Bare Project")
 
-        url = reverse("admin:project_project_changelist")
-        response = admin_client.get(url)
-
-        assert response.status_code == 200
-
         from django.contrib.admin.sites import AdminSite
 
         from fairdm.core.project.admin import ProjectAdmin
         from fairdm.core.project.models import Project
 
         admin_instance = ProjectAdmin(Project, AdminSite())
-        queryset = admin_instance.get_queryset(rf.get(url))
+        queryset = admin_instance.get_queryset(rf.get("/"))
         with_both = queryset.get(pk=with_both.pk)
         without_either = queryset.get(pk=without_either.pk)
         assert admin_instance.has_abstract(with_both) is True
@@ -308,15 +175,15 @@ class TestAdminListDisplayColumns:
 
 @pytest.mark.django_db
 class TestAdminListDisplayColumnsQueryCount:
-    def test_flags_are_annotated_without_a_query_per_row(
-        self, rf, django_assert_num_queries
-    ):
+    def test_flags_are_annotated_without_a_query_per_row(self, rf):
         from django.contrib.admin.sites import AdminSite
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
 
         from fairdm.core.project.admin import ProjectAdmin
         from fairdm.core.project.models import Project
 
-        for _ in range(5):
+        def add_project_with_abstract_and_start_date():
             project = ProjectFactory()
             ProjectDate.objects.create(
                 related=project, type_id=f"{DATE_TYPES}/start", value="2024-01-01"
@@ -326,16 +193,26 @@ class TestAdminListDisplayColumnsQueryCount:
                 type_id=f"{DESCRIPTION_TYPES}/abstract",
                 value="An abstract.",
             )
-        ProjectFactory()  # a row with neither, so both flags read False
 
         admin_instance = ProjectAdmin(Project, AdminSite())
-        request = rf.get("/")
-        queryset = admin_instance.get_queryset(request)
 
-        with django_assert_num_queries(1):
-            for obj in queryset:
-                admin_instance.has_abstract(obj)
-                admin_instance.has_start_date(obj)
+        def queries_to_read_the_flags():
+            queryset = admin_instance.get_queryset(rf.get("/"))
+            with CaptureQueriesContext(connection) as context:
+                for obj in queryset:
+                    admin_instance.has_abstract(obj)
+                    admin_instance.has_start_date(obj)
+            return len(context.captured_queries)
+
+        add_project_with_abstract_and_start_date()
+        queries_to_read_the_flags()  # warm one-time caches
+        one_row = queries_to_read_the_flags()
+
+        add_project_with_abstract_and_start_date()
+        ProjectFactory()  # a row with neither, so both flags read False
+        three_rows = queries_to_read_the_flags()
+
+        assert three_rows == one_row
 
 
 @pytest.mark.django_db
@@ -362,9 +239,9 @@ class TestAdminBulkStatusChange:
             "index": "0",
         }
 
-        response = admin_client.post(url, data=form_data, follow=True)
+        response = admin_client.post(url, data=form_data)
 
-        assert response.status_code == 200
+        assert response.status_code == 302
         for project in projects:
             project.refresh_from_db()
             assert project.status == expected_status

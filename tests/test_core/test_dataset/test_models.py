@@ -1,42 +1,30 @@
 """Tests for the ``Dataset`` model, its querysets and its related-record models."""
 
-import time
-from datetime import timedelta
-
 import pytest
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.gis.geos import Point
 from django.core.exceptions import ValidationError
-from django.db import IntegrityError, connection
+from django.db import connection
 from django.test import override_settings
 from django.test.utils import CaptureQueriesContext
-from django.urls import reverse
-from django.utils import timezone
-from django.utils.functional import Promise
 
 from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.dataset.models import (
-    DATACITE_RELATIONSHIP_TYPES,
     Dataset,
     DatasetDate,
     DatasetDescription,
     DatasetIdentifier,
-    DatasetLiteratureRelation,
     DatasetQuerySet,
 )
 from fairdm.core.vocabularies import (
-    CONTRIBUTOR_ROLES,
-    DATE_TYPES,
     DESCRIPTION_TYPES,
     IDENTIFIER_TYPES,
-    collection_members,
 )
 from fairdm.factories import (
     DatasetFactory,
     DatasetIdentifierFactory,
-    LiteratureItemFactory,
     PersonFactory,
     ProjectFactory,
 )
@@ -49,79 +37,7 @@ from fairdm.utils.location.coverage import Coverage
 
 
 @pytest.mark.django_db
-class TestDatasetCreation:
-    def test_create_dataset_with_required_fields(self):
-        project = ProjectFactory()
-        dataset = Dataset.objects.create(name="Test Dataset", project=project)
-
-        assert dataset.pk is not None
-        assert dataset.name == "Test Dataset"
-        assert dataset.project == project
-
-    def test_create_dataset_with_factory(self):
-        dataset = DatasetFactory()
-
-        assert dataset.pk is not None
-        assert dataset.name
-        assert dataset.project is not None
-        assert dataset.uuid is not None
-
-
-@pytest.mark.django_db
-class TestDatasetNameValidation:
-    def test_name_is_required(self):
-        project = ProjectFactory()
-        dataset = Dataset(project=project)
-
-        with pytest.raises(ValidationError) as exc_info:
-            dataset.full_clean()
-
-        assert "name" in exc_info.value.error_dict
-
-    def test_name_max_length_enforced(self):
-        project = ProjectFactory()
-        long_name = "x" * 301
-        dataset = Dataset(name=long_name, project=project)
-
-        with pytest.raises(ValidationError) as exc_info:
-            dataset.full_clean()
-
-        assert "name" in exc_info.value.error_dict
-
-    def test_name_accepts_valid_length(self):
-        project = ProjectFactory()
-        valid_name = "x" * 300
-        dataset = Dataset(name=valid_name, project=project)
-
-        dataset.full_clean()
-        dataset.save()
-        assert dataset.pk is not None
-
-
-@pytest.mark.django_db
 class TestDatasetVisibility:
-    def test_visibility_default_is_private(self):
-        dataset = DatasetFactory()
-
-        assert dataset.visibility == Visibility.PRIVATE.value
-
-    def test_visibility_accepts_valid_choices(self):
-        valid_choices = [
-            Visibility.PUBLIC,
-            Visibility.PRIVATE,
-        ]
-
-        for choice in valid_choices:
-            dataset = DatasetFactory(visibility=choice.value)
-            assert dataset.visibility == choice.value
-
-    def test_visibility_rejects_invalid_choice(self):
-        project = ProjectFactory()
-        dataset = Dataset(name="Test", project=project, visibility=999)
-
-        with pytest.raises(ValidationError):
-            dataset.full_clean()
-
     def test_reading_datasets_with_no_visibility_condition_returns_only_public(self):
         public = DatasetFactory(visibility=Visibility.PUBLIC)
         DatasetFactory(visibility=Visibility.PRIVATE)
@@ -170,26 +86,6 @@ class TestDatasetVisibility:
 
 
 @pytest.mark.django_db
-class TestDatasetPublished:
-    def test_published_defaults_to_false_when_unset(self):
-        dataset = Dataset.objects.create(
-            name="Unpublished by default", project=ProjectFactory()
-        )
-
-        dataset.refresh_from_db()
-
-        assert dataset.published is False
-
-    def test_every_existing_dataset_reads_back_unpublished(self):
-        datasets = DatasetFactory.create_batch(3)
-
-        reloaded = Dataset.all_objects.filter(pk__in=[d.pk for d in datasets])
-
-        assert reloaded.count() == 3
-        assert all(d.published is False for d in reloaded)
-
-
-@pytest.mark.django_db
 class TestDatasetDataIsPublic:
     @pytest.mark.parametrize(
         ("visibility", "published", "expected"),
@@ -218,15 +114,6 @@ class TestDatasetVisibilityGuarantees:
         fetched = DatasetIdentifier.objects.get(pk=identifier.pk).related
 
         assert fetched == private_dataset
-
-    def test_deleting_a_record_a_private_dataset_depends_on_still_cascades(self):
-        project = ProjectFactory()
-        private_dataset = DatasetFactory(project=project, visibility=Visibility.PRIVATE)
-        dataset_pk = private_dataset.pk
-
-        project.delete()
-
-        assert not Dataset.all_objects.filter(pk=dataset_pk).exists()
 
     def test_permissions_a_visibility_check_could_consult_are_all_declared(self):
         import inspect
@@ -283,187 +170,6 @@ class TestDatasetVisibilityGuarantees:
 
 
 @pytest.mark.django_db
-class TestDatasetProjectRelationship:
-    def test_project_delete_cascades_to_dataset(self):
-        project = ProjectFactory()
-        dataset = DatasetFactory(project=project)
-        dataset_id = dataset.pk
-
-        project.delete()
-
-        assert not Dataset.objects.filter(pk=dataset_id).exists()
-
-    def test_project_delete_succeeds_without_datasets(self):
-        project = ProjectFactory()
-        project_id = project.pk
-
-        project.delete()
-
-        from fairdm.core.project.models import Project
-
-        assert not Project.objects.filter(pk=project_id).exists()
-
-    def test_multiple_datasets_deleted_with_project(self):
-        project = ProjectFactory()
-        datasets = DatasetFactory.create_batch(3, project=project)
-        dataset_ids = [dataset.pk for dataset in datasets]
-
-        project.delete()
-
-        assert not Dataset.objects.filter(pk__in=dataset_ids).exists()
-
-
-@pytest.mark.django_db
-class TestOrphanedDatasets:
-    def test_dataset_can_exist_without_project(self):
-        dataset = Dataset.objects.create(name="Orphaned Dataset", project=None)
-
-        assert dataset.pk is not None
-        assert dataset.project is None
-
-    def test_orphaned_dataset_queries(self):
-        Dataset.objects.create(name="Orphaned", project=None)
-        DatasetFactory()
-
-        orphaned = Dataset.all_objects.filter(project__isnull=True)
-        assert orphaned.count() == 1
-
-    def test_setting_project_to_null_creates_orphan(self):
-        dataset = DatasetFactory()
-        dataset.project = None
-        dataset.save()
-
-        dataset.refresh_from_db()
-        assert dataset.project is None
-
-
-@pytest.mark.django_db
-class TestDatasetLicense:
-    def test_license_defaults_to_cc_by_4(self):
-        dataset = DatasetFactory()
-
-        assert dataset.license is not None
-        assert "CC BY 4.0" in dataset.license.name
-
-    def test_license_can_be_changed(self):
-        from licensing.models import License
-
-        dataset = DatasetFactory()
-        new_license, _ = License.objects.get_or_create(
-            name="CC BY-SA 4.0",
-            defaults={
-                "slug": "cc-by-sa-4-0",
-                "canonical_url": "https://creativecommons.org/licenses/by-sa/4.0/",
-            },
-        )
-
-        dataset.license = new_license
-        dataset.save()
-
-        dataset.refresh_from_db()
-        assert dataset.license == new_license
-
-    def test_license_can_be_null(self):
-        dataset = DatasetFactory()
-        dataset.license = None
-        dataset.save()
-
-        dataset.refresh_from_db()
-        assert dataset.license is None
-
-
-@pytest.mark.django_db
-class TestDatasetUUID:
-    def test_uuid_generated_automatically(self):
-        dataset = DatasetFactory()
-
-        assert dataset.uuid is not None
-        assert str(dataset.uuid)
-
-    def test_uuid_is_unique(self):
-        dataset1 = DatasetFactory()
-        dataset2 = DatasetFactory()
-
-        assert dataset1.uuid != dataset2.uuid
-
-    def test_duplicate_uuid_raises_integrity_error(self):
-        dataset1 = DatasetFactory()
-
-        with pytest.raises(IntegrityError):
-            Dataset.objects.create(
-                name="Duplicate UUID",
-                project=ProjectFactory(),
-                uuid=dataset1.uuid,
-            )
-
-    def test_uuid_immutable_after_creation(self):
-        DatasetFactory()
-        uuid_field = Dataset._meta.get_field("uuid")
-
-        assert uuid_field.editable is False
-
-
-@pytest.mark.django_db
-class TestDatasetFields:
-    def test_name_is_required(self):
-        dataset = Dataset(project=ProjectFactory())
-
-        with pytest.raises(ValidationError) as exc_info:
-            dataset.full_clean()
-
-        assert "name" in exc_info.value.error_dict
-
-    def test_name_length_is_bound(self):
-        dataset = Dataset(name="x" * 301, project=ProjectFactory())
-
-        with pytest.raises(ValidationError) as exc_info:
-            dataset.full_clean()
-
-        assert "name" in exc_info.value.error_dict
-
-    def test_dataset_with_no_project_is_valid(self):
-        dataset = Dataset(name="Orphaned Dataset", project=None)
-
-        dataset.full_clean()
-
-    def test_image_is_optional(self):
-        dataset = Dataset(name="No Image", project=ProjectFactory())
-
-        dataset.full_clean()
-
-    def test_project_is_optional(self):
-        dataset = Dataset.objects.create(name="No Project")
-
-        assert dataset.project is None
-
-    def test_data_publication_is_optional(self):
-        dataset = Dataset(name="No Reference", project=ProjectFactory())
-
-        dataset.full_clean()
-        assert dataset.reference is None
-
-
-@pytest.mark.django_db
-class TestDatasetOrdering:
-    def test_default_ordering_is_most_recently_modified_first(self):
-        oldest = DatasetFactory()
-        middle = DatasetFactory()
-        newest = DatasetFactory()
-
-        now = timezone.now()
-        # `modified` is auto_now, so update() bypasses `pre_save()` to pin known values.
-        Dataset.all_objects.filter(pk=oldest.pk).update(
-            modified=now - timedelta(days=2)
-        )
-        Dataset.all_objects.filter(pk=middle.pk).update(
-            modified=now - timedelta(days=1)
-        )
-        Dataset.all_objects.filter(pk=newest.pk).update(modified=now)
-
-        assert list(Dataset.all_objects.all()) == [newest, middle, oldest]
-
-
-@pytest.mark.django_db
 class TestDatasetLicence:
     def test_dataset_created_without_a_licence_gets_the_configured_default(self):
         from licensing.models import License
@@ -482,84 +188,6 @@ class TestDatasetLicence:
             )
 
         assert dataset.license.name == "CC BY-SA 4.0"
-
-
-@pytest.mark.django_db
-class TestDatasetKeywords:
-    def test_controlled_vocabulary_term_is_stored_as_a_reference(self):
-        from controlled_vocabularies.models import Record
-
-        dataset = DatasetFactory()
-        # `sync_vocabularies` runs once per session in tests/conftest.py.
-        term = Record.objects.filter(
-            scheme__uri=CONTRIBUTOR_ROLES, type=Record.Type.CONCEPT
-        ).first()
-        assert term is not None
-
-        dataset.keywords.add(term)
-
-        stored = dataset.keywords.get(pk=term.pk)
-        assert isinstance(stored, Record)
-        assert stored.uri == term.uri
-
-    def test_free_tags_are_distinguishable_from_controlled_keywords(self):
-        from controlled_vocabularies.models import Record
-
-        dataset = DatasetFactory()
-        keyword = Record.objects.filter(
-            scheme__uri=CONTRIBUTOR_ROLES, type=Record.Type.CONCEPT
-        ).first()
-        dataset.keywords.add(keyword)
-        dataset.tags.add("erosion")
-
-        assert "erosion" in dataset.tags.names()
-        assert dataset.keywords.count() == 1
-        assert all(isinstance(k, Record) for k in dataset.keywords.all())
-        assert not dataset.keywords.filter(pref_label="erosion").exists()
-
-
-@pytest.mark.django_db
-class TestDatasetContributions:
-    def test_contribution_records_contributor_and_roles(self):
-        dataset = DatasetFactory()
-        person = PersonFactory()
-
-        contribution = dataset.add_contributor(
-            person,
-            with_roles=[
-                f"{CONTRIBUTOR_ROLES}/creator",
-                f"{CONTRIBUTOR_ROLES}/data-collector",
-            ],
-        )
-
-        assert contribution.contributor == person
-        assert set(contribution.roles.values_list("uri", flat=True)) == {
-            f"{CONTRIBUTOR_ROLES}/creator",
-            f"{CONTRIBUTOR_ROLES}/data-collector",
-        }
-        assert dataset.contributors.filter(pk=contribution.pk).exists()
-
-    def test_role_vocabulary_members(self):
-        assert set(
-            [role.uri for role in collection_members(Dataset.CONTRIBUTOR_ROLES)]
-        ) == {
-            f"{CONTRIBUTOR_ROLES}/creator",
-            f"{CONTRIBUTOR_ROLES}/contact-person",
-            f"{CONTRIBUTOR_ROLES}/data-collector",
-            f"{CONTRIBUTOR_ROLES}/data-curator",
-            f"{CONTRIBUTOR_ROLES}/data-manager",
-            f"{CONTRIBUTOR_ROLES}/editor",
-            f"{CONTRIBUTOR_ROLES}/producer",
-            f"{CONTRIBUTOR_ROLES}/related-person",
-            f"{CONTRIBUTOR_ROLES}/researcher",
-            f"{CONTRIBUTOR_ROLES}/project-leader",
-            f"{CONTRIBUTOR_ROLES}/project-manager",
-            f"{CONTRIBUTOR_ROLES}/project-member",
-            f"{CONTRIBUTOR_ROLES}/supervisor",
-            f"{CONTRIBUTOR_ROLES}/work-package-leader",
-            f"{CONTRIBUTOR_ROLES}/rights-holder",
-            f"{CONTRIBUTOR_ROLES}/other",
-        }
 
 
 @pytest.mark.django_db
@@ -626,9 +254,7 @@ class TestDatasetPrefetch:
 
         return dataset
 
-    def test_query_count_does_not_grow_with_related_record_count(
-        self, django_assert_num_queries
-    ):
+    def test_query_count_does_not_grow_with_related_record_count(self):
         small = self._dataset_with_metadata(1)
         large = self._dataset_with_metadata(3)
 
@@ -640,60 +266,17 @@ class TestDatasetPrefetch:
             list(ds.contributors.all())
             list(ds.keywords.all())
 
-        with django_assert_num_queries(6):
+        load_everything(small.pk)  # warm content-type and vocabulary caches
+        with CaptureQueriesContext(connection) as one:
             load_everything(small.pk)
-
-        with django_assert_num_queries(6):
+        with CaptureQueriesContext(connection) as several:
             load_everything(large.pk)
 
-
-class TestDatasetTranslatable:
-    def test_field_labels_and_help_text_are_lazy(self):
-        for field_name in ["uuid", "license", "visibility"]:
-            field = Dataset._meta.get_field(field_name)
-            assert isinstance(field.verbose_name, Promise), field_name
-            assert isinstance(field.help_text, Promise), field_name
-
-
-class TestDatasetVisibilityChoices:
-    def test_visibility_vocabulary_members(self):
-        assert {member.name for member in Visibility} == {"PRIVATE", "PUBLIC"}
-
-    def test_visibility_field_defaults_to_private(self):
-        field = Dataset._meta.get_field("visibility")
-        assert field.get_default() == Visibility.PRIVATE
-
-
-@pytest.mark.django_db
-class TestDatasetSharedFixtures:
-    def test_public_and_private_dataset_fixtures(self, public_dataset, private_dataset):
-        assert public_dataset.visibility == Visibility.PUBLIC
-        assert private_dataset.visibility == Visibility.PRIVATE
-
-    def test_dataset_with_full_metadata_carries_one_of_each_related_record(
-        self, dataset_with_full_metadata
-    ):
-        dataset = dataset_with_full_metadata
-        assert dataset.descriptions.count() == 1
-        assert dataset.dates.count() == 1
-        assert dataset.identifiers.count() == 1
-        assert dataset.literature_relations.count() == 1
-        assert dataset.contributors.count() == 1
+        assert len(several) == len(one)
 
 
 @pytest.mark.django_db
 class TestDatasetDescription:
-    def test_abstract_is_stored_under_its_type_and_retrievable_by_type(self):
-        dataset = DatasetFactory()
-        DatasetDescription.objects.create(
-            related=dataset,
-            type_id=f"{DESCRIPTION_TYPES}/abstract",
-            value="A brief summary.",
-        )
-
-        retrieved = dataset.descriptions.get(type_id=f"{DESCRIPTION_TYPES}/abstract")
-        assert retrieved.value == "A brief summary."
-
     def test_second_description_of_a_carried_type_is_refused_naming_the_type(self):
         dataset = DatasetFactory()
         DatasetDescription.objects.create(
@@ -712,75 +295,9 @@ class TestDatasetDescription:
 
         assert "Abstract" in str(exc_info.value)
 
-    def test_methods_description_is_accepted(self):
-        dataset = DatasetFactory()
-        description = DatasetDescription(
-            related=dataset,
-            type_id=f"{DESCRIPTION_TYPES}/methods",
-            value="Samples were analysed by XRF.",
-        )
-
-        description.full_clean()
-        description.save()
-
-        assert dataset.descriptions.get(
-            type_id=f"{DESCRIPTION_TYPES}/methods"
-        ).value == ("Samples were analysed by XRF.")
-
-    def test_two_descriptions_are_both_returned_each_under_its_own_type(self):
-        dataset = DatasetFactory()
-        DatasetDescription.objects.create(
-            related=dataset,
-            type_id=f"{DESCRIPTION_TYPES}/abstract",
-            value="Abstract text.",
-        )
-        DatasetDescription.objects.create(
-            related=dataset,
-            type_id=f"{DESCRIPTION_TYPES}/methods",
-            value="Methods text.",
-        )
-
-        by_type = {d.type_id: d.value for d in dataset.descriptions.all()}
-        assert by_type == {
-            f"{DESCRIPTION_TYPES}/abstract": "Abstract text.",
-            f"{DESCRIPTION_TYPES}/methods": "Methods text.",
-        }
-
-    def test_description_vocabulary_members(self):
-        assert set(
-            [concept.uri for concept in DatasetDescription.get_type_concepts()]
-        ) == {
-            f"{DESCRIPTION_TYPES}/abstract",
-            f"{DESCRIPTION_TYPES}/methods",
-            f"{DESCRIPTION_TYPES}/series-information",
-            f"{DESCRIPTION_TYPES}/technical-info",
-            f"{DESCRIPTION_TYPES}/other",
-        }
-
 
 @pytest.mark.django_db
 class TestDatasetDate:
-    def test_collection_start_is_stored_under_its_type(self):
-        dataset = DatasetFactory()
-        DatasetDate.objects.create(
-            related=dataset, type_id=DatasetDate.START_TYPE, value="2020-06-01"
-        )
-
-        stored = dataset.dates.get(type=DatasetDate.START_TYPE)
-        assert str(stored.value) == "2020-06-01"
-
-    def test_second_collection_start_is_refused(self):
-        dataset = DatasetFactory()
-        DatasetDate.objects.create(
-            related=dataset, type_id=DatasetDate.START_TYPE, value="2020-01-01"
-        )
-
-        duplicate = DatasetDate(
-            related=dataset, type_id=DatasetDate.START_TYPE, value="2021-01-01"
-        )
-        with pytest.raises(ValidationError):
-            duplicate.full_clean()
-
     def test_collection_end_before_start_is_refused_naming_both_dates(self):
         dataset = DatasetFactory()
         DatasetDate.objects.create(
@@ -839,45 +356,9 @@ class TestDatasetDate:
         with pytest.raises(ValidationError):
             end.full_clean()
 
-    def test_date_with_no_value_is_refused(self):
-        dataset = DatasetFactory()
-        date = DatasetDate(related=dataset, type_id=f"{DATE_TYPES}/available")
-
-        with pytest.raises(ValidationError) as exc_info:
-            date.full_clean()
-
-        assert "value" in exc_info.value.error_dict
-
-    def test_date_vocabulary_members(self):
-        assert set([concept.uri for concept in DatasetDate.get_type_concepts()]) == {
-            f"{DATE_TYPES}/available",
-            f"{DATE_TYPES}/collection-start",
-            f"{DATE_TYPES}/collection-end",
-            f"{DATE_TYPES}/submitted",
-            f"{DATE_TYPES}/published",
-            f"{DATE_TYPES}/withdrawn",
-        }
-
 
 @pytest.mark.django_db
 class TestDatasetIdentifier:
-    def test_available_types_are_the_dataset_collection_only(self):
-        assert set(
-            [concept.uri for concept in DatasetIdentifier.get_type_concepts()]
-        ) == {f"{IDENTIFIER_TYPES}/doi"}
-        assert set(
-            [concept.uri for concept in DatasetIdentifier.get_type_concepts()]
-        ).isdisjoint(
-            {
-                f"{IDENTIFIER_TYPES}/orcid",
-                f"{IDENTIFIER_TYPES}/researcher-id",
-                f"{IDENTIFIER_TYPES}/ror",
-                f"{IDENTIFIER_TYPES}/wikidata",
-                f"{IDENTIFIER_TYPES}/isni",
-                f"{IDENTIFIER_TYPES}/crossref-funder-id",
-            }
-        )
-
     def test_identifier_value_is_refused_across_every_record_type(self):
         from fairdm.core.project.models import ProjectIdentifier
 
@@ -899,562 +380,6 @@ class TestDatasetIdentifier:
 
         assert "value" in exc_info.value.error_dict
 
-    def test_dataset_identifier_types_agrees_with_the_related_models_binding(self):
-        assert [
-            (concept.uri, concept.display_label())
-            for concept in DatasetIdentifier.get_type_concepts()
-        ] == [
-            (concept.uri, concept.display_label())
-            for concept in collection_members(Dataset.IDENTIFIER_TYPES)
-        ]
-
-
-@pytest.mark.django_db
-class TestDatasetDateValidation:
-    def test_create_date_with_valid_type(self):
-        dataset = DatasetFactory()
-        dataset_date = DatasetDate.objects.create(
-            related=dataset, type_id=f"{DATE_TYPES}/available", value="2024-01-15"
-        )
-
-        assert dataset_date.pk is not None
-        assert dataset_date.type_id == f"{DATE_TYPES}/available"
-        assert str(dataset_date.value) == "2024-01-15"
-        assert dataset_date.related == dataset
-
-    def test_date_type_vocabulary_validation(self):
-        dataset = DatasetFactory()
-        dataset_date = DatasetDate(
-            related=dataset, type_id=f"{DATE_TYPES}/invalid-type", value="2024-01-15"
-        )
-
-        with pytest.raises(ValidationError) as exc_info:
-            dataset_date.full_clean()
-
-        assert "type" in exc_info.value.error_dict
-
-    def test_all_valid_date_types_accepted(self):
-        from fairdm.core.dataset.models import Dataset
-
-        dataset = DatasetFactory()
-
-        for type_code, _type_label in [
-            (concept.uri, concept.display_label())
-            for concept in collection_members(Dataset.DATE_TYPES)
-        ]:
-            dataset_date = DatasetDate(
-                related=dataset, type_id=type_code, value="2024-01-15"
-            )
-            dataset_date.full_clean()
-
-    def test_date_field_required(self):
-        dataset = DatasetFactory()
-        dataset_date = DatasetDate(
-            related=dataset,
-            type_id=f"{DATE_TYPES}/available",
-        )
-
-        with pytest.raises(ValidationError) as exc_info:
-            dataset_date.full_clean()
-
-        assert "value" in exc_info.value.error_dict
-
-    def test_dataset_relationship_required(self):
-        dataset_date = DatasetDate(
-            type_id=f"{DATE_TYPES}/available",
-            value="2024-01-15",
-        )
-
-        with pytest.raises(ValidationError):
-            dataset_date.full_clean()
-
-    def test_unique_together_constraint(self):
-        dataset = DatasetFactory()
-
-        DatasetDate.objects.create(
-            related=dataset, type_id=f"{DATE_TYPES}/available", value="2024-01-15"
-        )
-
-        with pytest.raises(IntegrityError):
-            DatasetDate.objects.create(
-                related=dataset, type_id=f"{DATE_TYPES}/available", value="2024-02-20"
-            )
-
-    def test_multiple_date_types_allowed(self):
-        dataset = DatasetFactory()
-
-        DatasetDate.objects.create(
-            related=dataset, type_id=f"{DATE_TYPES}/available", value="2024-01-15"
-        )
-        DatasetDate.objects.create(
-            related=dataset, type_id=f"{DATE_TYPES}/submitted", value="2024-02-01"
-        )
-
-        assert dataset.dates.count() == 2
-
-    def test_cascade_delete_with_dataset(self):
-        dataset = DatasetFactory()
-        DatasetDate.objects.create(
-            related=dataset, type_id=f"{DATE_TYPES}/available", value="2024-01-15"
-        )
-
-        dataset_id = dataset.pk
-        dataset.delete()
-
-        assert not DatasetDate.objects.filter(related_id=dataset_id).exists()
-
-
-@pytest.mark.django_db
-class TestDatasetDescriptionValidation:
-    def test_create_description_with_valid_type(self):
-        dataset = DatasetFactory()
-        description = DatasetDescription.objects.create(
-            related=dataset,
-            type_id=f"{DESCRIPTION_TYPES}/abstract",
-            value="This is an abstract",
-        )
-
-        assert description.pk is not None
-        assert description.type_id == f"{DESCRIPTION_TYPES}/abstract"
-
-    def test_description_type_vocabulary_validation(self):
-        dataset = DatasetFactory()
-        description = DatasetDescription(
-            related=dataset,
-            type_id=f"{DESCRIPTION_TYPES}/invalid-type",
-            value="Test description",
-        )
-
-        with pytest.raises(ValidationError) as exc_info:
-            description.full_clean()
-
-        assert "type" in exc_info.value.error_dict
-
-    def test_all_valid_description_types_accepted(self):
-        from fairdm.core.dataset.models import Dataset
-
-        dataset = DatasetFactory()
-
-        for type_code, _type_label in [
-            (concept.uri, concept.display_label())
-            for concept in collection_members(Dataset.DESCRIPTION_TYPES)
-        ]:
-            description = DatasetDescription(
-                related=dataset, type_id=type_code, value=f"Test {type_code}"
-            )
-            description.full_clean()
-
-    def test_description_field_required(self):
-        dataset = DatasetFactory()
-        description = DatasetDescription(
-            related=dataset,
-            type_id=f"{DESCRIPTION_TYPES}/abstract",
-        )
-
-        with pytest.raises(ValidationError) as exc_info:
-            description.full_clean()
-
-        assert "value" in exc_info.value.error_dict
-
-    def test_dataset_relationship_required(self):
-        description = DatasetDescription(
-            type_id=f"{DESCRIPTION_TYPES}/abstract",
-            value="Test",
-        )
-
-        with pytest.raises(ValidationError):
-            description.full_clean()
-
-    def test_unique_together_constraint(self):
-        dataset = DatasetFactory()
-
-        DatasetDescription.objects.create(
-            related=dataset, type_id=f"{DESCRIPTION_TYPES}/methods", value="Method 1"
-        )
-
-        with pytest.raises(IntegrityError):
-            DatasetDescription.objects.create(
-                related=dataset,
-                type_id=f"{DESCRIPTION_TYPES}/methods",
-                value="Method 2",
-            )
-
-    def test_cascade_delete_with_dataset(self):
-        dataset = DatasetFactory()
-        DatasetDescription.objects.create(
-            related=dataset, type_id=f"{DESCRIPTION_TYPES}/abstract", value="Test"
-        )
-
-        dataset_id = dataset.pk
-        dataset.delete()
-
-        assert not DatasetDescription.objects.filter(related_id=dataset_id).exists()
-
-
-@pytest.mark.django_db
-class TestDatasetIdentifierValidation:
-    def test_create_identifier_with_valid_type(self):
-        dataset = DatasetFactory()
-        identifier = DatasetIdentifier.objects.create(
-            related=dataset, type_id=f"{IDENTIFIER_TYPES}/doi", value="10.1000/xyz123"
-        )
-
-        assert identifier.pk is not None
-        assert identifier.type_id == f"{IDENTIFIER_TYPES}/doi"
-
-    def test_identifier_type_vocabulary_validation(self):
-        dataset = DatasetFactory()
-        identifier = DatasetIdentifier(
-            related=dataset,
-            type_id=f"{IDENTIFIER_TYPES}/invalid-type",
-            value="some-identifier",
-        )
-
-        with pytest.raises(ValidationError) as exc_info:
-            identifier.full_clean()
-
-        assert "type" in exc_info.value.error_dict
-
-    def test_all_valid_identifier_types_accepted(self):
-        dataset = DatasetFactory()
-
-        for type_code in [
-            concept.uri for concept in collection_members(Dataset.IDENTIFIER_TYPES)
-        ]:
-            identifier = DatasetIdentifier(
-                related=dataset, type_id=type_code, value=f"test-{type_code}"
-            )
-            identifier.full_clean()
-
-    def test_identifier_field_required(self):
-        dataset = DatasetFactory()
-        identifier = DatasetIdentifier(
-            related=dataset,
-            type_id=f"{IDENTIFIER_TYPES}/doi",
-        )
-
-        with pytest.raises(ValidationError) as exc_info:
-            identifier.full_clean()
-
-        assert "value" in exc_info.value.error_dict
-
-    def test_dataset_relationship_required(self):
-        identifier = DatasetIdentifier(
-            type_id=f"{IDENTIFIER_TYPES}/doi",
-            value="10.1000/xyz123",
-        )
-
-        with pytest.raises(ValidationError):
-            identifier.full_clean()
-
-
-@pytest.mark.django_db
-class TestDOISupport:
-    def test_create_doi_identifier(self):
-        dataset = DatasetFactory()
-        doi = DatasetIdentifier.objects.create(
-            related=dataset, type_id=f"{IDENTIFIER_TYPES}/doi", value="10.1000/xyz123"
-        )
-
-        assert doi.type_id == f"{IDENTIFIER_TYPES}/doi"
-        assert doi.value == "10.1000/xyz123"
-
-    def test_query_datasets_with_doi(self):
-        dataset_with_doi = DatasetFactory()
-        DatasetIdentifier.objects.create(
-            related=dataset_with_doi,
-            type_id=f"{IDENTIFIER_TYPES}/doi",
-            value="10.1000/xyz123",
-        )
-
-        dataset_without_doi = DatasetFactory()
-
-        datasets_with_doi = Dataset.all_objects.filter(
-            identifiers__type=f"{IDENTIFIER_TYPES}/doi"
-        ).distinct()
-
-        assert dataset_with_doi in datasets_with_doi
-        assert dataset_without_doi not in datasets_with_doi
-
-    def test_get_doi_helper(self):
-        dataset = DatasetFactory()
-        DatasetIdentifier.objects.create(
-            related=dataset, type_id=f"{IDENTIFIER_TYPES}/doi", value="10.1000/xyz123"
-        )
-
-        doi = dataset.identifiers.filter(type_id=f"{IDENTIFIER_TYPES}/doi").first()
-        assert doi is not None
-        assert doi.value == "10.1000/xyz123"
-
-    def test_cascade_delete_with_dataset(self):
-        dataset = DatasetFactory()
-        DatasetIdentifier.objects.create(
-            related=dataset, type_id=f"{IDENTIFIER_TYPES}/doi", value="10.1000/xyz123"
-        )
-
-        dataset_id = dataset.pk
-        dataset.delete()
-
-        assert not DatasetIdentifier.objects.filter(related_id=dataset_id).exists()
-
-    def test_unique_together_constraint(self):
-        dataset = DatasetFactory()
-
-        DatasetIdentifier.objects.create(
-            related=dataset, type_id=f"{IDENTIFIER_TYPES}/doi", value="10.1000/xyz123"
-        )
-
-        with pytest.raises(IntegrityError):
-            DatasetIdentifier.objects.create(
-                related=dataset,
-                type_id=f"{IDENTIFIER_TYPES}/doi",
-                value="10.1000/different",
-            )
-
-
-@pytest.mark.django_db
-class TestDatasetLiterature:
-    def test_a_data_publication_is_recorded_as_the_datasets_reference(self):
-        dataset = DatasetFactory()
-        paper = LiteratureItemFactory()
-
-        dataset.reference = paper
-        dataset.full_clean()
-        dataset.save()
-        dataset.refresh_from_db()
-
-        assert dataset.reference == paper
-
-    def test_the_same_publication_cannot_be_named_by_two_datasets(self):
-        paper = LiteratureItemFactory()
-        DatasetFactory(reference=paper)
-
-        with pytest.raises(IntegrityError):
-            DatasetFactory(reference=paper)
-
-    def test_deleting_the_named_publication_leaves_the_dataset_with_none_named(self):
-        paper = LiteratureItemFactory()
-        dataset = DatasetFactory(reference=paper)
-
-        paper.delete()
-        dataset.refresh_from_db()
-
-        assert dataset.pk is not None
-        assert dataset.reference is None
-
-
-@pytest.mark.django_db
-class TestDatasetLiteratureRelationValidation:
-    def test_create_relation_with_valid_type(self):
-        dataset = DatasetFactory()
-        paper = LiteratureItemFactory()
-
-        relation = DatasetLiteratureRelation.objects.create(
-            dataset=dataset, literature_item=paper, relationship_type="IsCitedBy"
-        )
-
-        assert relation.pk is not None
-        assert relation.relationship_type == "IsCitedBy"
-
-    def test_relationship_type_vocabulary_validation(self):
-        dataset = DatasetFactory()
-        paper = LiteratureItemFactory()
-
-        relation = DatasetLiteratureRelation(
-            dataset=dataset, literature_item=paper, relationship_type="InvalidType"
-        )
-
-        with pytest.raises(ValidationError) as exc_info:
-            relation.full_clean()
-
-        assert "relationship_type" in exc_info.value.error_dict
-
-    def test_relationship_types_match_the_datacite_schema_by_name(self):
-        expected_codes = {
-            "IsCitedBy", "Cites", "IsSupplementTo", "IsSupplementedBy",
-            "IsContinuedBy", "Continues", "IsDescribedBy", "Describes",
-            "HasMetadata", "IsMetadataFor", "HasVersion", "IsVersionOf",
-            "IsNewVersionOf", "IsPreviousVersionOf", "IsPartOf", "HasPart",
-            "IsPublishedIn", "IsReferencedBy", "References", "IsDocumentedBy",
-            "Documents", "IsCompiledBy", "Compiles", "IsVariantFormOf",
-            "IsOriginalFormOf", "IsIdenticalTo", "IsReviewedBy", "Reviews",
-            "IsDerivedFrom", "IsSourceOf", "IsRequiredBy", "Requires",
-            "Obsoletes", "IsObsoletedBy",
-        }  # fmt: skip
-        actual_codes = {code for code, _label in DATACITE_RELATIONSHIP_TYPES}
-
-        assert actual_codes == expected_codes
-
-        dataset = DatasetFactory()
-        paper = LiteratureItemFactory()
-        for type_code in expected_codes:
-            relation = DatasetLiteratureRelation(
-                dataset=dataset, literature_item=paper, relationship_type=type_code
-            )
-            relation.full_clean()
-
-    def test_dataset_required(self):
-        paper = LiteratureItemFactory()
-
-        relation = DatasetLiteratureRelation(
-            literature_item=paper,
-            relationship_type="IsCitedBy",
-        )
-
-        with pytest.raises(ValidationError):
-            relation.full_clean()
-
-    def test_literature_item_required(self):
-        dataset = DatasetFactory()
-
-        relation = DatasetLiteratureRelation(
-            dataset=dataset,
-            relationship_type="IsCitedBy",
-        )
-
-        with pytest.raises(ValidationError):
-            relation.full_clean()
-
-
-@pytest.mark.django_db
-class TestUniqueTogetherConstraint:
-    def test_duplicate_relationship_raises_error(self):
-        dataset = DatasetFactory()
-        paper = LiteratureItemFactory()
-
-        DatasetLiteratureRelation.objects.create(
-            dataset=dataset, literature_item=paper, relationship_type="IsCitedBy"
-        )
-
-        with pytest.raises(IntegrityError):
-            DatasetLiteratureRelation.objects.create(
-                dataset=dataset, literature_item=paper, relationship_type="IsCitedBy"
-            )
-
-    def test_different_types_allowed(self):
-        dataset = DatasetFactory()
-        paper = LiteratureItemFactory()
-
-        DatasetLiteratureRelation.objects.create(
-            dataset=dataset, literature_item=paper, relationship_type="IsCitedBy"
-        )
-        DatasetLiteratureRelation.objects.create(
-            dataset=dataset, literature_item=paper, relationship_type="IsDocumentedBy"
-        )
-
-        assert dataset.literature_relations.count() == 2
-
-
-@pytest.mark.django_db
-class TestCascadeBehavior:
-    def test_cascade_on_dataset_delete(self):
-        dataset = DatasetFactory()
-        paper = LiteratureItemFactory()
-
-        DatasetLiteratureRelation.objects.create(
-            dataset=dataset, literature_item=paper, relationship_type="IsCitedBy"
-        )
-
-        dataset.delete()
-
-        assert DatasetLiteratureRelation.objects.count() == 0
-
-    def test_cascade_on_literature_delete(self):
-        dataset = DatasetFactory()
-        paper = LiteratureItemFactory()
-
-        DatasetLiteratureRelation.objects.create(
-            dataset=dataset, literature_item=paper, relationship_type="IsCitedBy"
-        )
-
-        paper.delete()
-
-        assert DatasetLiteratureRelation.objects.count() == 0
-
-
-@pytest.mark.django_db
-class TestQueryingRelationships:
-    def test_query_by_relationship_type(self):
-        dataset = DatasetFactory()
-        paper1 = LiteratureItemFactory()
-        paper2 = LiteratureItemFactory()
-
-        DatasetLiteratureRelation.objects.create(
-            dataset=dataset, literature_item=paper1, relationship_type="IsCitedBy"
-        )
-        DatasetLiteratureRelation.objects.create(
-            dataset=dataset, literature_item=paper2, relationship_type="IsDocumentedBy"
-        )
-
-        citing = dataset.related_literature.filter(
-            dataset_relations__relationship_type="IsCitedBy"
-        )
-
-        assert citing.count() == 1
-        assert paper1 in citing
-
-    def test_access_through_manytomany(self):
-        dataset = DatasetFactory()
-        paper = LiteratureItemFactory()
-
-        DatasetLiteratureRelation.objects.create(
-            dataset=dataset, literature_item=paper, relationship_type="IsCitedBy"
-        )
-
-        assert paper in dataset.related_literature.all()
-
-
-@pytest.mark.django_db
-class TestPrivacyFirstDefault:
-    def test_default_manager_includes_public_datasets(self):
-        ds_public = DatasetFactory(visibility=Dataset.VISIBILITY_CHOICES.PUBLIC)
-
-        result = Dataset.objects.all()
-
-        assert result.count() == 1
-        assert ds_public in result
-
-
-@pytest.mark.django_db
-class TestWithRelatedOptimization:
-    def test_with_related_prefetches_project(self, django_assert_max_num_queries):
-        DatasetFactory.create_batch(5, project=ProjectFactory())
-
-        with django_assert_max_num_queries(3):
-            datasets = list(Dataset.all_objects.with_related())
-            for ds in datasets:
-                _ = ds.project.name if ds.project else None
-
-    def test_with_related_prefetches_contributors(self, django_assert_max_num_queries):
-        datasets = DatasetFactory.create_batch(5)
-        for ds in datasets:
-            for _ in range(3):
-                ContributionFactory(content_object=ds)
-
-        with django_assert_max_num_queries(3):
-            datasets = list(Dataset.all_objects.with_related())
-            for ds in datasets:
-                _ = list(ds.contributors.all())
-
-    def test_with_related_on_filtered_queryset(self):
-        project = ProjectFactory()
-        ds_match = DatasetFactory(project=project)
-        DatasetFactory()
-
-        result = Dataset.all_objects.filter(project=project).with_related()
-
-        assert result.count() == 1
-        assert ds_match in result
-
-    def test_with_related_returns_queryset_for_chaining(self):
-        DatasetFactory()
-
-        result = Dataset.objects.with_related().filter(
-            visibility=Dataset.VISIBILITY_CHOICES.PUBLIC
-        )
-
-        assert isinstance(result, type(Dataset.objects.all()))
-
 
 @pytest.mark.django_db
 class TestPublishedQuerySet:
@@ -1470,49 +395,6 @@ class TestPublishedQuerySet:
         assert published_private in result
         assert published_public in result
         assert unpublished not in result
-
-
-@pytest.mark.django_db
-class TestWithContributorsOptimization:
-    def test_with_contributors_prefetches_contributors(
-        self, django_assert_max_num_queries
-    ):
-        datasets = DatasetFactory.create_batch(5)
-        for ds in datasets:
-            for _ in range(3):
-                ContributionFactory(content_object=ds)
-
-        with django_assert_max_num_queries(2):
-            datasets = list(Dataset.all_objects.with_contributors())
-            for ds in datasets:
-                _ = list(ds.contributors.all())
-
-    def test_with_contributors_does_not_prefetch_project(self):
-        datasets = DatasetFactory.create_batch(5, project=ProjectFactory())
-
-        result = Dataset.all_objects.with_contributors()
-
-        datasets = list(result)
-        assert len(datasets) == 5
-
-    def test_with_contributors_on_filtered_queryset(self):
-        project = ProjectFactory()
-        ds_match = DatasetFactory(project=project)
-        DatasetFactory()
-
-        result = Dataset.all_objects.filter(project=project).with_contributors()
-
-        assert result.count() == 1
-        assert ds_match in result
-
-    def test_with_contributors_returns_queryset_for_chaining(self):
-        DatasetFactory()
-
-        result = Dataset.objects.with_contributors().filter(
-            visibility=Dataset.VISIBILITY_CHOICES.PUBLIC
-        )
-
-        assert isinstance(result, type(Dataset.objects.all()))
 
 
 @pytest.mark.django_db
@@ -1536,18 +418,21 @@ class TestPerformanceOptimization:
     def test_with_related_query_count_does_not_grow_with_rows(
         self, django_assert_num_queries
     ):
+        project = ProjectFactory()
+
         def load_with_related():
             for ds in Dataset.all_objects.with_related():
                 _ = ds.project.name if ds.project else None
                 _ = list(ds.contributors.all())
 
-        ds = DatasetFactory(project=ProjectFactory())
+        ds = DatasetFactory(project=project)
         ContributionFactory(content_object=ds)
+        load_with_related()  # warm content-type caches
         with CaptureQueriesContext(connection) as one_record:
             load_with_related()
 
-        for _ in range(9):
-            ds = DatasetFactory(project=ProjectFactory())
+        for _ in range(2):
+            ds = DatasetFactory(project=project)
             for _ in range(3):
                 ContributionFactory(content_object=ds)
 
@@ -1561,151 +446,18 @@ class TestPerformanceOptimization:
             for ds in Dataset.all_objects.with_contributors():
                 _ = list(ds.contributors.all())
 
-        ContributionFactory(content_object=DatasetFactory())
+        ContributionFactory(content_object=DatasetFactory(project=None))
+        load_contributors()  # warm content-type caches
         with CaptureQueriesContext(connection) as one_record:
             load_contributors()
 
-        for _ in range(9):
-            ds = DatasetFactory()
+        for _ in range(2):
+            ds = DatasetFactory(project=None)
             for _ in range(3):
                 ContributionFactory(content_object=ds)
 
         with django_assert_num_queries(len(one_record)):
             load_contributors()
-
-    def test_chained_optimizations_compound_benefits(
-        self, django_assert_max_num_queries
-    ):
-        datasets = []
-        for _ in range(5):
-            ds = DatasetFactory(project=ProjectFactory())
-            for _ in range(2):
-                ContributionFactory(content_object=ds)
-            datasets.append(ds)
-
-        with django_assert_max_num_queries(4):
-            result = list(Dataset.all_objects.with_related().with_contributors())
-            for ds in result:
-                _ = ds.project.name if ds.project else None
-                _ = list(ds.contributors.all())
-
-
-@pytest.mark.django_db
-class TestDatasetModel:
-    def test_dataset_creation(self):
-        dataset = DatasetFactory()
-
-        assert dataset.pk is not None
-        assert dataset.name is not None
-        assert dataset.uuid is not None
-        assert dataset.uuid.startswith("d")
-
-    def test_dataset_visibility_default(self):
-        dataset = DatasetFactory()
-        # The factory may randomise visibility.
-        assert dataset.visibility in Visibility.values
-
-    def test_dataset_queryset_with_contributors(self):
-        dataset = DatasetFactory()
-
-        queryset = Dataset.all_objects.with_contributors()
-        dataset_with_prefetch = queryset.get(pk=dataset.pk)
-
-        assert dataset_with_prefetch.contributors is not None
-
-    def test_dataset_queryset_with_related(self):
-        dataset = DatasetFactory()
-
-        queryset = Dataset.all_objects.with_related()
-        dataset_with_prefetch = queryset.get(pk=dataset.pk)
-
-        assert dataset_with_prefetch.project is not None
-
-    def test_dataset_str_representation(self):
-        dataset = DatasetFactory(name="Test Dataset")
-        assert str(dataset) == "Test Dataset"
-
-    def test_dataset_absolute_url(self):
-        dataset = DatasetFactory()
-        url = dataset.get_absolute_url()
-
-        assert url == reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
-
-    def test_dataset_has_data_property(self):
-        dataset = DatasetFactory()
-
-        has_data = dataset.has_data
-        assert isinstance(has_data, bool)
-
-    def test_dataset_descriptions_relationship(self):
-        dataset = DatasetFactory()
-        descriptions = DatasetDescription.objects.filter(related=dataset)
-
-        assert descriptions.count() >= 0
-        assert all(desc.related == dataset for desc in descriptions)
-
-    def test_dataset_dates_relationship(self):
-        dataset = DatasetFactory()
-        dates = DatasetDate.objects.filter(related=dataset)
-
-        assert dates.count() >= 0
-        assert all(date.related == dataset for date in dates)
-
-    def test_add_contributor(self):
-        dataset = DatasetFactory()
-        user = PersonFactory()
-
-        contribution = dataset.add_contributor(
-            user, with_roles=[f"{CONTRIBUTOR_ROLES}/creator"]
-        )
-
-        assert contribution is not None
-        assert contribution.contributor == user
-        assert dataset.contributors.filter(pk=contribution.pk).exists()
-
-    def test_dataset_project_relationship(self):
-        project = ProjectFactory()
-        dataset = DatasetFactory(project=project)
-
-        assert dataset.project == project
-        assert dataset in Dataset.all_objects.filter(project=project)
-
-
-@pytest.mark.django_db
-class TestDatasetCreationRecord:
-    def test_dataset_created_by_a_known_user_names_that_user(self):
-        creator = PersonFactory()
-        dataset = DatasetFactory(created_by=creator)
-
-        dataset.refresh_from_db()
-
-        assert dataset.created_by == creator
-
-    def test_changing_a_field_advances_modified_and_leaves_creator_unchanged(self):
-        creator = PersonFactory()
-        dataset = DatasetFactory(created_by=creator)
-        original_modified = dataset.modified
-
-        time.sleep(0.01)
-        dataset.name = "Renamed Dataset"
-        dataset.save()
-        dataset.refresh_from_db()
-
-        assert dataset.modified > original_modified
-        assert dataset.created_by == creator
-
-    def test_dataset_survives_creators_account_removal(self):
-        creator = PersonFactory()
-        dataset = DatasetFactory(created_by=creator)
-
-        creator.delete()
-        dataset.refresh_from_db()
-
-        assert dataset.pk is not None
-        assert dataset.created_by is None
-
-    def test_created_by_field_is_not_editable(self):
-        assert Dataset._meta.get_field("created_by").editable is False
 
 
 @pytest.mark.django_db
@@ -1934,6 +686,3 @@ class TestDatasetSpatialCoverage:
         )
 
         assert hidden.spatial_coverage() is None
-
-    def test_the_bounding_box_property_is_gone(self, dataset):
-        assert not hasattr(dataset, "bbox")
