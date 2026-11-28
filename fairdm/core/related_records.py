@@ -4,7 +4,6 @@ Covers the models built on ``AbstractDate`` and ``AbstractIdentifier``
 (``fairdm/core/abstract.py``), each edited as a row set on its record's key dates or identifiers page.
 """
 
-from django.utils.translation import gettext_lazy as _
 from mvp.views.inline import InlineFormSet
 
 from .dataset.models import DatasetDate, DatasetIdentifier
@@ -89,9 +88,7 @@ class ProjectDatesInline(ProjectDateInline):
     formset = date_ordering_formset(
         ProjectDate.START_TYPE,
         ProjectDate.END_TYPE,
-        _(
-            "The project's end date (%(end)s) cannot be before its start date (%(start)s)."
-        ),
+        ProjectDate.END_BEFORE_START_MESSAGE,
     )
 
 
@@ -101,8 +98,5 @@ class DatasetDatesInline(DatasetDateInline):
     formset = date_ordering_formset(
         DatasetDate.START_TYPE,
         DatasetDate.END_TYPE,
-        _(
-            "The dataset's collection end date (%(end)s) cannot be before its "
-            "collection start date (%(start)s)."
-        ),
+        DatasetDate.END_BEFORE_START_MESSAGE,
     )

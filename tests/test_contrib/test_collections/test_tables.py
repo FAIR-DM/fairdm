@@ -1,5 +1,6 @@
 """Tests for the collections tables."""
 
+import django_tables2 as tables
 import pytest
 from django.contrib.gis.geos import Point
 from django.urls import reverse
@@ -7,6 +8,7 @@ from django.utils import timezone
 
 from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 from demo.models import ExampleMeasurement, RockSample
+from fairdm.contrib.collections.tables import BaseTable
 from fairdm.contrib.collections.views import DataTableView
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.sample.models import Sample
@@ -60,6 +62,38 @@ class TestColumnHeaderTitleFromHelpText:
         field = Sample._meta.get_field("id")
         assert not field.help_text
         assert "title" not in bound_column.attrs["th"]
+
+
+@pytest.mark.django_db
+class TestColumnClassesFromAnAccessor:
+    @pytest.mark.parametrize("accessor", ["dataset", "dataset__name"])
+    @pytest.mark.filterwarnings("ignore:Use '__' to separate path components")
+    def test_a_column_takes_its_type_class_from_the_first_part_of_its_accessor(
+        self, accessor
+    ):
+        class Listing(BaseTable):
+            related = tables.Column(accessor=accessor)
+
+            class Meta:
+                model = Sample
+                fields = ("related",)
+
+        column = Listing(Sample.objects.none()).columns["related"]
+
+        assert "rel" in column.attrs["th"]["class"].split()
+
+    def test_a_dotted_accessor_is_read_the_same_way(self):
+        class Listing(BaseTable):
+            related = tables.Column(accessor="dataset.name")
+
+            class Meta:
+                model = Sample
+                fields = ("related",)
+
+        with pytest.warns(DeprecationWarning, match="separate path components"):
+            column = Listing(Sample.objects.none()).columns["related"]
+
+        assert "rel" in column.attrs["th"]["class"].split()
 
 
 @pytest.mark.django_db
@@ -166,6 +200,8 @@ class TestOrdering:
 
 
 @pytest.mark.django_db
+# The suite ignores warnings it does not name, so a dotted accessor would go unseen.
+@pytest.mark.filterwarnings("error:Use '__' to separate path components")
 class TestLocationColumns:
     """AS 2.12 to 2.14 and FR-027: latitude and longitude read the record's location."""
 

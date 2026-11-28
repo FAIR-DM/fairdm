@@ -95,12 +95,18 @@ def run_migrate(databases, *arguments):
     )
 
 
+@pytest.fixture(scope="class")
+def migration_loader():
+    """Read every migration module once for the class: the loader is only read from."""
+    with override_settings(MIGRATION_MODULES=REAL_MIGRATION_MODULES):
+        return MigrationLoader(None, ignore_no_migrations=True)
+
+
 @override_settings(MIGRATION_MODULES=REAL_MIGRATION_MODULES)
 # makemigrations runs with translations off, so a translated verbose_name reads as its source.
 @translation.override(None)
-def first_party_apps_missing_a_migration():
+def first_party_apps_missing_a_migration(loader):
     """Return the labels of first-party apps whose models differ from their migrations."""
-    loader = MigrationLoader(None, ignore_no_migrations=True)
     autodetector = MigrationAutodetector(
         loader.project_state(),
         ProjectState.from_apps(global_apps),
@@ -111,9 +117,9 @@ def first_party_apps_missing_a_migration():
 
 
 class TestMigrations:
-    def test_every_model_change_has_a_migration(self):
+    def test_every_model_change_has_a_migration(self, migration_loader):
         # Nothing in CI ran `makemigrations --check`, so #229 shipped model changes with no migration.
-        ours = first_party_apps_missing_a_migration()
+        ours = first_party_apps_missing_a_migration(migration_loader)
 
         assert not ours, (
             f"These apps have model changes with no migration: {', '.join(ours)}. "
@@ -121,12 +127,14 @@ class TestMigrations:
             "and commit the result."
         )
 
-    def test_the_language_left_active_by_another_test_changes_nothing(self):
+    def test_the_language_left_active_by_another_test_changes_nothing(
+        self, migration_loader
+    ):
         # A test that left German active made every app look unmigrated, now and then (#416).
         with translation.override("de"):
-            in_german = first_party_apps_missing_a_migration()
+            in_german = first_party_apps_missing_a_migration(migration_loader)
 
-        assert in_german == first_party_apps_missing_a_migration()
+        assert in_german == first_party_apps_missing_a_migration(migration_loader)
 
 
 # Both tests share one class, so they run on one worker, and `default` is migrated once:

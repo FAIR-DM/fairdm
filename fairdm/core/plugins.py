@@ -23,7 +23,11 @@ from fairdm.contrib.contributors.models import Contribution, Contributor
 from fairdm.contrib.plugins import Plugin
 from fairdm.contrib.plugins import reverse as plugin_reverse
 from fairdm.core.citation import FORMATS, Citation, CitedName
-from fairdm.core.overview import describe_coverage, format_authors, sentence_case
+from fairdm.core.overview import (
+    describe_coverage,
+    format_authors,
+    sentence_case,
+)
 from fairdm.core.vocabularies import DOI, IGSN
 from fairdm.views import FairDMTemplateView
 
@@ -142,10 +146,13 @@ class RecordOverviewPlugin(OverviewPlugin):
         people_named: How many credits the People panel names, with their roles.
         people_faces: How many faces it draws after them before it counts the rest.
         resolvable_identifier_types: The identifier types that link to doi.org.
+        map_counts_datasets: Whether the map panel counts the datasets its samples
+            come from.
     """
 
     people_named = 6
     people_faces = 10
+    map_counts_datasets = False
     resolvable_identifier_types = (DOI, IGSN)
     extra_views = [CitationFile]
 
@@ -643,6 +650,32 @@ class RecordOverviewPlugin(OverviewPlugin):
             result["bounds"] = [west, south, east + 360 if west > east else east, north]
             result["area"] = describe_coverage(coverage)
         return result
+
+    def add_sample_map(self, page, samples):
+        """Put the samples map in the page's context.
+
+        The coverage is the record's own and the points address is the record's
+        ``overview-sample-points`` route, so a project and a dataset share this wiring.
+
+        Args:
+            page: The context dictionary being built. ``sample_map`` is set, and
+                ``has_map`` when a sample is located, so the page loads the map library
+                only then.
+            samples: The samples the map draws.
+        """
+        record = self.base_object
+        try:
+            points_url = plugin_reverse(record, "overview-sample-points")
+        except NoReverseMatch:
+            points_url = None
+        page["sample_map"] = self.get_sample_map(
+            samples,
+            record.spatial_coverage(self.request.user),
+            points_url,
+            count_datasets=self.map_counts_datasets,
+        )
+        if page["sample_map"] and page["sample_map"]["located"]:
+            page["has_map"] = True
 
     def get_growth_chart(self, samples, measurements) -> dict[str, Any] | None:
         """Draw the cumulative samples and measurements by month, two series on one count axis.

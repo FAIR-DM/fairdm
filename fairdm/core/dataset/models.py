@@ -10,7 +10,6 @@ from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 from licensing.fields import LicenseField
 from model_utils import FieldTracker
-from partial_dates import Relation
 from shortuuid.django_fields import ShortUUIDField
 
 from fairdm.db import models
@@ -506,48 +505,15 @@ class DatasetDate(AbstractDate):
 
     START_TYPE = f"{DATE_TYPES}/collection-start"
     END_TYPE = f"{DATE_TYPES}/collection-end"
+    END_BEFORE_START_MESSAGE = _(
+        "The dataset's collection end date (%(end)s) cannot be before its collection "
+        "start date (%(start)s)."
+    )
 
     class Meta(AbstractDate.Meta):
         indexes = [
             models.Index(fields=["type"], name="dataset_date_type_idx"),
         ]
-
-    def clean(self):
-        """Refuse a collection end date that precedes the collection start date."""
-        # Start and end are separate rows, so the rule compares against the sibling row.
-        super().clean()
-
-        if not self.related_id or not self.value:
-            return
-
-        if self.type_id == self.START_TYPE:
-            start_value, end_value = self.value, self._sibling_value(self.END_TYPE)
-        elif self.type_id == self.END_TYPE:
-            start_value, end_value = self._sibling_value(self.START_TYPE), self.value
-        else:
-            return
-
-        if start_value is None or end_value is None:
-            return
-
-        if end_value.relation_to(start_value) is Relation.BEFORE:
-            raise ValidationError(
-                {
-                    "value": _(
-                        "The dataset's collection end date (%(end)s) cannot "
-                        "be before its collection start date (%(start)s)."
-                    )
-                    % {"start": start_value, "end": end_value}
-                }
-            )
-
-    def _sibling_value(self, type_):
-        """Return the value of this dataset's other date of `type_`, if any."""
-        queryset = DatasetDate.objects.filter(related_id=self.related_id, type=type_)
-        if self.pk:
-            queryset = queryset.exclude(pk=self.pk)
-        sibling = queryset.first()
-        return sibling.value if sibling else None
 
 
 class DatasetIdentifier(AbstractIdentifier):

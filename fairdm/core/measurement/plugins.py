@@ -174,13 +174,11 @@ class Overview(TypedOverviewPlugin):
         """Read the sample's status label and badge colour, as its own page shows them.
 
         Returns:
-            The label and colour, or ``None`` when the sample records no status.
+            The label and colour.
         """
         from fairdm.core.sample.plugins import Overview as SampleOverview
 
         sample = self.base_object.sample
-        if not sample.status_id:
-            return None
         return {
             "label": sample.get_status_label(),
             "variant": SampleOverview.status_variants.get(sample.status_id, "neutral"),

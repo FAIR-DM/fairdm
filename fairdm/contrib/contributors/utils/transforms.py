@@ -248,7 +248,9 @@ class SchemaOrgTransform(BaseTransform):
                     "name": affiliation.organization.name,
                 }
                 if ror_id := affiliation.organization.get_default_identifier():
-                    data["affiliation"]["@id"] = f"https://ror.org/{ror_id.value}"
+                    data["affiliation"]["@id"] = (
+                        f"https://ror.org/{RORTransform.clean_ror_id(ror_id.value)}"
+                    )
 
         else:
             data = {
@@ -257,7 +259,7 @@ class SchemaOrgTransform(BaseTransform):
             }
 
             if ror := contributor.get_default_identifier():
-                data["@id"] = f"https://ror.org/{ror.value}"
+                data["@id"] = f"https://ror.org/{RORTransform.clean_ror_id(ror.value)}"
 
         if getattr(contributor, "location", None) is not None:
             data["address"] = {
@@ -724,7 +726,10 @@ class RORTransform(BaseTransform):
 
         ror = contributor.get_default_identifier()
         ror_value = ror.value if ror and ror.type_id == ROR else None
-        ror_url = f"https://ror.org/{ror_value}" if ror_value else None
+        # The stored value is a bare identifier or already the full address.
+        ror_url = (
+            f"https://ror.org/{self.clean_ror_id(ror_value)}" if ror_value else None
+        )
 
         data = {
             "id": ror_url,

@@ -79,7 +79,7 @@
           <div class="ov-row__main">
             <div class="ov-badges">
               <span class="record-tag record-sample"><c-icon name="sample" aria-hidden="true" only />{{ sample_type }}</span>
-              {% if sample_status %}<c-overview.status variant="{{ sample_status.variant }}">{{ sample_status.label }}</c-overview.status>{% endif %}
+              <c-overview.status variant="{{ sample_status.variant }}">{{ sample_status.label }}</c-overview.status>
             </div>
             <a href="{{ sample.get_absolute_url }}" class="ov-specimen__name">{{ sample }}</a>
             <div class="ov-row__meta">

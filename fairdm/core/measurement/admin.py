@@ -35,10 +35,9 @@ class MeasurementDatasetListFilter(admin.RelatedFieldListFilter):
         ]
 
 
-class MeasurementDescriptionInline(admin.StackedInline):
-    """Inline admin for measurement descriptions, capped at one row per vocabulary type."""
+class OneRowPerTypeInline(admin.StackedInline):
+    """Inline admin for typed records, capped at one row per vocabulary type."""
 
-    model = MeasurementDescription
     extra = 0
 
     def get_max_num(self, request, obj=None, **kwargs):
@@ -46,26 +45,22 @@ class MeasurementDescriptionInline(admin.StackedInline):
         return len(self.model.get_type_concepts())
 
 
-class MeasurementDateInline(admin.StackedInline):
+class MeasurementDescriptionInline(OneRowPerTypeInline):
+    """Inline admin for measurement descriptions: one row at most per type."""
+
+    model = MeasurementDescription
+
+
+class MeasurementDateInline(OneRowPerTypeInline):
     """Inline admin for measurement dates, capped at one row per vocabulary type."""
 
     model = MeasurementDate
-    extra = 0
-
-    def get_max_num(self, request, obj=None, **kwargs):
-        """Allow one row for each type the collection offers."""
-        return len(self.model.get_type_concepts())
 
 
-class MeasurementIdentifierInline(admin.StackedInline):
+class MeasurementIdentifierInline(OneRowPerTypeInline):
     """Inline admin for measurement identifiers, capped at one row per vocabulary type."""
 
     model = MeasurementIdentifier
-    extra = 0
-
-    def get_max_num(self, request, obj=None, **kwargs):
-        """Allow one row for each type the collection offers."""
-        return len(self.model.get_type_concepts())
 
 
 class MeasurementContributionInline(GenericTabularInline):

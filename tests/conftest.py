@@ -1,10 +1,5 @@
 """Root-level pytest configuration for FairDM tests."""
 
-import random
-import zlib
-
-import factory.random
-import faker
 import pytest
 from bs4 import BeautifulSoup
 from django.core.management import call_command
@@ -20,21 +15,6 @@ def pytest_collection_modifyitems(items):
     slow test collected late starts late and sets the suite's wall time.
     """
     items.sort(key=lambda item: item.get_closest_marker("slow") is None)
-
-
-@pytest.hookimpl(tryfirst=True)
-def pytest_runtest_setup(item):
-    """Seed every random source from the test's id before any fixture builds data.
-
-    Faker, factory_boy and ``random`` draw the same values on every run of a test and
-    different values from one test to the next, so a failure reproduces and tests do
-    not collide on a unique field. This runs ahead of fixture setup, which includes the
-    class- and module-scoped fixtures.
-    """
-    seed = zlib.crc32(item.nodeid.encode())
-    factory.random.reseed_random(seed)
-    faker.Faker.seed(seed)
-    random.seed(seed)
 
 
 def seed_session_data():

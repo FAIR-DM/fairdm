@@ -7,9 +7,11 @@ from django.db import connection
 from fairdm.core.abstract import DESCRIPTION_MAX_LENGTH
 from fairdm.core.dataset.models import DatasetDescription
 from fairdm.core.measurement.models import Measurement
+from fairdm.core.project.models import ProjectDate
 from fairdm.core.sample.models import Sample
 from fairdm.core.vocabularies import (
     CONTRIBUTOR_ROLES,
+    DATE_TYPES,
     DESCRIPTION_TYPES,
     IDENTIFIER_TYPES,
 )
@@ -289,3 +291,70 @@ class TestIdentifierUniqueness:
         )
 
         stored.clean()
+
+
+@pytest.mark.django_db
+class TestEndDateNotBeforeStart:
+    """The rule every record's dates share.
+
+    ``ProjectDate`` stands for any record that sets ``START_TYPE`` and ``END_TYPE``.
+    """
+
+    @pytest.fixture
+    def project(self):
+        return ProjectFactory()
+
+    @staticmethod
+    def start(project, value):
+        return ProjectDate.objects.create(
+            related=project, type_id=ProjectDate.START_TYPE, value=value
+        )
+
+    @staticmethod
+    def end(project, value):
+        return ProjectDate(related=project, type_id=ProjectDate.END_TYPE, value=value)
+
+    def test_an_end_before_the_start_is_refused_naming_both_dates(self, project):
+        self.start(project, "2020-06-01")
+
+        with pytest.raises(ValidationError) as exc_info:
+            self.end(project, "2019-05-01").full_clean()
+
+        message = str(exc_info.value)
+        assert "2020-06-01" in message
+        assert "2019-05-01" in message
+
+    def test_moving_the_start_after_an_existing_end_is_refused(self, project):
+        start = self.start(project, "2020-01-01")
+        self.end(project, "2020-12-31").save()
+
+        start.value = "2021-01-01"
+        with pytest.raises(ValidationError):
+            start.full_clean()
+
+    def test_an_end_with_no_start_is_accepted(self, project):
+        self.end(project, "2024-06-15").full_clean()
+
+    def test_the_comparison_stops_at_the_coarser_precision(self, project):
+        self.start(project, "2020-06")
+
+        self.end(project, "2020").full_clean()
+
+        with pytest.raises(ValidationError):
+            self.end(project, "2020-03").full_clean()
+
+    def test_a_date_model_that_gives_no_message_is_never_compared(
+        self, project, monkeypatch
+    ):
+        monkeypatch.setattr(ProjectDate, "END_BEFORE_START_MESSAGE", None)
+        self.start(project, "2020-06-01")
+
+        self.end(project, "2019-05-01").full_clean()
+
+    def test_a_date_of_another_type_is_never_compared(self, project):
+        self.start(project, "2020-06-01")
+        other = ProjectDate(
+            related=project, type_id=f"{DATE_TYPES}/created", value="2019-01-01"
+        )
+
+        other.clean()

@@ -210,7 +210,7 @@ A project and a dataset each carry typed rows. A row model exists for each pair,
 | Dates | The date types | A partial date: a year, a year and month, or a full date. See [Model fields](model-fields.md). | One row of each type for each record. The end may not be before the start. |
 | Identifiers | The identifier types | Text of at most 255 characters. | One row of each type for each record. The value is unique across every kind of record. |
 
-`type` is a `ConceptField` limited to the record's collection of the vocabulary, and holds the concept's address: the vocabulary's address, a slash and the identifier listed below. The start and end types are `start` and `end` for a project, `ProjectDate.START_TYPE` and `ProjectDate.END_TYPE`, and `collection-start` and `collection-end` for a dataset. The end is compared with the start at the coarser of their two precisions.
+`type` is a `ConceptField` limited to the record's collection of the vocabulary, and holds the concept's address: the vocabulary's address, a slash and the identifier listed below. The start and end types are `start` and `end` for a project, and `collection-start` and `collection-end` for a dataset. The rule lives in `AbstractDate`, which reads the two types from `START_TYPE` and `END_TYPE` and the wording of the error from `END_BEFORE_START_MESSAGE`. A date model sets those three attributes to opt in. The end is compared with the start at the coarser of their two precisions.
 
 The types each record accepts, by identifier, in the order its collection lists them:
 

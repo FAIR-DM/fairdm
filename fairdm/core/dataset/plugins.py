@@ -187,13 +187,7 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
                 "keywords": safe_reverse("dataset:keywords", uuid=dataset.uuid),
             },
         }
-        page["sample_map"] = self.get_sample_map(
-            self.get_map_samples(),
-            dataset.spatial_coverage(user),
-            safe_reverse("dataset:overview-sample-points", uuid=dataset.uuid),
-        )
-        if page["sample_map"] and page["sample_map"]["located"]:
-            page["has_map"] = True
+        self.add_sample_map(page, self.get_map_samples())
         page["counts"]["publications"] = len(page["literature"]["items"])
         page["citation"] = self.get_citation_details(page)
         page["json_ld"] = json_ld(self.get_schema_org(page))

@@ -298,7 +298,7 @@ class TestDatasetDescription:
 
 @pytest.mark.django_db
 class TestDatasetDate:
-    def test_collection_end_before_start_is_refused_naming_both_dates(self):
+    def test_a_collection_end_before_the_start_is_refused_on_the_value(self):
         dataset = DatasetFactory()
         DatasetDate.objects.create(
             related=dataset, type_id=DatasetDate.START_TYPE, value="2020-06-01"
@@ -310,51 +310,7 @@ class TestDatasetDate:
         with pytest.raises(ValidationError) as exc_info:
             end.full_clean()
 
-        message = str(exc_info.value)
-        assert "2020-06-01" in message
-        assert "2019-05-01" in message
-
-    def test_moving_start_after_existing_end_is_refused(self):
-        dataset = DatasetFactory()
-        start = DatasetDate.objects.create(
-            related=dataset, type_id=DatasetDate.START_TYPE, value="2020-01-01"
-        )
-        DatasetDate.objects.create(
-            related=dataset, type_id=DatasetDate.END_TYPE, value="2020-12-31"
-        )
-
-        start.value = "2021-01-01"
-        with pytest.raises(ValidationError):
-            start.full_clean()
-
-    def test_collection_end_with_no_start_is_accepted(self):
-        dataset = DatasetFactory()
-        end = DatasetDate(
-            related=dataset, type_id=DatasetDate.END_TYPE, value="2024-06-15"
-        )
-
-        end.full_clean()
-
-    def test_year_only_end_in_same_year_as_month_precision_start_is_accepted(self):
-        dataset = DatasetFactory()
-        DatasetDate.objects.create(
-            related=dataset, type_id=DatasetDate.START_TYPE, value="2020-06"
-        )
-
-        end = DatasetDate(related=dataset, type_id=DatasetDate.END_TYPE, value="2020")
-        end.full_clean()
-
-    def test_month_precision_end_before_month_precision_start_is_refused(self):
-        dataset = DatasetFactory()
-        DatasetDate.objects.create(
-            related=dataset, type_id=DatasetDate.START_TYPE, value="2020-06"
-        )
-
-        end = DatasetDate(
-            related=dataset, type_id=DatasetDate.END_TYPE, value="2020-03"
-        )
-        with pytest.raises(ValidationError):
-            end.full_clean()
+        assert "value" in exc_info.value.message_dict
 
 
 @pytest.mark.django_db
@@ -494,6 +450,8 @@ class TestDatasetQuerySetGetVisible:
 
 @pytest.mark.django_db
 class TestMoveKeepsManager:
+    """``RecordAccess`` tests the rule. This keeps the dataset's wiring of it."""
+
     def refusal_code(self, dataset):
         with pytest.raises(ValidationError) as refused:
             dataset.clean()
@@ -503,58 +461,6 @@ class TestMoveKeepsManager:
         project = ProjectFactory()
         make_manager(project)
         dataset = DatasetFactory(project=project)
-        dataset.project = ProjectFactory()
-
-        assert self.refusal_code(dataset) == "no_manager"
-
-    def test_a_move_to_a_project_with_a_manager_passes(self, make_manager):
-        project, other = ProjectFactory(), ProjectFactory()
-        make_manager(project)
-        make_manager(other)
-        dataset = DatasetFactory(project=project)
-        dataset.project = other
-
-        dataset.clean()
-
-    def test_a_move_keeps_a_manager_listed_on_the_dataset(self, make_manager):
-        project = ProjectFactory()
-        dataset = DatasetFactory(project=project)
-        make_manager(dataset)
-        dataset.project = ProjectFactory()
-
-        dataset.clean()
-
-    def test_a_move_out_of_a_project_is_refused(self, make_manager):
-        project = ProjectFactory()
-        make_manager(project)
-        dataset = DatasetFactory(project=project)
-        dataset.project = None
-
-        assert self.refusal_code(dataset) == "no_manager"
-
-    def test_a_dataset_that_had_no_manager_may_move_anywhere(self):
-        dataset = DatasetFactory(project=ProjectFactory())
-        dataset.project = ProjectFactory()
-
-        dataset.clean()
-
-    def test_a_new_dataset_is_never_refused(self):
-        dataset = Dataset(name="New", project=ProjectFactory())
-
-        dataset.clean()
-
-    def test_a_dataset_whose_project_did_not_change_passes(self, make_manager):
-        project = ProjectFactory()
-        make_manager(project)
-        dataset = DatasetFactory(project=project)
-        dataset.name = "Renamed"
-
-        dataset.clean()
-
-    def test_a_private_dataset_is_found_for_the_comparison(self, make_manager):
-        project = ProjectFactory()
-        make_manager(project)
-        dataset = DatasetFactory(project=project, visibility=Visibility.PRIVATE)
         dataset.project = ProjectFactory()
 
         assert self.refusal_code(dataset) == "no_manager"

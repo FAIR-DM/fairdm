@@ -13,8 +13,6 @@ from fairdm.core.measurement.admin import MeasurementChildAdmin, MeasurementPare
 from fairdm.core.measurement.models import (
     Measurement,
     MeasurementDate,
-    MeasurementDescription,
-    MeasurementIdentifier,
 )
 from fairdm.factories import PersonFactory
 from fairdm.registry import registry
@@ -172,28 +170,15 @@ class TestMeasurementContributionInlineRoleVocabulary:
 
 @pytest.mark.django_db
 class TestMeasurementAdminInlineRowCaps:
-    def test_description_inline_row_cap_matches_vocabulary(self):
-        from fairdm.core.measurement.admin import MeasurementDescriptionInline
+    def test_a_typed_inline_allows_one_row_for_each_type_the_collection_offers(self):
+        from fairdm.core.measurement.admin import OneRowPerTypeInline
 
-        assert MeasurementDescriptionInline(Measurement, admin.site).get_max_num(
-            None
-        ) == len(
-            [concept.uri for concept in MeasurementDescription.get_type_concepts()]
+        class DateInline(OneRowPerTypeInline):
+            model = MeasurementDate
+
+        assert DateInline(Measurement, admin.site).get_max_num(None) == len(
+            MeasurementDate.get_type_concepts()
         )
-
-    def test_date_inline_row_cap_matches_vocabulary(self):
-        from fairdm.core.measurement.admin import MeasurementDateInline
-
-        assert MeasurementDateInline(Measurement, admin.site).get_max_num(None) == len(
-            [concept.uri for concept in MeasurementDate.get_type_concepts()]
-        )
-
-    def test_identifier_inline_row_cap_matches_vocabulary(self):
-        from fairdm.core.measurement.admin import MeasurementIdentifierInline
-
-        assert MeasurementIdentifierInline(Measurement, admin.site).get_max_num(
-            None
-        ) == len([concept.uri for concept in MeasurementIdentifier.get_type_concepts()])
 
     def test_contribution_inline_is_not_row_capped(self):
         from fairdm.core.measurement.admin import MeasurementContributionInline
