@@ -22,10 +22,10 @@ fairdm.backups.management
 :titlesonly:
 :maxdepth: 1
 
-fairdm.backups.tasks
-fairdm.backups.media
-fairdm.backups.run
 fairdm.backups.signals
+fairdm.backups.run
 fairdm.backups.keys
+fairdm.backups.media
 fairdm.backups.apps
+fairdm.backups.tasks
 ```

@@ -11,11 +11,11 @@
 <meta property="og:description" content="Inline formsets and forms for identifiers and affiliations. Module Contents: Classes:,, UserIdentifierFormSet, Identifier formset that tells each form which types the other identifiers already use...." />
 <meta name="description" content="Inline formsets and forms for identifiers and affiliations. Module Contents: Classes:,, UserIdentifierFormSet, Identifier formset that tells each form which types the other identifiers already use...." />
 
-    <title>fairdm.contrib.contributors.forms.forms &#8212; fairdm 0.7.0 documentation</title>
+    <title>fairdm.contrib.contributors.forms.forms &#8212; fairdm 0.7.1 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/sphinx-daisyui.css?v=aedd34d4" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/sphinx-design.min.css?v=95c83b7e" />
-    <script src="../../../../_static/documentation_options.js?v=d87af0f4"></script>
+    <script src="../../../../_static/documentation_options.js?v=bcb520b0"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,8 +58,8 @@ commentsRunWhenDOMLoaded(addUtterances);
     <link rel="icon" href="../../../../_static/icon.svg"/>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
-    <link rel="next" title="fairdm.contrib.contributors.forms.organization" href="fairdm.contrib.contributors.forms.organization.html" />
-    <link rel="prev" title="fairdm.contrib.contributors.forms" href="fairdm.contrib.contributors.forms.html" /> 
+    <link rel="next" title="fairdm.contrib.contributors.forms.profile" href="fairdm.contrib.contributors.forms.profile.html" />
+    <link rel="prev" title="fairdm.contrib.contributors.forms.person" href="fairdm.contrib.contributors.forms.person.html" /> 
   <meta name="color-scheme" content="light dark">
   <script src="../../../../_static/scripts/mode.js" data-light-theme="light" data-dark-theme="dark" data-default-mode="auto" data-themes=""></script>
   <script defer src="../../../../_static/scripts/keys.js"></script>
@@ -313,27 +313,27 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../registry.html">The registry</a></li>
 <li class="daisy-nav-item daisy-nav-branch"><a class="daisy-nav-link daisy-on-path reference internal" href="../../python-api.html">Python API</a><button type="button" class="daisy-nav-toggle btn btn-ghost btn-xs btn-square" aria-expanded="true" aria-label="Show the pages in Python API"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m9 18 6-6-6-6" /> </svg></button><ul class="daisy-nav-list">
 <li class="daisy-nav-item daisy-nav-branch"><a class="daisy-nav-link daisy-on-path reference internal" href="fairdm.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm</span></code></a><button type="button" class="daisy-nav-toggle btn btn-ghost btn-xs btn-square" aria-expanded="true" aria-label="Show the pages in fairdm"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m9 18 6-6-6-6" /> </svg></button><ul class="daisy-nav-list">
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.registry.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.registry</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.backups.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.backups</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core</span></code></a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.views.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.views</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.conf.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.conf</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.forms.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.forms</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.registry.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.registry</span></code></a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.db.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.db</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.api.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.factories.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.factories</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.templatetags.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.templatetags</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.backups.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.backups</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.conf.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.conf</span></code></a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.management.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.management</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.templatetags.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.templatetags</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils</span></code></a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link daisy-on-path reference internal" href="fairdm.contrib.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.api.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.forms.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.forms</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.factories.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.factories</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core</span></code></a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.models.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.models</span></code></a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.search.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.search</span></code></a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.plugins.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.plugins</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.config.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.config</span></code></a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.permissions.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.permissions</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.menus.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.menus</span></code></a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.portal_roles.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.portal_roles</span></code></a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.apps.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.apps</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.menus.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.menus</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.config.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.config</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -553,12 +553,12 @@ organization: The organisation joined.</p>
         </article>
         
           <nav class="daisy-prev-next mt-12 grid gap-3 border-t border-base-300 pt-6 sm:grid-cols-2" aria-label="Previous and next page">
-              <a href="fairdm.contrib.contributors.forms.html" rel="prev" class="group flex items-center gap-3 rounded-box border border-base-300 p-4 transition hover:border-primary/50 hover:bg-base-200 focus-visible:bg-base-200">
+              <a href="fairdm.contrib.contributors.forms.person.html" rel="prev" class="group flex items-center gap-3 rounded-box border border-base-300 p-4 transition hover:border-primary/50 hover:bg-base-200 focus-visible:bg-base-200">
                 <svg class="size-4 shrink-0 opacity-60 transition group-hover:-translate-x-0.5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m12 19-7-7 7-7" /> <path d="M19 12H5" /> </svg>
-                <span class="min-w-0"><span class="daisy-prev-next-label block text-xs">Previous</span><span class="block font-medium"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.contributors.forms</span></code></span></span>
+                <span class="min-w-0"><span class="daisy-prev-next-label block text-xs">Previous</span><span class="block font-medium"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.contributors.forms.person</span></code></span></span>
               </a>
-              <a href="fairdm.contrib.contributors.forms.organization.html" rel="next" class="group flex items-center justify-end gap-3 rounded-box border border-base-300 p-4 text-end transition hover:border-primary/50 hover:bg-base-200 focus-visible:bg-base-200">
-                <span class="min-w-0"><span class="daisy-prev-next-label block text-xs">Next</span><span class="block font-medium"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.contributors.forms.organization</span></code></span></span>
+              <a href="fairdm.contrib.contributors.forms.profile.html" rel="next" class="group flex items-center justify-end gap-3 rounded-box border border-base-300 p-4 text-end transition hover:border-primary/50 hover:bg-base-200 focus-visible:bg-base-200">
+                <span class="min-w-0"><span class="daisy-prev-next-label block text-xs">Next</span><span class="block font-medium"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.contributors.forms.profile</span></code></span></span>
                 <svg class="size-4 shrink-0 opacity-60 transition group-hover:translate-x-0.5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M5 12h14" /> <path d="m12 5 7 7-7 7" /> </svg>
               </a>
           </nav>

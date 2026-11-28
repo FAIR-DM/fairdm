@@ -581,6 +581,39 @@ Bases: {py:obj}`fairdm.core.abstract.GenericModel`
 ```{autodoc2-docstring} fairdm.core.abstract.AbstractDate.__init__
 ```
 
+````{py:attribute} START_TYPE
+:canonical: fairdm.core.abstract.AbstractDate.START_TYPE
+:type: str | None
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.abstract.AbstractDate.START_TYPE
+```
+
+````
+
+````{py:attribute} END_TYPE
+:canonical: fairdm.core.abstract.AbstractDate.END_TYPE
+:type: str | None
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.abstract.AbstractDate.END_TYPE
+```
+
+````
+
+````{py:attribute} END_BEFORE_START_MESSAGE
+:canonical: fairdm.core.abstract.AbstractDate.END_BEFORE_START_MESSAGE
+:type: str | django.utils.functional.Promise | None
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.abstract.AbstractDate.END_BEFORE_START_MESSAGE
+```
+
+````
+
 ````{py:attribute} value
 :canonical: fairdm.core.abstract.AbstractDate.value
 :value: >
@@ -658,6 +691,14 @@ Bases: {py:obj}`fairdm.core.abstract.GenericModel`
 ````
 
 `````
+
+````{py:method} clean()
+:canonical: fairdm.core.abstract.AbstractDate.clean
+
+```{autodoc2-docstring} fairdm.core.abstract.AbstractDate.clean
+```
+
+````
 
 ``````
 

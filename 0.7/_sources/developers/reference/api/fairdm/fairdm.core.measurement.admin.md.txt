@@ -19,6 +19,10 @@
   - ```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementDatasetListFilter
     :summary:
     ```
+* - {py:obj}`OneRowPerTypeInline <fairdm.core.measurement.admin.OneRowPerTypeInline>`
+  - ```{autodoc2-docstring} fairdm.core.measurement.admin.OneRowPerTypeInline
+    :summary:
+    ```
 * - {py:obj}`MeasurementDescriptionInline <fairdm.core.measurement.admin.MeasurementDescriptionInline>`
   - ```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementDescriptionInline
     :summary:
@@ -71,10 +75,44 @@ Bases: {py:obj}`django.contrib.admin.RelatedFieldListFilter`
 
 `````
 
+`````{py:class} OneRowPerTypeInline(parent_model, admin_site)
+:canonical: fairdm.core.measurement.admin.OneRowPerTypeInline
+
+Bases: {py:obj}`django.contrib.admin.StackedInline`
+
+```{autodoc2-docstring} fairdm.core.measurement.admin.OneRowPerTypeInline
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.measurement.admin.OneRowPerTypeInline.__init__
+```
+
+````{py:attribute} extra
+:canonical: fairdm.core.measurement.admin.OneRowPerTypeInline.extra
+:value: >
+   0
+
+```{autodoc2-docstring} fairdm.core.measurement.admin.OneRowPerTypeInline.extra
+```
+
+````
+
+````{py:method} get_max_num(request, obj=None, **kwargs)
+:canonical: fairdm.core.measurement.admin.OneRowPerTypeInline.get_max_num
+
+```{autodoc2-docstring} fairdm.core.measurement.admin.OneRowPerTypeInline.get_max_num
+```
+
+````
+
+`````
+
 `````{py:class} MeasurementDescriptionInline(parent_model, admin_site)
 :canonical: fairdm.core.measurement.admin.MeasurementDescriptionInline
 
-Bases: {py:obj}`django.contrib.admin.StackedInline`
+Bases: {py:obj}`fairdm.core.measurement.admin.OneRowPerTypeInline`
 
 ```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementDescriptionInline
 ```
@@ -95,30 +133,12 @@ Bases: {py:obj}`django.contrib.admin.StackedInline`
 
 ````
 
-````{py:attribute} extra
-:canonical: fairdm.core.measurement.admin.MeasurementDescriptionInline.extra
-:value: >
-   0
-
-```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementDescriptionInline.extra
-```
-
-````
-
-````{py:method} get_max_num(request, obj=None, **kwargs)
-:canonical: fairdm.core.measurement.admin.MeasurementDescriptionInline.get_max_num
-
-```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementDescriptionInline.get_max_num
-```
-
-````
-
 `````
 
 `````{py:class} MeasurementDateInline(parent_model, admin_site)
 :canonical: fairdm.core.measurement.admin.MeasurementDateInline
 
-Bases: {py:obj}`django.contrib.admin.StackedInline`
+Bases: {py:obj}`fairdm.core.measurement.admin.OneRowPerTypeInline`
 
 ```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementDateInline
 ```
@@ -139,30 +159,12 @@ Bases: {py:obj}`django.contrib.admin.StackedInline`
 
 ````
 
-````{py:attribute} extra
-:canonical: fairdm.core.measurement.admin.MeasurementDateInline.extra
-:value: >
-   0
-
-```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementDateInline.extra
-```
-
-````
-
-````{py:method} get_max_num(request, obj=None, **kwargs)
-:canonical: fairdm.core.measurement.admin.MeasurementDateInline.get_max_num
-
-```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementDateInline.get_max_num
-```
-
-````
-
 `````
 
 `````{py:class} MeasurementIdentifierInline(parent_model, admin_site)
 :canonical: fairdm.core.measurement.admin.MeasurementIdentifierInline
 
-Bases: {py:obj}`django.contrib.admin.StackedInline`
+Bases: {py:obj}`fairdm.core.measurement.admin.OneRowPerTypeInline`
 
 ```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementIdentifierInline
 ```
@@ -179,24 +181,6 @@ Bases: {py:obj}`django.contrib.admin.StackedInline`
    None
 
 ```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementIdentifierInline.model
-```
-
-````
-
-````{py:attribute} extra
-:canonical: fairdm.core.measurement.admin.MeasurementIdentifierInline.extra
-:value: >
-   0
-
-```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementIdentifierInline.extra
-```
-
-````
-
-````{py:method} get_max_num(request, obj=None, **kwargs)
-:canonical: fairdm.core.measurement.admin.MeasurementIdentifierInline.get_max_num
-
-```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementIdentifierInline.get_max_num
 ```
 
 ````

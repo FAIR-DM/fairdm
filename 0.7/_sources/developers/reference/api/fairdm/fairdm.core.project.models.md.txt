@@ -521,6 +521,16 @@ Bases: {py:obj}`fairdm.core.abstract.AbstractDate`
 
 ````
 
+````{py:attribute} END_BEFORE_START_MESSAGE
+:canonical: fairdm.core.project.models.ProjectDate.END_BEFORE_START_MESSAGE
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.project.models.ProjectDate.END_BEFORE_START_MESSAGE
+```
+
+````
+
 `````{py:class} Meta
 :canonical: fairdm.core.project.models.ProjectDate.Meta
 
@@ -550,14 +560,6 @@ Bases: {py:obj}`fairdm.core.abstract.AbstractDate.Meta`
 ````
 
 `````
-
-````{py:method} clean()
-:canonical: fairdm.core.project.models.ProjectDate.clean
-
-```{autodoc2-docstring} fairdm.core.project.models.ProjectDate.clean
-```
-
-````
 
 ``````
 

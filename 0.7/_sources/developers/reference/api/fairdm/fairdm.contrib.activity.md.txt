@@ -13,8 +13,8 @@
 :titlesonly:
 :maxdepth: 1
 
-fairdm.contrib.activity.receivers
 fairdm.contrib.activity.plugins
 fairdm.contrib.activity.lines
 fairdm.contrib.activity.apps
+fairdm.contrib.activity.receivers
 ```

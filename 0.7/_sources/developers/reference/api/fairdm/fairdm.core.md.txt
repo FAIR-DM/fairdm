@@ -13,10 +13,10 @@
 :titlesonly:
 :maxdepth: 3
 
-fairdm.core.measurement
-fairdm.core.sample
-fairdm.core.project
 fairdm.core.dataset
+fairdm.core.sample
+fairdm.core.measurement
+fairdm.core.project
 ```
 
 ## Submodules
@@ -26,23 +26,23 @@ fairdm.core.dataset
 :maxdepth: 1
 
 fairdm.core.models
-fairdm.core.citation
-fairdm.core.forms
-fairdm.core.editing
+fairdm.core.descriptions
+fairdm.core.related_records
 fairdm.core.plugins
-fairdm.core.abstract
-fairdm.core.filters
+fairdm.core.overview
+fairdm.core.citation
+fairdm.core.utils
+fairdm.core.urls
+fairdm.core.formsets
 fairdm.core.vocabularies
-fairdm.core.admin
 fairdm.core.permissions
 fairdm.core.managers
+fairdm.core.admin
+fairdm.core.abstract
+fairdm.core.filters
 fairdm.core.image_utils
-fairdm.core.choices
-fairdm.core.utils
-fairdm.core.formsets
-fairdm.core.related_records
-fairdm.core.descriptions
-fairdm.core.overview
-fairdm.core.urls
 fairdm.core.apps
+fairdm.core.editing
+fairdm.core.forms
+fairdm.core.choices
 ```

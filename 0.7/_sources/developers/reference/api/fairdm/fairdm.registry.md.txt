@@ -13,8 +13,8 @@
 :titlesonly:
 :maxdepth: 1
 
-fairdm.registry.config
 fairdm.registry.registry
-fairdm.registry.exceptions
 fairdm.registry.factories
+fairdm.registry.exceptions
+fairdm.registry.config
 ```

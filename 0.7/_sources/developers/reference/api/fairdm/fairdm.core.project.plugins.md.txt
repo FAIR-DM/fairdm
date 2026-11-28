@@ -80,6 +80,16 @@ Bases: {py:obj}`fairdm.contrib.plugins.mixins.PrivateRecordNotFoundMixin`, {py:o
 
 ````
 
+````{py:attribute} map_counts_datasets
+:canonical: fairdm.core.project.plugins.Overview.map_counts_datasets
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.core.project.plugins.Overview.map_counts_datasets
+```
+
+````
+
 ````{py:attribute} check
 :canonical: fairdm.core.project.plugins.Overview.check
 :value: >

@@ -11,11 +11,11 @@
 <meta property="og:description" content="These rules apply to every change in this repository. CONSTITUTION.md makes them binding. The sections above Project additions are shared unchanged with our other repositories, so edit this reposit..." />
 <meta name="description" content="These rules apply to every change in this repository. CONSTITUTION.md makes them binding. The sections above Project additions are shared unchanged with our other repositories, so edit this reposit..." />
 
-    <title>Testing standards &#8212; fairdm 0.7.0 documentation</title>
+    <title>Testing standards &#8212; fairdm 0.7.1 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/styles/sphinx-daisyui.css?v=aedd34d4" />
     <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
-    <script src="../../_static/documentation_options.js?v=d87af0f4"></script>
+    <script src="../../_static/documentation_options.js?v=bcb520b0"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -252,7 +252,13 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li><a class="daisy-toc-link reference internal" href="#structure-and-fixtures">4. Structure and fixtures</a></li>
 <li><a class="daisy-toc-link reference internal" href="#django-checks">5. Django checks</a></li>
 <li><a class="daisy-toc-link reference internal" href="#coverage">6. Coverage</a></li>
+<li><a class="daisy-toc-link reference internal" href="#how-many-tests-and-at-which-layer">7. How many tests, and at which layer</a></li>
+<li><a class="daisy-toc-link reference internal" href="#tests-that-earn-nothing">8. Tests that earn nothing</a></li>
+<li><a class="daisy-toc-link reference internal" href="#deterministic-tests">9. Deterministic tests</a></li>
+<li><a class="daisy-toc-link reference internal" href="#fast-tests">10. Fast tests</a></li>
 <li><a class="daisy-toc-link reference internal" href="#project-additions">Project additions</a><ul class="daisy-toc-list">
+<li><a class="daisy-toc-link reference internal" href="#quick-suite">Quick suite</a></li>
+<li><a class="daisy-toc-link reference internal" href="#warnings-fail">Warnings fail</a></li>
 <li><a class="daisy-toc-link reference internal" href="#url-smoke-tests">URL smoke tests</a></li>
 </ul>
 </li>
@@ -417,13 +423,13 @@ project’s media directory.</p></li>
 </thead>
 <tbody>
 <tr class="row-even"><td><p>No N+1 queries on list and detail pages</p></td>
-<td><p>Render with one record and with several, and assert the same query count under <code class="docutils literal notranslate"><span class="pre">django_assert_num_queries</span></code>. Never pin a count that grows with rows, and never time a request.</p></td>
+<td><p>Evaluate the queryset or render the page once to warm caches, then render with one record and with several and assert the same query count under <code class="docutils literal notranslate"><span class="pre">django_assert_num_queries</span></code>. The only absolute count allowed is a constant 1. Never pin a count that grows with rows, and never time a request.</p></td>
 </tr>
 <tr class="row-odd"><td><p>Migrations are complete</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">manage.py</span> <span class="pre">makemigrations</span> <span class="pre">--check</span></code> is clean after the change.</p></td>
 </tr>
 <tr class="row-even"><td><p>Every model field has <code class="docutils literal notranslate"><span class="pre">verbose_name</span></code> and <code class="docutils literal notranslate"><span class="pre">help_text</span></code></p></td>
-<td><p>One parametrised test over every field of every model. Never one test per field, and never asserting the wording.</p></td>
+<td><p>One test that walks every field of every model, collects the fields that lack either and reports them together (section 7). Never one test per field, and never asserting the wording.</p></td>
 </tr>
 <tr class="row-odd"><td><p>Template output for component changes</p></td>
 <td><p>Render the template, not only the context. A context key can be right while the template never renders it.</p></td>
@@ -445,9 +451,90 @@ lower the figure. Do not enable template coverage.</p></li>
 <li><p>A test written only to raise coverage is still bound by section 1.</p></li>
 </ul>
 </section>
+<section id="how-many-tests-and-at-which-layer">
+<h2>7. How many tests, and at which layer<a class="headerlink" aria-label="Link to this heading: 7. How many tests, and at which layer" href="#how-many-tests-and-at-which-layer" title="Link to this heading">¶</a></h2>
+<p><strong>One test per code path.</strong> Parametrise only over values that take different branches: one
+representative case plus each boundary. Twelve models through one generic view, four record kinds
+through one shared page, every role through one permission check: one or two cases.</p>
+<p><strong>A sweep is one test.</strong> A check over every template, icon alias, component or field collects
+every failure and reports them together. It never produces one test id per item.</p>
+<p><strong>Test each rule where it is implemented.</strong></p>
+<ul class="simple">
+<li><p>A form, view, admin, API or page test checks that a rule is wired in, with one case. It does not
+repeat the rule’s own cases.</p></li>
+<li><p>The behaviour of a shared base class, mixin or generic view is tested once, against the base. A
+concrete class gets its own test only for what it overrides.</p></li>
+<li><p>A browser test is only for behaviour that needs a browser: JavaScript, focus, keyboard, drag,
+storage, htmx swaps and client-side state. Server-rendered markup is tested with the test
+client. Computed layout, colour and size are not tested (section 1).</p></li>
+</ul>
+</section>
+<section id="tests-that-earn-nothing">
+<h2>8. Tests that earn nothing<a class="headerlink" aria-label="Link to this heading: 8. Tests that earn nothing" href="#tests-that-earn-nothing" title="Link to this heading">¶</a></h2>
+<p>A review names each of these as a finding. Do not write them.</p>
+<ul class="simple">
+<li><p><strong>What Django or a dependency guarantees.</strong> Field options (required, <code class="docutils literal notranslate"><span class="pre">max_length</span></code>, null and
+blank, choices, default, editable, ordering), cascades, a unique constraint raising
+<code class="docutils literal notranslate"><span class="pre">IntegrityError</span></code>, <code class="docutils literal notranslate"><span class="pre">auto_now</span></code>, admin <code class="docutils literal notranslate"><span class="pre">search_fields</span></code> and <code class="docutils literal notranslate"><span class="pre">list_filter</span></code> doing their job,
+<code class="docutils literal notranslate"><span class="pre">ModelForm</span></code> saving, django-filter combining filters.</p></li>
+<li><p><strong>Configuration literals.</strong> A fixed list of field names, choices, vocabulary members, menu
+entries, inline classes, widget class names, icon names or CSS classes.</p></li>
+<li><p><strong>Tests that cannot fail.</strong> <code class="docutils literal notranslate"><span class="pre">count()</span> <span class="pre">&gt;=</span> <span class="pre">0</span></code>, <code class="docutils literal notranslate"><span class="pre">hasattr</span></code>, <code class="docutils literal notranslate"><span class="pre">is</span> <span class="pre">not</span> <span class="pre">None</span></code>, <code class="docutils literal notranslate"><span class="pre">issubclass</span></code> of a class the
+code defines, <code class="docutils literal notranslate"><span class="pre">or</span> <span class="pre">True</span></code>, an assertion inside an <code class="docutils literal notranslate"><span class="pre">if</span></code> guard, a <code class="docutils literal notranslate"><span class="pre">try</span></code>/<code class="docutils literal notranslate"><span class="pre">except</span></code> that ends in
+<code class="docutils literal notranslate"><span class="pre">skip</span></code>, a substring the page shell already contains.</p></li>
+<li><p><strong>Tests of the test setup.</strong> Factories returning what they build, fixtures existing.</p></li>
+<li><p><strong>A regression test for behaviour the suite already tests.</strong> A fixed bug gets its own test only
+when no behaviour test would have caught it. The test is named for the behaviour, never the issue.</p></li>
+</ul>
+</section>
+<section id="deterministic-tests">
+<h2>9. Deterministic tests<a class="headerlink" aria-label="Link to this heading: 9. Deterministic tests" href="#deterministic-tests" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>No <code class="docutils literal notranslate"><span class="pre">sleep</span></code> to separate timestamps: set them explicitly. No fixed wait in a browser test: wait
+for the state.</p></li>
+<li><p>No <code class="docutils literal notranslate"><span class="pre">.first()</span></code> or slice without <code class="docutils literal notranslate"><span class="pre">order_by</span></code> when the result matters.</p></li>
+<li><p>Random factory data is seeded, and a factory never randomises a field a test depends on, such
+as an active user or a visibility flag.</p></li>
+<li><p>Anything a test mutates (a registry, settings, a cache, the ContentType cache) is restored by a
+fixture.</p></li>
+<li><p>No network. Vendor the assets a test needs.</p></li>
+</ul>
+</section>
+<section id="fast-tests">
+<h2>10. Fast tests<a class="headerlink" aria-label="Link to this heading: 10. Fast tests" href="#fast-tests" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Shared setup is class- or module-scoped where the tests only read it.</p></li>
+<li><p>When one value is checked, read the view’s context or the plugin’s output instead of rendering
+and parsing a full page.</p></li>
+<li><p>“One and several” means 1 and 3 rows, never 5 and 25.</p></li>
+<li><p>A test that takes over a second, starts a subprocess or needs a browser carries a marker: <code class="docutils literal notranslate"><span class="pre">slow</span></code>
+for the first two, <code class="docutils literal notranslate"><span class="pre">e2e</span></code> for a browser. Register both under <code class="docutils literal notranslate"><span class="pre">markers</span></code> in the pytest
+configuration. Verifies between a run’s first and last use the fast selection
+<code class="docutils literal notranslate"><span class="pre">-m</span> <span class="pre">&quot;not</span> <span class="pre">e2e</span> <span class="pre">and</span> <span class="pre">not</span> <span class="pre">slow&quot;</span></code>, so a test that should be skipped there and is not marked costs
+time on every one of them.</p></li>
+</ul>
+</section>
 <section id="project-additions">
 <h2>Project additions<a class="headerlink" aria-label="Link to this heading: Project additions" href="#project-additions" title="Link to this heading">¶</a></h2>
 <!-- Rules that apply to this repository only. Leave empty when there are none. -->
+<section id="quick-suite">
+<h3>Quick suite<a class="headerlink" aria-label="Link to this heading: Quick suite" href="#quick-suite" title="Link to this heading">¶</a></h3>
+<p>This repository has no browser tests, so the <code class="docutils literal notranslate"><span class="pre">slow</span></code> marker is the only one in use. Run the quick
+suite while working:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pytest<span class="w"> </span>-m<span class="w"> </span><span class="s2">"not slow"</span>
+</pre></div>
+</div>
+<p>It skips the slowest tests: the migration tests, the backup and restore tests and the Docker
+script tests. A test that takes over a second or starts a subprocess carries the <code class="docutils literal notranslate"><span class="pre">slow</span></code> marker,
+and a few older ones still start a Python process without it. The full suite, <code class="docutils literal notranslate"><span class="pre">pytest</span></code>, runs
+before a pull request and in CI.</p>
+</section>
+<section id="warnings-fail">
+<h3>Warnings fail<a class="headerlink" aria-label="Link to this heading: Warnings fail" href="#warnings-fail" title="Link to this heading">¶</a></h3>
+<p>A deprecation warning that django-mvp raises (<code class="docutils literal notranslate"><span class="pre">MVPDeprecationWarning</span></code>) turns into an error
+(<code class="docutils literal notranslate"><span class="pre">filterwarnings</span></code> in <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code>), so a deprecated call fails wherever a test reaches it. No
+test asserts that a page emits no deprecation warning. Any other warning is ignored.</p>
+</section>
 <section id="url-smoke-tests">
 <h3>URL smoke tests<a class="headerlink" aria-label="Link to this heading: URL smoke tests" href="#url-smoke-tests" title="Link to this heading">¶</a></h3>
 <p>Every app that registers URL patterns, including <code class="docutils literal notranslate"><span class="pre">demo</span></code> and each contrib app, has at least one
@@ -455,7 +542,7 @@ smoke test per route asserting the expected status code. A smoke test does not a
 content. It catches broken URL patterns, missing templates, template syntax errors, context and
 queryset exceptions, middleware and authentication problems, and bad redirects.</p>
 <hr class="docutils" />
-<p><strong>Version</strong>: 1.0.0</p>
+<p><strong>Version</strong>: 1.1.0</p>
 </section>
 </section>
 </section>
@@ -495,7 +582,13 @@ queryset exceptions, middleware and authentication problems, and bad redirects.<
 <li><a class="daisy-toc-link reference internal" href="#structure-and-fixtures">4. Structure and fixtures</a></li>
 <li><a class="daisy-toc-link reference internal" href="#django-checks">5. Django checks</a></li>
 <li><a class="daisy-toc-link reference internal" href="#coverage">6. Coverage</a></li>
+<li><a class="daisy-toc-link reference internal" href="#how-many-tests-and-at-which-layer">7. How many tests, and at which layer</a></li>
+<li><a class="daisy-toc-link reference internal" href="#tests-that-earn-nothing">8. Tests that earn nothing</a></li>
+<li><a class="daisy-toc-link reference internal" href="#deterministic-tests">9. Deterministic tests</a></li>
+<li><a class="daisy-toc-link reference internal" href="#fast-tests">10. Fast tests</a></li>
 <li><a class="daisy-toc-link reference internal" href="#project-additions">Project additions</a><ul class="daisy-toc-list">
+<li><a class="daisy-toc-link reference internal" href="#quick-suite">Quick suite</a></li>
+<li><a class="daisy-toc-link reference internal" href="#warnings-fail">Warnings fail</a></li>
 <li><a class="daisy-toc-link reference internal" href="#url-smoke-tests">URL smoke tests</a></li>
 </ul>
 </li>

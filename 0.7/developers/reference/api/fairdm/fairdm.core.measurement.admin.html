@@ -8,14 +8,14 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="developers/reference/api/fairdm/fairdm.core.measurement.admin.html" />
 <meta property="og:site_name" content="fairdm" />
-<meta property="og:description" content="Django admin configuration for measurements. Module Contents: Classes:,, MeasurementDatasetListFilter, A dataset list filter offering every dataset, private ones included.,, MeasurementDescriptionI..." />
-<meta name="description" content="Django admin configuration for measurements. Module Contents: Classes:,, MeasurementDatasetListFilter, A dataset list filter offering every dataset, private ones included.,, MeasurementDescriptionI..." />
+<meta property="og:description" content="Django admin configuration for measurements. Module Contents: Classes:,, MeasurementDatasetListFilter, A dataset list filter offering every dataset, private ones included.,, OneRowPerTypeInline, In..." />
+<meta name="description" content="Django admin configuration for measurements. Module Contents: Classes:,, MeasurementDatasetListFilter, A dataset list filter offering every dataset, private ones included.,, OneRowPerTypeInline, In..." />
 
-    <title>fairdm.core.measurement.admin &#8212; fairdm 0.7.0 documentation</title>
+    <title>fairdm.core.measurement.admin &#8212; fairdm 0.7.1 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/sphinx-daisyui.css?v=aedd34d4" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/sphinx-design.min.css?v=95c83b7e" />
-    <script src="../../../../_static/documentation_options.js?v=d87af0f4"></script>
+    <script src="../../../../_static/documentation_options.js?v=bcb520b0"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,8 +58,8 @@ commentsRunWhenDOMLoaded(addUtterances);
     <link rel="icon" href="../../../../_static/icon.svg"/>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
-    <link rel="next" title="fairdm.core.measurement.managers" href="fairdm.core.measurement.managers.html" />
-    <link rel="prev" title="fairdm.core.measurement.filters" href="fairdm.core.measurement.filters.html" /> 
+    <link rel="next" title="fairdm.core.measurement.filters" href="fairdm.core.measurement.filters.html" />
+    <link rel="prev" title="fairdm.core.measurement.managers" href="fairdm.core.measurement.managers.html" /> 
   <meta name="color-scheme" content="light dark">
   <script src="../../../../_static/scripts/mode.js" data-light-theme="light" data-dark-theme="dark" data-default-mode="auto" data-themes=""></script>
   <script defer src="../../../../_static/scripts/keys.js"></script>
@@ -313,27 +313,27 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../registry.html">The registry</a></li>
 <li class="daisy-nav-item daisy-nav-branch"><a class="daisy-nav-link daisy-on-path reference internal" href="../../python-api.html">Python API</a><button type="button" class="daisy-nav-toggle btn btn-ghost btn-xs btn-square" aria-expanded="true" aria-label="Show the pages in Python API"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m9 18 6-6-6-6" /> </svg></button><ul class="daisy-nav-list">
 <li class="daisy-nav-item daisy-nav-branch"><a class="daisy-nav-link daisy-on-path reference internal" href="fairdm.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm</span></code></a><button type="button" class="daisy-nav-toggle btn btn-ghost btn-xs btn-square" aria-expanded="true" aria-label="Show the pages in fairdm"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m9 18 6-6-6-6" /> </svg></button><ul class="daisy-nav-list">
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.registry.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.registry</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.backups.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.backups</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link daisy-on-path reference internal" href="fairdm.core.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core</span></code></a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.views.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.views</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.conf.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.conf</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.forms.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.forms</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.registry.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.registry</span></code></a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.db.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.db</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.api.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.factories.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.factories</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.templatetags.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.templatetags</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.backups.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.backups</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.conf.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.conf</span></code></a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.management.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.management</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.templatetags.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.templatetags</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils</span></code></a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.contrib.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.api.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.forms.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.forms</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.factories.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.factories</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link daisy-on-path reference internal" href="fairdm.core.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core</span></code></a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.models.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.models</span></code></a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.search.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.search</span></code></a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.plugins.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.plugins</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.config.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.config</span></code></a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.permissions.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.permissions</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.menus.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.menus</span></code></a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.portal_roles.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.portal_roles</span></code></a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.apps.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.apps</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.menus.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.menus</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.config.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.config</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -382,22 +382,21 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.measurement.admin.MeasurementDatasetListFilter.field_choices"><code class="docutils literal notranslate"><span class="pre">MeasurementDatasetListFilter.field_choices()</span></code></a></li>
 </ul>
 </li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.core.measurement.admin.OneRowPerTypeInline"><code class="docutils literal notranslate"><span class="pre">OneRowPerTypeInline</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
+<li><a class="daisy-toc-link reference internal" href="#fairdm.core.measurement.admin.OneRowPerTypeInline.extra"><code class="docutils literal notranslate"><span class="pre">OneRowPerTypeInline.extra</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.core.measurement.admin.OneRowPerTypeInline.get_max_num"><code class="docutils literal notranslate"><span class="pre">OneRowPerTypeInline.get_max_num()</span></code></a></li>
+</ul>
+</li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.measurement.admin.MeasurementDescriptionInline"><code class="docutils literal notranslate"><span class="pre">MeasurementDescriptionInline</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.measurement.admin.MeasurementDescriptionInline.model"><code class="docutils literal notranslate"><span class="pre">MeasurementDescriptionInline.model</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.core.measurement.admin.MeasurementDescriptionInline.extra"><code class="docutils literal notranslate"><span class="pre">MeasurementDescriptionInline.extra</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.core.measurement.admin.MeasurementDescriptionInline.get_max_num"><code class="docutils literal notranslate"><span class="pre">MeasurementDescriptionInline.get_max_num()</span></code></a></li>
 </ul>
 </li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.measurement.admin.MeasurementDateInline"><code class="docutils literal notranslate"><span class="pre">MeasurementDateInline</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.measurement.admin.MeasurementDateInline.model"><code class="docutils literal notranslate"><span class="pre">MeasurementDateInline.model</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.core.measurement.admin.MeasurementDateInline.extra"><code class="docutils literal notranslate"><span class="pre">MeasurementDateInline.extra</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.core.measurement.admin.MeasurementDateInline.get_max_num"><code class="docutils literal notranslate"><span class="pre">MeasurementDateInline.get_max_num()</span></code></a></li>
 </ul>
 </li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.measurement.admin.MeasurementIdentifierInline"><code class="docutils literal notranslate"><span class="pre">MeasurementIdentifierInline</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.measurement.admin.MeasurementIdentifierInline.model"><code class="docutils literal notranslate"><span class="pre">MeasurementIdentifierInline.model</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.core.measurement.admin.MeasurementIdentifierInline.extra"><code class="docutils literal notranslate"><span class="pre">MeasurementIdentifierInline.extra</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.core.measurement.admin.MeasurementIdentifierInline.get_max_num"><code class="docutils literal notranslate"><span class="pre">MeasurementIdentifierInline.get_max_num()</span></code></a></li>
 </ul>
 </li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.measurement.admin.MeasurementContributionInline"><code class="docutils literal notranslate"><span class="pre">MeasurementContributionInline</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
@@ -448,22 +447,25 @@ commentsRunWhenDOMLoaded(addUtterances);
 <tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.core.measurement.admin.MeasurementDatasetListFilter" title="fairdm.core.measurement.admin.MeasurementDatasetListFilter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MeasurementDatasetListFilter</span></code></a></p></td>
 <td><p>A <code class="docutils literal notranslate"><span class="pre">dataset</span></code> list filter offering every dataset, private ones included.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.core.measurement.admin.MeasurementDescriptionInline" title="fairdm.core.measurement.admin.MeasurementDescriptionInline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MeasurementDescriptionInline</span></code></a></p></td>
-<td><p>Inline admin for measurement descriptions, capped at one row per vocabulary type.</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.core.measurement.admin.OneRowPerTypeInline" title="fairdm.core.measurement.admin.OneRowPerTypeInline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OneRowPerTypeInline</span></code></a></p></td>
+<td><p>Inline admin for typed records, capped at one row per vocabulary type.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.core.measurement.admin.MeasurementDateInline" title="fairdm.core.measurement.admin.MeasurementDateInline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MeasurementDateInline</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.core.measurement.admin.MeasurementDescriptionInline" title="fairdm.core.measurement.admin.MeasurementDescriptionInline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MeasurementDescriptionInline</span></code></a></p></td>
+<td><p>Inline admin for measurement descriptions: one row at most per type.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.core.measurement.admin.MeasurementDateInline" title="fairdm.core.measurement.admin.MeasurementDateInline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MeasurementDateInline</span></code></a></p></td>
 <td><p>Inline admin for measurement dates, capped at one row per vocabulary type.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.core.measurement.admin.MeasurementIdentifierInline" title="fairdm.core.measurement.admin.MeasurementIdentifierInline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MeasurementIdentifierInline</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.core.measurement.admin.MeasurementIdentifierInline" title="fairdm.core.measurement.admin.MeasurementIdentifierInline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MeasurementIdentifierInline</span></code></a></p></td>
 <td><p>Inline admin for measurement identifiers, capped at one row per vocabulary type.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.core.measurement.admin.MeasurementContributionInline" title="fairdm.core.measurement.admin.MeasurementContributionInline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MeasurementContributionInline</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.core.measurement.admin.MeasurementContributionInline" title="fairdm.core.measurement.admin.MeasurementContributionInline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MeasurementContributionInline</span></code></a></p></td>
 <td><p>Inline admin for measurement contributions, uncapped because each row credits a contributor.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.core.measurement.admin.MeasurementChildAdmin" title="fairdm.core.measurement.admin.MeasurementChildAdmin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MeasurementChildAdmin</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.core.measurement.admin.MeasurementChildAdmin" title="fairdm.core.measurement.admin.MeasurementChildAdmin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MeasurementChildAdmin</span></code></a></p></td>
 <td><p>Base admin for measurement child models, with inlines for their related records.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.core.measurement.admin.MeasurementParentAdmin" title="fairdm.core.measurement.admin.MeasurementParentAdmin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MeasurementParentAdmin</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.core.measurement.admin.MeasurementParentAdmin" title="fairdm.core.measurement.admin.MeasurementParentAdmin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MeasurementParentAdmin</span></code></a></p></td>
 <td><p>Polymorphic parent admin registered for <code class="docutils literal notranslate"><span class="pre">Measurement</span></code>.</p></td>
 </tr>
 </tbody>
@@ -490,10 +492,30 @@ needs to see everything, as in <code class="docutils literal notranslate"><span 
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="fairdm.core.measurement.admin.OneRowPerTypeInline">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">OneRowPerTypeInline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">admin_site</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: OneRowPerTypeInline" href="#fairdm.core.measurement.admin.OneRowPerTypeInline" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">django.contrib.admin.StackedInline</span></code></p>
+<p>Inline admin for typed records, capped at one row per vocabulary type.</p>
+<p class="rubric">Initialization</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.core.measurement.admin.OneRowPerTypeInline.extra">
+<span class="sig-name descname"><span class="pre">extra</span></span><a class="headerlink" aria-label="Link to this definition: extra" href="#fairdm.core.measurement.admin.OneRowPerTypeInline.extra" title="Link to this definition">¶</a></dt>
+<dd><p>0</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.core.measurement.admin.OneRowPerTypeInline.get_max_num">
+<span class="sig-name descname"><span class="pre">get_max_num</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: get_max_num" href="#fairdm.core.measurement.admin.OneRowPerTypeInline.get_max_num" title="Link to this definition">¶</a></dt>
+<dd><p>Allow one row for each type the collection offers.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="fairdm.core.measurement.admin.MeasurementDescriptionInline">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">MeasurementDescriptionInline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">admin_site</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: MeasurementDescriptionInline" href="#fairdm.core.measurement.admin.MeasurementDescriptionInline" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">django.contrib.admin.StackedInline</span></code></p>
-<p>Inline admin for measurement descriptions, capped at one row per vocabulary type.</p>
+<dd><p>Bases: <a class="reference internal" href="#fairdm.core.measurement.admin.OneRowPerTypeInline" title="fairdm.core.measurement.admin.OneRowPerTypeInline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fairdm.core.measurement.admin.OneRowPerTypeInline</span></code></a></p>
+<p>Inline admin for measurement descriptions: one row at most per type.</p>
 <p class="rubric">Initialization</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="fairdm.core.measurement.admin.MeasurementDescriptionInline.model">
@@ -501,24 +523,12 @@ needs to see everything, as in <code class="docutils literal notranslate"><span 
 <dd><p>None</p>
 </dd></dl>
 
-<dl class="py attribute">
-<dt class="sig sig-object py" id="fairdm.core.measurement.admin.MeasurementDescriptionInline.extra">
-<span class="sig-name descname"><span class="pre">extra</span></span><a class="headerlink" aria-label="Link to this definition: extra" href="#fairdm.core.measurement.admin.MeasurementDescriptionInline.extra" title="Link to this definition">¶</a></dt>
-<dd><p>0</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="fairdm.core.measurement.admin.MeasurementDescriptionInline.get_max_num">
-<span class="sig-name descname"><span class="pre">get_max_num</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: get_max_num" href="#fairdm.core.measurement.admin.MeasurementDescriptionInline.get_max_num" title="Link to this definition">¶</a></dt>
-<dd><p>Allow one row for each type the collection offers.</p>
-</dd></dl>
-
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="fairdm.core.measurement.admin.MeasurementDateInline">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">MeasurementDateInline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">admin_site</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: MeasurementDateInline" href="#fairdm.core.measurement.admin.MeasurementDateInline" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">django.contrib.admin.StackedInline</span></code></p>
+<dd><p>Bases: <a class="reference internal" href="#fairdm.core.measurement.admin.OneRowPerTypeInline" title="fairdm.core.measurement.admin.OneRowPerTypeInline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fairdm.core.measurement.admin.OneRowPerTypeInline</span></code></a></p>
 <p>Inline admin for measurement dates, capped at one row per vocabulary type.</p>
 <p class="rubric">Initialization</p>
 <dl class="py attribute">
@@ -527,42 +537,18 @@ needs to see everything, as in <code class="docutils literal notranslate"><span 
 <dd><p>None</p>
 </dd></dl>
 
-<dl class="py attribute">
-<dt class="sig sig-object py" id="fairdm.core.measurement.admin.MeasurementDateInline.extra">
-<span class="sig-name descname"><span class="pre">extra</span></span><a class="headerlink" aria-label="Link to this definition: extra" href="#fairdm.core.measurement.admin.MeasurementDateInline.extra" title="Link to this definition">¶</a></dt>
-<dd><p>0</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="fairdm.core.measurement.admin.MeasurementDateInline.get_max_num">
-<span class="sig-name descname"><span class="pre">get_max_num</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: get_max_num" href="#fairdm.core.measurement.admin.MeasurementDateInline.get_max_num" title="Link to this definition">¶</a></dt>
-<dd><p>Allow one row for each type the collection offers.</p>
-</dd></dl>
-
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="fairdm.core.measurement.admin.MeasurementIdentifierInline">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">MeasurementIdentifierInline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">admin_site</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: MeasurementIdentifierInline" href="#fairdm.core.measurement.admin.MeasurementIdentifierInline" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">django.contrib.admin.StackedInline</span></code></p>
+<dd><p>Bases: <a class="reference internal" href="#fairdm.core.measurement.admin.OneRowPerTypeInline" title="fairdm.core.measurement.admin.OneRowPerTypeInline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fairdm.core.measurement.admin.OneRowPerTypeInline</span></code></a></p>
 <p>Inline admin for measurement identifiers, capped at one row per vocabulary type.</p>
 <p class="rubric">Initialization</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="fairdm.core.measurement.admin.MeasurementIdentifierInline.model">
 <span class="sig-name descname"><span class="pre">model</span></span><a class="headerlink" aria-label="Link to this definition: model" href="#fairdm.core.measurement.admin.MeasurementIdentifierInline.model" title="Link to this definition">¶</a></dt>
 <dd><p>None</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="fairdm.core.measurement.admin.MeasurementIdentifierInline.extra">
-<span class="sig-name descname"><span class="pre">extra</span></span><a class="headerlink" aria-label="Link to this definition: extra" href="#fairdm.core.measurement.admin.MeasurementIdentifierInline.extra" title="Link to this definition">¶</a></dt>
-<dd><p>0</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="fairdm.core.measurement.admin.MeasurementIdentifierInline.get_max_num">
-<span class="sig-name descname"><span class="pre">get_max_num</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: get_max_num" href="#fairdm.core.measurement.admin.MeasurementIdentifierInline.get_max_num" title="Link to this definition">¶</a></dt>
-<dd><p>Allow one row for each type the collection offers.</p>
 </dd></dl>
 
 </dd></dl>
@@ -712,12 +698,12 @@ registered subclass for editing. See docs/portal-administration/managing-measure
         </article>
         
           <nav class="daisy-prev-next mt-12 grid gap-3 border-t border-base-300 pt-6 sm:grid-cols-2" aria-label="Previous and next page">
-              <a href="fairdm.core.measurement.filters.html" rel="prev" class="group flex items-center gap-3 rounded-box border border-base-300 p-4 transition hover:border-primary/50 hover:bg-base-200 focus-visible:bg-base-200">
+              <a href="fairdm.core.measurement.managers.html" rel="prev" class="group flex items-center gap-3 rounded-box border border-base-300 p-4 transition hover:border-primary/50 hover:bg-base-200 focus-visible:bg-base-200">
                 <svg class="size-4 shrink-0 opacity-60 transition group-hover:-translate-x-0.5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m12 19-7-7 7-7" /> <path d="M19 12H5" /> </svg>
-                <span class="min-w-0"><span class="daisy-prev-next-label block text-xs">Previous</span><span class="block font-medium"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.measurement.filters</span></code></span></span>
+                <span class="min-w-0"><span class="daisy-prev-next-label block text-xs">Previous</span><span class="block font-medium"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.measurement.managers</span></code></span></span>
               </a>
-              <a href="fairdm.core.measurement.managers.html" rel="next" class="group flex items-center justify-end gap-3 rounded-box border border-base-300 p-4 text-end transition hover:border-primary/50 hover:bg-base-200 focus-visible:bg-base-200">
-                <span class="min-w-0"><span class="daisy-prev-next-label block text-xs">Next</span><span class="block font-medium"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.measurement.managers</span></code></span></span>
+              <a href="fairdm.core.measurement.filters.html" rel="next" class="group flex items-center justify-end gap-3 rounded-box border border-base-300 p-4 text-end transition hover:border-primary/50 hover:bg-base-200 focus-visible:bg-base-200">
+                <span class="min-w-0"><span class="daisy-prev-next-label block text-xs">Next</span><span class="block font-medium"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.measurement.filters</span></code></span></span>
                 <svg class="size-4 shrink-0 opacity-60 transition group-hover:translate-x-0.5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M5 12h14" /> <path d="m12 5 7 7-7 7" /> </svg>
               </a>
           </nav>
@@ -736,22 +722,21 @@ registered subclass for editing. See docs/portal-administration/managing-measure
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.measurement.admin.MeasurementDatasetListFilter.field_choices"><code class="docutils literal notranslate"><span class="pre">MeasurementDatasetListFilter.field_choices()</span></code></a></li>
 </ul>
 </li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.core.measurement.admin.OneRowPerTypeInline"><code class="docutils literal notranslate"><span class="pre">OneRowPerTypeInline</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
+<li><a class="daisy-toc-link reference internal" href="#fairdm.core.measurement.admin.OneRowPerTypeInline.extra"><code class="docutils literal notranslate"><span class="pre">OneRowPerTypeInline.extra</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.core.measurement.admin.OneRowPerTypeInline.get_max_num"><code class="docutils literal notranslate"><span class="pre">OneRowPerTypeInline.get_max_num()</span></code></a></li>
+</ul>
+</li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.measurement.admin.MeasurementDescriptionInline"><code class="docutils literal notranslate"><span class="pre">MeasurementDescriptionInline</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.measurement.admin.MeasurementDescriptionInline.model"><code class="docutils literal notranslate"><span class="pre">MeasurementDescriptionInline.model</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.core.measurement.admin.MeasurementDescriptionInline.extra"><code class="docutils literal notranslate"><span class="pre">MeasurementDescriptionInline.extra</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.core.measurement.admin.MeasurementDescriptionInline.get_max_num"><code class="docutils literal notranslate"><span class="pre">MeasurementDescriptionInline.get_max_num()</span></code></a></li>
 </ul>
 </li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.measurement.admin.MeasurementDateInline"><code class="docutils literal notranslate"><span class="pre">MeasurementDateInline</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.measurement.admin.MeasurementDateInline.model"><code class="docutils literal notranslate"><span class="pre">MeasurementDateInline.model</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.core.measurement.admin.MeasurementDateInline.extra"><code class="docutils literal notranslate"><span class="pre">MeasurementDateInline.extra</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.core.measurement.admin.MeasurementDateInline.get_max_num"><code class="docutils literal notranslate"><span class="pre">MeasurementDateInline.get_max_num()</span></code></a></li>
 </ul>
 </li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.measurement.admin.MeasurementIdentifierInline"><code class="docutils literal notranslate"><span class="pre">MeasurementIdentifierInline</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.measurement.admin.MeasurementIdentifierInline.model"><code class="docutils literal notranslate"><span class="pre">MeasurementIdentifierInline.model</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.core.measurement.admin.MeasurementIdentifierInline.extra"><code class="docutils literal notranslate"><span class="pre">MeasurementIdentifierInline.extra</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.core.measurement.admin.MeasurementIdentifierInline.get_max_num"><code class="docutils literal notranslate"><span class="pre">MeasurementIdentifierInline.get_max_num()</span></code></a></li>
 </ul>
 </li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.core.measurement.admin.MeasurementContributionInline"><code class="docutils literal notranslate"><span class="pre">MeasurementContributionInline</span></code></a><ul class="daisy-toc-list daisy-toc-deep">

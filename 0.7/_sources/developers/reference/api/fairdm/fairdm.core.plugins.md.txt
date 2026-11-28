@@ -195,6 +195,16 @@ Bases: {py:obj}`fairdm.core.plugins.OverviewPlugin`
 
 ````
 
+````{py:attribute} map_counts_datasets
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.map_counts_datasets
+:value: >
+   False
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.map_counts_datasets
+```
+
+````
+
 ````{py:attribute} resolvable_identifier_types
 :canonical: fairdm.core.plugins.RecordOverviewPlugin.resolvable_identifier_types
 :value: >
@@ -375,6 +385,14 @@ Bases: {py:obj}`fairdm.core.plugins.OverviewPlugin`
 :canonical: fairdm.core.plugins.RecordOverviewPlugin.get_sample_map
 
 ```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.get_sample_map
+```
+
+````
+
+````{py:method} add_sample_map(page, samples)
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.add_sample_map
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.add_sample_map
 ```
 
 ````

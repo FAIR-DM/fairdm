@@ -29,6 +29,7 @@ It holds what every record overview works out the same way. A portal changes one
 |---|---|---|
 | `people_named` | `6` | How many credits the People panel names, with their roles. |
 | `people_faces` | `10` | How many faces it draws after them before it counts the rest. |
+| `map_counts_datasets` | `False` | Whether the samples map counts the datasets its samples come from. The project overview sets it to `True`. |
 | `resolvable_identifier_types` | `(DOI, IGSN)`, the addresses from `fairdm.core.vocabularies` | The identifier types that link to doi.org. A value links only when it starts with `10.`. |
 
 ### Methods
@@ -53,6 +54,7 @@ It holds what every record overview works out the same way. A portal changes one
 | `get_growth_chart(samples, measurements)` | A dictionary of `chart` and `description` for the running total by month, or `None` when the records span fewer than two months. |
 | `get_sample_points(samples)` | The located samples as a GeoJSON `FeatureCollection` for the samples map, one `Point` per sample, ordered by name, with the properties `name`, `type`, `dataset` and `url`. Read in one query. |
 | `get_sample_map(samples, coverage, points_url, *, count_datasets=False)` | What [`c-overview.coverage`](components.md#c-overviewcoverage) shows: `located`, `missing`, `bounds`, `area`, `points_url`, and `datasets` when `count_datasets` is true. `bounds` and `area` are `None` when nothing is located. `None` when `samples` is empty. |
+| `add_sample_map(page, samples)` | Sets `sample_map` in the context dictionary being built, from `get_sample_map()` with the record's own coverage and its `overview-sample-points` address, and `has_map` when a sample is located. The project and dataset overviews call it. `map_counts_datasets` decides whether the panel counts datasets. It is true on the project overview only. |
 
 ```python
 from fairdm.core.plugins import RecordOverviewPlugin
@@ -209,7 +211,7 @@ Context entries: `sample`, `record`, `can_manage`, `sample_type`, `status`, `lif
 | Method | Returns |
 |---|---|
 | `get_result()` | A dictionary with `text` when the type declares a `value`, else `None`. |
-| `get_sample_status()` | The sample's status `label` and `variant`, or `None` when it records none. |
+| `get_sample_status()` | The sample's status `label` and `variant`. |
 | `get_siblings()` | The other measurements on the same sample that the viewer may see: `rows`, `more` and `total`. |
 | `get_citation_details(entries, dates, identifiers, sample)` | `title` and `text`, with `work` and `formats` from the [citations](#citations), and `note`, `note_url` and `note_link` when there is no DOI. `sample` is `None` when the viewer may not see it. |
 | `get_details(project)` | The rows of the fact sheet. |

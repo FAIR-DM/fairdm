@@ -4,11 +4,11 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>fairdm.contrib.collections.tables &#8212; fairdm 0.7.0 documentation</title>
+    <title>fairdm.contrib.collections.tables &#8212; fairdm 0.7.1 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/sphinx-daisyui.css?v=aedd34d4" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/sphinx-design.min.css?v=95c83b7e" />
-    <script src="../../../../_static/documentation_options.js?v=d87af0f4"></script>
+    <script src="../../../../_static/documentation_options.js?v=bcb520b0"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -576,6 +576,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">django.core.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">FieldDoesNotExist</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">django.utils.html</span><span class="w"> </span><span class="kn">import</span> <span class="n">format_html</span><span class="p">,</span> <span class="n">format_html_join</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">django.utils.translation</span><span class="w"> </span><span class="kn">import</span> <span class="n">gettext_lazy</span> <span class="k">as</span> <span class="n">_</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django_tables2.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">Accessor</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">easy_icons</span><span class="w"> </span><span class="kn">import</span> <span class="n">icon</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">fairdm.utils.choices</span><span class="w"> </span><span class="kn">import</span> <span class="n">Visibility</span>
@@ -678,9 +679,9 @@ window.runMermaid = runMermaid;</script>
         <span class="k">for</span> <span class="n">bound_col</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
             <span class="n">col</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">bound_col</span><span class="p">,</span> <span class="s2">"column"</span><span class="p">,</span> <span class="n">bound_col</span><span class="p">)</span>
 
-            <span class="c1"># A dotted accessor such as 'sample.location.x' looks up its first part.</span>
+            <span class="c1"># An accessor such as 'sample__location__x' looks up its first part.</span>
             <span class="n">fname</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="s2">"accessor"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span>
-            <span class="n">field_name_for_lookup</span> <span class="o">=</span> <span class="n">fname</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"."</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">fname</span> <span class="k">else</span> <span class="s2">""</span>
+            <span class="n">field_name_for_lookup</span> <span class="o">=</span> <span class="n">Accessor</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">fname</span><span class="p">))</span><span class="o">.</span><span class="n">bits</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">fname</span> <span class="k">else</span> <span class="s2">""</span>
 
             <span class="n">db_field</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="n">field_type</span> <span class="o">=</span> <span class="s2">"CharField"</span>
@@ -732,12 +733,12 @@ window.runMermaid = runMermaid;</script>
 <span class="w">    </span><span class="sd">"""Listing table for samples."""</span>
 
     <span class="n">name</span> <span class="o">=</span> <span class="n">tables</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">linkify</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="c1"># A geometry field has no `location__y` lookup to order by.</span>
+    <span class="c1"># A geometry field has no `y` lookup to order by.</span>
     <span class="n">latitude</span> <span class="o">=</span> <span class="n">tables</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span>
-        <span class="n">accessor</span><span class="o">=</span><span class="s2">"location.y"</span><span class="p">,</span> <span class="n">verbose_name</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s2">"Latitude"</span><span class="p">),</span> <span class="n">orderable</span><span class="o">=</span><span class="kc">False</span>
+        <span class="n">accessor</span><span class="o">=</span><span class="s2">"location__y"</span><span class="p">,</span> <span class="n">verbose_name</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s2">"Latitude"</span><span class="p">),</span> <span class="n">orderable</span><span class="o">=</span><span class="kc">False</span>
     <span class="p">)</span>
     <span class="n">longitude</span> <span class="o">=</span> <span class="n">tables</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span>
-        <span class="n">accessor</span><span class="o">=</span><span class="s2">"location.x"</span><span class="p">,</span> <span class="n">verbose_name</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s2">"Longitude"</span><span class="p">),</span> <span class="n">orderable</span><span class="o">=</span><span class="kc">False</span>
+        <span class="n">accessor</span><span class="o">=</span><span class="s2">"location__x"</span><span class="p">,</span> <span class="n">verbose_name</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s2">"Longitude"</span><span class="p">),</span> <span class="n">orderable</span><span class="o">=</span><span class="kc">False</span>
     <span class="p">)</span>
 
 <div class="viewcode-block" id="SampleTable.Meta">
@@ -763,10 +764,10 @@ window.runMermaid = runMermaid;</script>
     <span class="c1"># The queryset carries `effective_location` from `with_effective_location(user)`: the</span>
     <span class="c1"># measurement's own point, else its sample's for a viewer who may open the sample.</span>
     <span class="n">latitude</span> <span class="o">=</span> <span class="n">tables</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span>
-        <span class="n">accessor</span><span class="o">=</span><span class="s2">"effective_location.y"</span><span class="p">,</span> <span class="n">verbose_name</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s2">"Latitude"</span><span class="p">),</span> <span class="n">orderable</span><span class="o">=</span><span class="kc">False</span>
+        <span class="n">accessor</span><span class="o">=</span><span class="s2">"effective_location__y"</span><span class="p">,</span> <span class="n">verbose_name</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s2">"Latitude"</span><span class="p">),</span> <span class="n">orderable</span><span class="o">=</span><span class="kc">False</span>
     <span class="p">)</span>
     <span class="n">longitude</span> <span class="o">=</span> <span class="n">tables</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span>
-        <span class="n">accessor</span><span class="o">=</span><span class="s2">"effective_location.x"</span><span class="p">,</span> <span class="n">verbose_name</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s2">"Longitude"</span><span class="p">),</span> <span class="n">orderable</span><span class="o">=</span><span class="kc">False</span>
+        <span class="n">accessor</span><span class="o">=</span><span class="s2">"effective_location__x"</span><span class="p">,</span> <span class="n">verbose_name</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s2">"Longitude"</span><span class="p">),</span> <span class="n">orderable</span><span class="o">=</span><span class="kc">False</span>
     <span class="p">)</span>
 
 <div class="viewcode-block" id="MeasurementTable.Meta">

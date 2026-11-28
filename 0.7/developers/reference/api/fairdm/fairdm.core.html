@@ -8,14 +8,14 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="developers/reference/api/fairdm/fairdm.core.html" />
 <meta property="og:site_name" content="fairdm" />
-<meta property="og:description" content="The core record types: projects, datasets, samples and measurements. Subpackages: fairdm.core.measurement- fairdm.core.measurement.models, fairdm.core.measurement.forms, fairdm.core.measurement.plu..." />
-<meta name="description" content="The core record types: projects, datasets, samples and measurements. Subpackages: fairdm.core.measurement- fairdm.core.measurement.models, fairdm.core.measurement.forms, fairdm.core.measurement.plu..." />
+<meta property="og:description" content="The core record types: projects, datasets, samples and measurements. Subpackages: fairdm.core.dataset- fairdm.core.dataset.models, fairdm.core.dataset.plugins, fairdm.core.dataset.urls, fairdm.core..." />
+<meta name="description" content="The core record types: projects, datasets, samples and measurements. Subpackages: fairdm.core.dataset- fairdm.core.dataset.models, fairdm.core.dataset.plugins, fairdm.core.dataset.urls, fairdm.core..." />
 
-    <title>fairdm.core &#8212; fairdm 0.7.0 documentation</title>
+    <title>fairdm.core &#8212; fairdm 0.7.1 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/sphinx-daisyui.css?v=aedd34d4" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/sphinx-design.min.css?v=95c83b7e" />
-    <script src="../../../../_static/documentation_options.js?v=d87af0f4"></script>
+    <script src="../../../../_static/documentation_options.js?v=bcb520b0"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,8 +58,8 @@ commentsRunWhenDOMLoaded(addUtterances);
     <link rel="icon" href="../../../../_static/icon.svg"/>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
-    <link rel="next" title="fairdm.core.measurement" href="fairdm.core.measurement.html" />
-    <link rel="prev" title="fairdm.backups.apps" href="fairdm.backups.apps.html" /> 
+    <link rel="next" title="fairdm.core.dataset" href="fairdm.core.dataset.html" />
+    <link rel="prev" title="fairdm.factories.contributors" href="fairdm.factories.contributors.html" /> 
   <meta name="color-scheme" content="light dark">
   <script src="../../../../_static/scripts/mode.js" data-light-theme="light" data-dark-theme="dark" data-default-mode="auto" data-themes=""></script>
   <script defer src="../../../../_static/scripts/keys.js"></script>
@@ -313,27 +313,27 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../registry.html">The registry</a></li>
 <li class="daisy-nav-item daisy-nav-branch"><a class="daisy-nav-link daisy-on-path reference internal" href="../../python-api.html">Python API</a><button type="button" class="daisy-nav-toggle btn btn-ghost btn-xs btn-square" aria-expanded="true" aria-label="Show the pages in Python API"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m9 18 6-6-6-6" /> </svg></button><ul class="daisy-nav-list">
 <li class="daisy-nav-item daisy-nav-branch"><a class="daisy-nav-link daisy-on-path reference internal" href="fairdm.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm</span></code></a><button type="button" class="daisy-nav-toggle btn btn-ghost btn-xs btn-square" aria-expanded="true" aria-label="Show the pages in fairdm"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m9 18 6-6-6-6" /> </svg></button><ul class="daisy-nav-list">
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.registry.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.registry</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.backups.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.backups</span></code></a></li>
-<li class="daisy-nav-item"><a aria-current="page" class="current daisy-nav-link menu-active reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core</span></code></a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.views.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.views</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.conf.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.conf</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.forms.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.forms</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.registry.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.registry</span></code></a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.db.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.db</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.api.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.factories.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.factories</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.templatetags.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.templatetags</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.backups.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.backups</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.conf.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.conf</span></code></a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.management.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.management</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.templatetags.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.templatetags</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils</span></code></a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.contrib.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.api.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.forms.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.forms</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.factories.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.factories</span></code></a></li>
+<li class="daisy-nav-item"><a aria-current="page" class="current daisy-nav-link menu-active reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core</span></code></a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.models.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.models</span></code></a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.search.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.search</span></code></a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.plugins.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.plugins</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.config.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.config</span></code></a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.permissions.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.permissions</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.menus.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.menus</span></code></a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.portal_roles.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.portal_roles</span></code></a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.apps.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.apps</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.menus.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.menus</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.config.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.config</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -387,55 +387,55 @@ commentsRunWhenDOMLoaded(addUtterances);
 <h2>Subpackages<a class="headerlink" aria-label="Link to this heading: Subpackages" href="#subpackages" title="Link to this heading">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul class="daisy-nav-list">
-<li class="daisy-nav-item daisy-nav-branch"><a class="daisy-nav-link reference internal" href="fairdm.core.measurement.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.measurement</span></code></a><button type="button" class="daisy-nav-toggle btn btn-ghost btn-xs btn-square" aria-expanded="true" aria-label="Show the pages in fairdm.core.measurement"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m9 18 6-6-6-6" /> </svg></button><ul class="daisy-nav-list">
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.measurement.models.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.measurement.models</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.measurement.forms.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.measurement.forms</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.measurement.plugins.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.measurement.plugins</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.measurement.config.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.measurement.config</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.measurement.views.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.measurement.views</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.measurement.filters.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.measurement.filters</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.measurement.admin.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.measurement.admin</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.measurement.managers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.measurement.managers</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.measurement.urls.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.measurement.urls</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.measurement.apps.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.measurement.apps</span></code></a></li>
+<li class="daisy-nav-item daisy-nav-branch"><a class="daisy-nav-link reference internal" href="fairdm.core.dataset.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.dataset</span></code></a><button type="button" class="daisy-nav-toggle btn btn-ghost btn-xs btn-square" aria-expanded="true" aria-label="Show the pages in fairdm.core.dataset"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m9 18 6-6-6-6" /> </svg></button><ul class="daisy-nav-list">
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.dataset.models.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.dataset.models</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.dataset.plugins.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.dataset.plugins</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.dataset.urls.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.dataset.urls</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.dataset.admin.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.dataset.admin</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.dataset.filters.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.dataset.filters</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.dataset.views.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.dataset.views</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.dataset.apps.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.dataset.apps</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.dataset.forms.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.dataset.forms</span></code></a></li>
 </ul>
 </li>
 <li class="daisy-nav-item daisy-nav-branch"><a class="daisy-nav-link reference internal" href="fairdm.core.sample.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.sample</span></code></a><button type="button" class="daisy-nav-toggle btn btn-ghost btn-xs btn-square" aria-expanded="true" aria-label="Show the pages in fairdm.core.sample"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m9 18 6-6-6-6" /> </svg></button><ul class="daisy-nav-list">
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.sample.models.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.sample.models</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.sample.forms.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.sample.forms</span></code></a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.sample.plugins.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.sample.plugins</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.sample.config.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.sample.config</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.sample.filters.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.sample.filters</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.sample.admin.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.sample.admin</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.sample.managers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.sample.managers</span></code></a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.sample.urls.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.sample.urls</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.sample.managers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.sample.managers</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.sample.admin.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.sample.admin</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.sample.filters.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.sample.filters</span></code></a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.sample.apps.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.sample.apps</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.sample.forms.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.sample.forms</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.sample.config.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.sample.config</span></code></a></li>
+</ul>
+</li>
+<li class="daisy-nav-item daisy-nav-branch"><a class="daisy-nav-link reference internal" href="fairdm.core.measurement.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.measurement</span></code></a><button type="button" class="daisy-nav-toggle btn btn-ghost btn-xs btn-square" aria-expanded="true" aria-label="Show the pages in fairdm.core.measurement"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m9 18 6-6-6-6" /> </svg></button><ul class="daisy-nav-list">
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.measurement.models.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.measurement.models</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.measurement.plugins.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.measurement.plugins</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.measurement.urls.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.measurement.urls</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.measurement.managers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.measurement.managers</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.measurement.admin.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.measurement.admin</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.measurement.filters.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.measurement.filters</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.measurement.views.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.measurement.views</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.measurement.apps.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.measurement.apps</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.measurement.forms.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.measurement.forms</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.measurement.config.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.measurement.config</span></code></a></li>
 </ul>
 </li>
 <li class="daisy-nav-item daisy-nav-branch"><a class="daisy-nav-link reference internal" href="fairdm.core.project.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.project</span></code></a><button type="button" class="daisy-nav-toggle btn btn-ghost btn-xs btn-square" aria-expanded="true" aria-label="Show the pages in fairdm.core.project"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m9 18 6-6-6-6" /> </svg></button><ul class="daisy-nav-list">
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.project.models.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.project.models</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.project.plugins.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.project.plugins</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.project.urls.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.project.urls</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.project.serializers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.project.serializers</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.project.admin.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.project.admin</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.project.filters.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.project.filters</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.project.views.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.project.views</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.project.apps.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.project.apps</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.project.validators.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.project.validators</span></code></a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.project.forms.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.project.forms</span></code></a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.project.receivers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.project.receivers</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.project.plugins.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.project.plugins</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.project.validators.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.project.validators</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.project.views.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.project.views</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.project.filters.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.project.filters</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.project.admin.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.project.admin</span></code></a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.project.transforms.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.project.transforms</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.project.serializers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.project.serializers</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.project.urls.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.project.urls</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.project.apps.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.project.apps</span></code></a></li>
-</ul>
-</li>
-<li class="daisy-nav-item daisy-nav-branch"><a class="daisy-nav-link reference internal" href="fairdm.core.dataset.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.dataset</span></code></a><button type="button" class="daisy-nav-toggle btn btn-ghost btn-xs btn-square" aria-expanded="true" aria-label="Show the pages in fairdm.core.dataset"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m9 18 6-6-6-6" /> </svg></button><ul class="daisy-nav-list">
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.dataset.models.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.dataset.models</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.dataset.forms.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.dataset.forms</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.dataset.plugins.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.dataset.plugins</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.dataset.views.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.dataset.views</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.dataset.filters.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.dataset.filters</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.dataset.admin.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.dataset.admin</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.dataset.urls.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.dataset.urls</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.dataset.apps.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.dataset.apps</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -446,25 +446,25 @@ commentsRunWhenDOMLoaded(addUtterances);
 <div class="toctree-wrapper compound">
 <ul class="daisy-nav-list">
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.models.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.models</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.citation.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.citation</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.forms.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.forms</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.editing.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.editing</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.descriptions.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.descriptions</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.related_records.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.related_records</span></code></a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.plugins.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.plugins</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.abstract.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.abstract</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.filters.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.filters</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.overview.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.overview</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.citation.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.citation</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.utils</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.urls.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.urls</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.formsets.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.formsets</span></code></a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.vocabularies.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.vocabularies</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.admin.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.admin</span></code></a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.permissions.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.permissions</span></code></a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.managers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.managers</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.admin.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.admin</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.abstract.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.abstract</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.filters.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.filters</span></code></a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.image_utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.image_utils</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.choices.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.choices</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.utils</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.formsets.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.formsets</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.related_records.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.related_records</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.descriptions.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.descriptions</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.overview.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.overview</span></code></a></li>
-<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.urls.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.urls</span></code></a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.apps.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.apps</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.editing.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.editing</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.forms.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.forms</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.choices.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.choices</span></code></a></li>
 </ul>
 </div>
 </section>
@@ -474,12 +474,12 @@ commentsRunWhenDOMLoaded(addUtterances);
         </article>
         
           <nav class="daisy-prev-next mt-12 grid gap-3 border-t border-base-300 pt-6 sm:grid-cols-2" aria-label="Previous and next page">
-              <a href="fairdm.backups.apps.html" rel="prev" class="group flex items-center gap-3 rounded-box border border-base-300 p-4 transition hover:border-primary/50 hover:bg-base-200 focus-visible:bg-base-200">
+              <a href="fairdm.factories.contributors.html" rel="prev" class="group flex items-center gap-3 rounded-box border border-base-300 p-4 transition hover:border-primary/50 hover:bg-base-200 focus-visible:bg-base-200">
                 <svg class="size-4 shrink-0 opacity-60 transition group-hover:-translate-x-0.5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m12 19-7-7 7-7" /> <path d="M19 12H5" /> </svg>
-                <span class="min-w-0"><span class="daisy-prev-next-label block text-xs">Previous</span><span class="block font-medium"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.backups.apps</span></code></span></span>
+                <span class="min-w-0"><span class="daisy-prev-next-label block text-xs">Previous</span><span class="block font-medium"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.factories.contributors</span></code></span></span>
               </a>
-              <a href="fairdm.core.measurement.html" rel="next" class="group flex items-center justify-end gap-3 rounded-box border border-base-300 p-4 text-end transition hover:border-primary/50 hover:bg-base-200 focus-visible:bg-base-200">
-                <span class="min-w-0"><span class="daisy-prev-next-label block text-xs">Next</span><span class="block font-medium"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.measurement</span></code></span></span>
+              <a href="fairdm.core.dataset.html" rel="next" class="group flex items-center justify-end gap-3 rounded-box border border-base-300 p-4 text-end transition hover:border-primary/50 hover:bg-base-200 focus-visible:bg-base-200">
+                <span class="min-w-0"><span class="daisy-prev-next-label block text-xs">Next</span><span class="block font-medium"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.dataset</span></code></span></span>
                 <svg class="size-4 shrink-0 opacity-60 transition group-hover:translate-x-0.5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M5 12h14" /> <path d="m12 5 7 7-7 7" /> </svg>
               </a>
           </nav>
