@@ -222,17 +222,47 @@ A review names each of these as a finding. Do not write them.
 
 ### Quick suite
 
-This repository has no browser tests, so the `slow` marker is the only one in use. Run the quick
-suite while working:
+Run the quick suite while working:
 
 ```bash
-pytest -m "not slow"
+pytest -m "not e2e and not slow"
 ```
 
-It skips the slowest tests: the migration tests, the backup and restore tests and the Docker
-script tests. A test that takes over a second or starts a subprocess carries the `slow` marker,
-and a few older ones still start a Python process without it. The full suite, `pytest`, runs
-before a pull request and in CI.
+It skips every browser test and every test that takes over a second or starts a subprocess:
+the migration tests, the backup and restore tests and the Docker script tests. The `e2e` marker
+is added to any test that uses the Playwright `browser` fixture (`page` and `live_server`
+included), in `tests/conftest.py`, so a new browser test cannot miss it. A test that is slow
+without a browser carries `@pytest.mark.slow`, and a few older ones still start a Python process
+without it. The full suite, `pytest`, runs before a pull request and in CI.
+
+### Browser tests
+
+Write a browser test only for behaviour that needs a browser: JavaScript, focus, keyboard, drag,
+storage and htmx swaps. Markup the server renders is tested with the test client, and layout,
+colour and size are not tested at all. Browser tests live in `tests/test_browser/`, which is
+declared a non-mirror path because their subject is a script or a page, not a Python module.
+
+- **Install the browser once**: `playwright install chromium`. Without it the browser tests skip
+  on a developer's machine. In CI a missing browser is a failure, so the checks page never shows
+  a skip as a pass.
+- **Run them** with `pytest -m e2e`. They use pytest-playwright's `page` fixture and pytest-django's
+  `live_server`, and a test that asks for either runs against a database that commits. The
+  licences and vocabularies are written back when it ends. Sign in with the `sign_in` fixture in
+  `tests/test_browser/conftest.py`.
+- **A browser test never reaches the network.** The browser answers the CDN addresses a page asks
+  for from files in `tests/fixtures/vendor/`: htmx and the Bootstrap Icons stylesheet and font.
+  Add a pattern to `STAND_INS` in `tests/conftest.py` for a new address, with the exact release
+  the template names, so its integrity hash still matches. Any other request to a host that is
+  not this machine is refused, and the test fails at its end with the addresses it asked for.
+- **Wait for state, never for a number of milliseconds.** `wait_until_still(page)` waits until no
+  htmx request is in flight and nothing is moving. `expect(...)` from `playwright.sync_api` waits
+  for an element. `wait_until(condition)` waits for something the server does.
+- **A test puts a changed value back only when the server is idle.** The live server answers in
+  its own threads and reads the same settings and configuration dictionaries. Change one with
+  `monkeypatch` before the first request: the test's pages are closed and the server has finished
+  its requests before `monkeypatch` undoes the change, so one test's configuration is never seen
+  by another. Values set through the `settings` fixture are put back earlier and do not have this
+  guarantee.
 
 ### Warnings fail
 

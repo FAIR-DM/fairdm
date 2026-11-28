@@ -95,6 +95,17 @@ jobs:
           restore-keys: |
             uv-${{ runner.os }}-${{ matrix.django-version }}-
 
+      # The browser tests need Chromium, at the revision the locked Playwright release asks
+      # for. It is downloaded inside the container once the lock file is synced, because the
+      # image holds no dependencies and so cannot know which revision that is. Putting it in
+      # the image would rebuild the image's layer, and miss its cache, on every Playwright
+      # release. The download is cached on the runner per lock file instead.
+      - name: Cache the browser
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('uv.lock') }}
+
       # Root inside the container lets it write coverage.xml into the runner's checkout. The
       # host network reaches the PostGIS service on the runner's localhost. `uv run` is not
       # used, because it would re-sync to uv.lock and undo the Django version pinned here.
@@ -110,16 +121,19 @@ jobs:
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: fairdm
         run: |
-          mkdir -p "$HOME/.cache/uv"
+          mkdir -p "$HOME/.cache/uv" "$HOME/.cache/ms-playwright"
           docker run --rm --network host --user root \
             -v "$PWD:/app" \
             -v "$HOME/.cache/uv:/root/.cache/uv" \
+            -v "$HOME/.cache/ms-playwright:/root/.cache/ms-playwright" \
+            -e CI \
             -e POSTGRES_HOST -e POSTGRES_PORT -e POSTGRES_USER -e POSTGRES_PASSWORD -e POSTGRES_DB \
             -e DJANGO_VERSION \
             fairdm-dev:ci \
             sh -c '
               set -e
               uv sync --locked
+              playwright install --with-deps chromium
               uv pip install --python /opt/venv/bin/python "django~=${DJANGO_VERSION}.0"
               python -c "import django, os, sys; want = os.environ[\"DJANGO_VERSION\"]; got = \".\".join(map(str, django.VERSION[:2])); print(f\"Django {django.__version__}\"); sys.exit(0 if got == want else f\"expected Django {want}, got {got}\")"
               pytest -n logical --cov=fairdm --cov-report=xml

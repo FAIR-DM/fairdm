@@ -279,7 +279,9 @@ django_settings_module = "tests.settings"
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "tests.settings"
-env = ["DJANGO_ENV=development"]
+# pytest-playwright's sync API keeps an event loop on the main thread, which trips Django's
+# async-safety guard as a false positive when a live_server test sets up its database.
+env = ["DJANGO_ENV=development", "DJANGO_ALLOW_ASYNC_UNSAFE=1"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
@@ -288,7 +290,7 @@ python_functions = ["test_*"]
 testpaths = ["tests", "demo/tests"]
 markers = [
     "slow: Tests that take over a second or start a subprocess",
-    "e2e: Tests that need a browser",
+    "e2e: Tests that drive a real browser through Playwright",
 ]
 # Every warning is ignored except django-mvp's deprecations, which fail the test that
 # triggers them. The last matching entry wins.
@@ -405,5 +407,6 @@ postgis = "17-3.5"
 non-mirror-paths = [
     "tests/test_templates/",
     "tests/test_docker/",
+    "tests/test_browser/",
     "tests/test_field_labels.py",
 ]
