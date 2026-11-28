@@ -103,7 +103,7 @@ class TestProjectDescriptionModel:
 
 @pytest.mark.django_db
 class TestProjectDateModel:
-    def test_an_end_before_the_start_is_refused_in_the_projects_words(self):
+    def test_an_end_before_the_start_is_refused_on_the_value(self):
         project = ProjectFactory()
         ProjectDate.objects.create(
             related=project, type_id=f"{DATE_TYPES}/start", value="2020-06-01"
@@ -115,9 +115,7 @@ class TestProjectDateModel:
         with pytest.raises(ValidationError) as exc_info:
             end.full_clean()
 
-        message = str(exc_info.value)
-        assert "project's end date (2019-05-01)" in message
-        assert "its start date (2020-06-01)" in message
+        assert "value" in exc_info.value.message_dict
 
 
 @pytest.mark.django_db

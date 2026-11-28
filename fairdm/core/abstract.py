@@ -420,7 +420,9 @@ class AbstractDate(GenericModel):
         super().clean()
 
         # Start and end are separate rows, so the rule compares against the sibling row.
-        if self.START_TYPE is None or not self.related_id or not self.value:
+        if None in (self.START_TYPE, self.END_TYPE, self.END_BEFORE_START_MESSAGE):
+            return
+        if not self.related_id or not self.value:
             return
 
         if self.type_id == self.START_TYPE:

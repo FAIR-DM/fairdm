@@ -5,6 +5,7 @@ from controlled_vocabularies.fields import MultiConceptField
 from django.core.exceptions import FieldDoesNotExist
 from django.utils.html import format_html, format_html_join
 from django.utils.translation import gettext_lazy as _
+from django_tables2.utils import Accessor
 from easy_icons import icon
 
 from fairdm.utils.choices import Visibility
@@ -96,7 +97,7 @@ class BaseTable(tables.Table):
 
             # An accessor such as 'sample__location__x' looks up its first part.
             fname = getattr(col, "accessor", None) or getattr(col, "name", "")
-            field_name_for_lookup = fname.split("__")[0] if fname else ""
+            field_name_for_lookup = Accessor(str(fname)).bits[0] if fname else ""
 
             db_field = None
             field_type = "CharField"

@@ -327,6 +327,13 @@ class TestManagers:
 
         assert RecordAccess(record_chain.sample).managers() == {signed_in.pk}
 
+    def test_a_manager_of_the_samples_dataset_does_not_manage_its_measurement(
+        self, record_chain, signed_in, grant
+    ):
+        grant(record_chain.dataset, signed_in, MANAGE)
+
+        assert RecordAccess(record_chain.measurement).managers() == set()
+
     def test_an_editor_is_not_counted(self, record_chain, signed_in, grant):
         grant(record_chain.dataset, signed_in, EDIT)
 

@@ -343,6 +343,14 @@ class TestEndDateNotBeforeStart:
         with pytest.raises(ValidationError):
             self.end(project, "2020-03").full_clean()
 
+    def test_a_date_model_that_gives_no_message_is_never_compared(
+        self, project, monkeypatch
+    ):
+        monkeypatch.setattr(ProjectDate, "END_BEFORE_START_MESSAGE", None)
+        self.start(project, "2020-06-01")
+
+        self.end(project, "2019-05-01").full_clean()
+
     def test_a_date_of_another_type_is_never_compared(self, project):
         self.start(project, "2020-06-01")
         other = ProjectDate(

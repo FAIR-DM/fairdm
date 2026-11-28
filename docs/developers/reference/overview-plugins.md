@@ -29,6 +29,7 @@ It holds what every record overview works out the same way. A portal changes one
 |---|---|---|
 | `people_named` | `6` | How many credits the People panel names, with their roles. |
 | `people_faces` | `10` | How many faces it draws after them before it counts the rest. |
+| `map_counts_datasets` | `False` | Whether the samples map counts the datasets its samples come from. The project overview sets it to `True`. |
 | `resolvable_identifier_types` | `(DOI, IGSN)`, the addresses from `fairdm.core.vocabularies` | The identifier types that link to doi.org. A value links only when it starts with `10.`. |
 
 ### Methods

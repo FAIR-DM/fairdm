@@ -119,6 +119,10 @@ class TestConvertStoredPermissions:
         group.user_set.add(somebody)
         store(somebody, "view_dataset", record_chain.dataset)
         store(group, "change_project", record_chain.project)
+        # A credit already held at a lower level is raised, the branch that saves.
+        ContributionFactory(
+            content_object=record_chain.project, contributor=somebody, level=VIEW
+        )
         ContributionFactory(
             content_object=record_chain.sample,
             contributor=somebody,
@@ -130,6 +134,7 @@ class TestConvertStoredPermissions:
 
         settings.DATABASE_ROUTERS = []
         assert own_level(record_chain.dataset, somebody) == VIEW
+        assert own_level(record_chain.project, somebody) == EDIT
         assert own_level(record_chain.sample, somebody) == VIEW
 
     def test_view_change_and_delete_make_a_manager(

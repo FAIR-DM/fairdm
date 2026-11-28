@@ -39,7 +39,7 @@ class DescriptionInline(admin.StackedInline):
 DateInlineFormSet = date_ordering_formset(
     ProjectDate.START_TYPE,
     ProjectDate.END_TYPE,
-    _("The project's end date (%(end)s) cannot be before its start date (%(start)s)."),
+    ProjectDate.END_BEFORE_START_MESSAGE,
 )
 
 

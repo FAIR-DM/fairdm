@@ -26,7 +26,6 @@ from fairdm.core.citation import FORMATS, Citation, CitedName
 from fairdm.core.overview import (
     describe_coverage,
     format_authors,
-    safe_reverse,
     sentence_case,
 )
 from fairdm.core.vocabularies import DOI, IGSN
@@ -665,12 +664,14 @@ class RecordOverviewPlugin(OverviewPlugin):
             samples: The samples the map draws.
         """
         record = self.base_object
+        try:
+            points_url = plugin_reverse(record, "overview-sample-points")
+        except NoReverseMatch:
+            points_url = None
         page["sample_map"] = self.get_sample_map(
             samples,
             record.spatial_coverage(self.request.user),
-            safe_reverse(
-                f"{record._meta.model_name}:overview-sample-points", uuid=record.uuid
-            ),
+            points_url,
             count_datasets=self.map_counts_datasets,
         )
         if page["sample_map"] and page["sample_map"]["located"]:

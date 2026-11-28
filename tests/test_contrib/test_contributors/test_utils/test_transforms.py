@@ -83,6 +83,19 @@ class TestSchemaOrgOrganizationExport:
         assert "@id" in schema_org_data
         assert ror_identifier.value in schema_org_data["@id"]
 
+    def test_schema_org_export_does_not_double_the_address_of_a_stored_link(
+        self, organization
+    ):
+        ContributorIdentifier.objects.create(
+            related=organization,
+            type_id=f"{IDENTIFIER_TYPES}/ror",
+            value="https://ror.org/04z8jg394",
+        )
+
+        data = SchemaOrgTransform().export(organization)
+
+        assert data["@id"] == "https://ror.org/04z8jg394"
+
     def test_schema_org_import_creates_organization(self):
         transform = SchemaOrgTransform()
         schema_org_data = {
