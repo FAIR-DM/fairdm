@@ -14,6 +14,7 @@ from django.utils.html import strip_tags
 from django.utils.text import Truncator
 from django.utils.translation import gettext_lazy as _
 from easy_thumbnails.fields import ThumbnailerImageField
+from partial_dates import Relation
 from taggit.managers import TaggableManager
 
 from fairdm.contrib.contributors.choices import IdentifierLookup
@@ -388,7 +389,16 @@ class AbstractDescription(GenericModel):
 
 
 class AbstractDate(GenericModel):
-    """Abstract base for a typed partial date on a record."""
+    """Abstract base for a typed partial date on a record.
+
+    A subclass that names a start type and an end type also refuses an end that precedes
+    the start. It sets ``START_TYPE``, ``END_TYPE`` and ``END_BEFORE_START_MESSAGE``, a
+    message with ``%(start)s`` and ``%(end)s`` placeholders for the two dates.
+    """
+
+    START_TYPE: str | None = None
+    END_TYPE: str | None = None
+    END_BEFORE_START_MESSAGE = None
 
     value = PartialDateField(_("date"))
 
@@ -404,6 +414,42 @@ class AbstractDate(GenericModel):
                 name="%(class)s_unique_type",
             ),
         ]
+
+    def clean(self):
+        """Refuse an end date that precedes the start date."""
+        super().clean()
+
+        # Start and end are separate rows, so the rule compares against the sibling row.
+        if self.START_TYPE is None or not self.related_id or not self.value:
+            return
+
+        if self.type_id == self.START_TYPE:
+            start_value, end_value = self.value, self._sibling_value(self.END_TYPE)
+        elif self.type_id == self.END_TYPE:
+            start_value, end_value = self._sibling_value(self.START_TYPE), self.value
+        else:
+            return
+
+        if start_value is None or end_value is None:
+            return
+
+        if end_value.relation_to(start_value) is Relation.BEFORE:
+            raise ValidationError(
+                {
+                    "value": self.END_BEFORE_START_MESSAGE
+                    % {"start": start_value, "end": end_value}
+                }
+            )
+
+    def _sibling_value(self, type_):
+        """Return the value of this record's other date of `type_`, if any."""
+        queryset = type(self)._default_manager.filter(
+            related_id=self.related_id, type=type_
+        )
+        if self.pk:
+            queryset = queryset.exclude(pk=self.pk)
+        sibling = queryset.first()
+        return sibling.value if sibling else None
 
 
 class AbstractIdentifier(GenericModel):

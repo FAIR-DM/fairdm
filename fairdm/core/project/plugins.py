@@ -86,10 +86,12 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
             page.
         lead_roles: The addresses of the roles that name the people a visitor should see first,
             in this order.
+        map_counts_datasets: True, so the map panel counts the datasets the samples come from.
     """
 
     url_path = None
     model = Project
+    map_counts_datasets = True
     check = staticmethod(project_is_visible)
     template_name = "project/project_detail.html"
     dataset_preview = 5
@@ -157,14 +159,7 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
                 "add_dataset": safe_reverse("dataset-create"),
             },
         }
-        page["sample_map"] = self.get_sample_map(
-            samples,
-            project.spatial_coverage(user),
-            safe_reverse("project:overview-sample-points", uuid=project.uuid),
-            count_datasets=True,
-        )
-        if page["sample_map"] and page["sample_map"]["located"]:
-            page["has_map"] = True
+        self.add_sample_map(page, samples)
         if can_manage:
             page["readiness"] = self.get_readiness(page)
         page.update(self.get_shared_context(page))

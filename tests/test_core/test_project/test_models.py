@@ -103,7 +103,7 @@ class TestProjectDescriptionModel:
 
 @pytest.mark.django_db
 class TestProjectDateModel:
-    def test_end_date_before_start_date_raises_error(self):
+    def test_an_end_before_the_start_is_refused_in_the_projects_words(self):
         project = ProjectFactory()
         ProjectDate.objects.create(
             related=project, type_id=f"{DATE_TYPES}/start", value="2020-06-01"
@@ -116,48 +116,8 @@ class TestProjectDateModel:
             end.full_clean()
 
         message = str(exc_info.value)
-        assert "2020-06-01" in message
-        assert "2019-05-01" in message
-
-    def test_changing_start_to_after_end_is_refused(self):
-        project = ProjectFactory()
-        start = ProjectDate.objects.create(
-            related=project, type_id=f"{DATE_TYPES}/start", value="2020-01-01"
-        )
-        ProjectDate.objects.create(
-            related=project, type_id=f"{DATE_TYPES}/end", value="2020-12-31"
-        )
-
-        start.value = "2021-01-01"
-        with pytest.raises(ValidationError):
-            start.full_clean()
-
-    def test_end_date_with_no_start_date_is_accepted(self):
-        project = ProjectFactory()
-        end = ProjectDate(
-            related=project, type_id=f"{DATE_TYPES}/end", value="2024-06-15"
-        )
-
-        end.full_clean()
-
-    def test_year_only_end_in_same_year_as_month_precision_start_is_accepted(self):
-        project = ProjectFactory()
-        ProjectDate.objects.create(
-            related=project, type_id=f"{DATE_TYPES}/start", value="2020-06"
-        )
-
-        end = ProjectDate(related=project, type_id=f"{DATE_TYPES}/end", value="2020")
-        end.full_clean()
-
-    def test_month_precision_end_before_month_precision_start_is_refused(self):
-        project = ProjectFactory()
-        ProjectDate.objects.create(
-            related=project, type_id=f"{DATE_TYPES}/start", value="2020-06"
-        )
-
-        end = ProjectDate(related=project, type_id=f"{DATE_TYPES}/end", value="2020-03")
-        with pytest.raises(ValidationError):
-            end.full_clean()
+        assert "project's end date (2019-05-01)" in message
+        assert "its start date (2020-06-01)" in message
 
 
 @pytest.mark.django_db

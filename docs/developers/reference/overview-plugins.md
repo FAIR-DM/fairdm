@@ -53,6 +53,7 @@ It holds what every record overview works out the same way. A portal changes one
 | `get_growth_chart(samples, measurements)` | A dictionary of `chart` and `description` for the running total by month, or `None` when the records span fewer than two months. |
 | `get_sample_points(samples)` | The located samples as a GeoJSON `FeatureCollection` for the samples map, one `Point` per sample, ordered by name, with the properties `name`, `type`, `dataset` and `url`. Read in one query. |
 | `get_sample_map(samples, coverage, points_url, *, count_datasets=False)` | What [`c-overview.coverage`](components.md#c-overviewcoverage) shows: `located`, `missing`, `bounds`, `area`, `points_url`, and `datasets` when `count_datasets` is true. `bounds` and `area` are `None` when nothing is located. `None` when `samples` is empty. |
+| `add_sample_map(page, samples)` | Sets `sample_map` in the context dictionary being built, from `get_sample_map()` with the record's own coverage and its `overview-sample-points` address, and `has_map` when a sample is located. The project and dataset overviews call it. `map_counts_datasets` decides whether the panel counts datasets. It is true on the project overview only. |
 
 ```python
 from fairdm.core.plugins import RecordOverviewPlugin
