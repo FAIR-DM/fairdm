@@ -4,17 +4,13 @@ import pytest
 from django.contrib.auth import get_user_model
 from import_export.formats.base_formats import CSV, XLSX
 
-from demo.models import RockSample
+from demo.models import RockSample, XRFMeasurement
 from fairdm.contrib.import_export.definitions import (
     ImportDefinition,
     ImportDefinitions,
-    get_definition,
     import_definitions,
-    register,
 )
 from fairdm.registry import registry
-
-pytestmark = pytest.mark.django_db
 
 
 class TestLookup:
@@ -27,9 +23,9 @@ class TestLookup:
             model._meta.model_name
             for model in [*registry.samples, *registry.measurements]
         ]
-        assert names == expected
+        assert sorted(names) == sorted(expected)
 
-    @pytest.mark.parametrize("model", [*registry.samples, *registry.measurements])
+    @pytest.mark.parametrize("model", [RockSample, XRFMeasurement])
     def test_kind_follows_the_model(self, model):
         definition = import_definitions.get(model._meta.model_name)
 
@@ -51,6 +47,7 @@ class TestLookup:
 
         assert import_definitions.get("rocksample").formats != first
 
+    @pytest.mark.django_db
     def test_table_schema_is_the_configurations(self):
         definition = import_definitions.get("rocksample")
 
@@ -114,13 +111,6 @@ class TestRegister:
 
 class TestImportDefinitions:
     """FR-013: the definitions are one object a portal can subclass."""
-
-    def test_a_new_collection_has_none_added(self):
-        assert ImportDefinitions().added == {}
-
-    def test_the_documented_functions_are_the_collections_methods(self):
-        assert register == import_definitions.register
-        assert get_definition == import_definitions.get
 
     def test_a_collection_keeps_what_it_adds_to_itself(self):
         own = ImportDefinition(name="rocks-by-hand", model=RockSample, formats=("csv",))

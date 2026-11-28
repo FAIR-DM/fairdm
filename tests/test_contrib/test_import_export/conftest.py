@@ -5,6 +5,7 @@ import io
 
 import pytest
 import tablib
+from django.core.cache.backends.locmem import LocMemCache
 from django.urls import reverse
 
 from demo.factories import (
@@ -33,6 +34,40 @@ from fairdm.factories import DatasetFactory, ProjectFactory
 from fairdm.registry import registry
 from fairdm.registry.config import ModelConfiguration
 from fairdm.utils.choices import Visibility
+
+
+@pytest.fixture(autouse=True)
+def media_root(settings, tmp_path):
+    """Store uploaded files in a folder of the test, never in the project's media."""
+    settings.MEDIA_ROOT = tmp_path
+    return tmp_path
+
+
+class RecordingCache(LocMemCache):
+    """A local cache that notes each whole number it is asked to store."""
+
+    written = []
+
+    def set(self, key, value, *args, **kwargs):
+        """Store the value and note its key and value when it is a number."""
+        if isinstance(value, int):
+            type(self).written.append((key, value))
+        return super().set(key, value, *args, **kwargs)
+
+
+@pytest.fixture
+def recorded_cache(settings):
+    """Use a local cache that keeps every (key, number) written to it, in order."""
+    RecordingCache.written = []
+    settings.CACHES = {
+        "default": {
+            "BACKEND": f"{__name__}.RecordingCache",
+            "LOCATION": "recorded-cache",
+        }
+    }
+    yield RecordingCache
+    RecordingCache.written = []
+
 
 RECORD_FACTORIES = {
     RockSample: RockSampleFactory,

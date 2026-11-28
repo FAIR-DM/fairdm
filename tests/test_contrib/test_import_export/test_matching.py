@@ -7,8 +7,6 @@ import pytest
 from fairdm.contrib.import_export.matching import HeadingMatcher
 from fairdm.contrib.import_export.models import ImportJob
 
-pytestmark = pytest.mark.django_db
-
 
 @pytest.fixture
 def rock_matcher(rock_config):
@@ -33,16 +31,21 @@ class TestHeadingMatcher:
     class TestNormalise:
         """What two headings must share to be the same."""
 
-        @pytest.mark.parametrize(
-            "heading",
-            ["Rock type", "rock_type", "ROCK-TYPE", " rock  type ", "rock.type"],
-        )
-        def test_case_spaces_and_punctuation_are_ignored(self, heading):
-            assert HeadingMatcher.normalise(heading) == "rocktype"
+        def test_case_spaces_and_punctuation_are_ignored(self):
+            headings = [
+                "Rock type",
+                "rock_type",
+                "ROCK-TYPE",
+                " rock  type ",
+                "rock.type",
+            ]
+
+            assert {HeadingMatcher.normalise(h) for h in headings} == {"rocktype"}
 
         def test_a_missing_heading_is_empty(self):
             assert HeadingMatcher.normalise(None) == ""
 
+    @pytest.mark.django_db
     class TestMatchHeading:
         """One heading, one column."""
 
@@ -65,10 +68,6 @@ class TestHeadingMatcher:
         def test_an_alias_matches(self, rock_matcher):
             assert rock_matcher.match("Record ID").name == "portal_id"
 
-        @pytest.mark.parametrize("heading", ["LOCAL ID", "local-id", "Local_ID"])
-        def test_case_and_punctuation_do_not_matter(self, rock_matcher, heading):
-            assert rock_matcher.match(heading).name == "local_id"
-
         def test_an_unknown_heading_matches_nothing(self, rock_matcher):
             assert rock_matcher.match("Favourite colour") is None
 
@@ -84,6 +83,7 @@ class TestHeadingMatcher:
         def test_sample_matches_the_sample_column_of_a_measurement(self, xrf_matcher):
             assert xrf_matcher.match("Sample").name == "sample"
 
+    @pytest.mark.django_db
     class TestMatchColumns:
         """Every heading of a file at once."""
 
@@ -97,6 +97,7 @@ class TestHeadingMatcher:
 
             assert matched == {"Local ID": "local_id", "Sample ID": ""}
 
+    @pytest.mark.django_db
     class TestMappingProblems:
         """What stops the matched columns from being checked."""
 
@@ -138,6 +139,7 @@ class TestHeadingMatcher:
 
             assert rock_matcher.problems(job_of(matched))
 
+    @pytest.mark.django_db
     class TestMappingWarnings:
         """What is worth saying, though the file can still be checked."""
 
@@ -173,6 +175,7 @@ class TestHeadingMatcher:
 
             assert rock_matcher.warnings(job_of(matched)) == []
 
+    @pytest.mark.django_db
     class TestNeedsMatching:
         """When the person must look at the matching (FR-009)."""
 

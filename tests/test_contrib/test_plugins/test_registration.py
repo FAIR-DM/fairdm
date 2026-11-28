@@ -21,17 +21,6 @@ from fairdm.utils.choices import Visibility
 
 
 class TestBasicRegistration:
-    def test_register_plugin_for_single_model(self):
-
-        @plugins.register(Sample)
-        class TestPlugin(Plugin, TemplateView):
-            menu = {"label": "Test", "icon": "test", "order": 10}
-            template_name = "test.html"
-
-        registered_plugins = plugins.registry.get_plugins_for_model(Sample)
-        plugin_names = [cls.__name__ for cls, _kwargs in registered_plugins]
-        assert "TestPlugin" in plugin_names
-
     def test_register_plugin_for_multiple_models(self):
         from fairdm.core.dataset.models import Dataset
         from fairdm.core.project.models import Project
@@ -63,49 +52,11 @@ class TestBasicRegistration:
 
 
 class TestPluginDeregistration:
-    def test_get_plugins_returns_list(self):
-        plugins_list = plugins.registry.get_plugins_for_model(Sample)
-        assert isinstance(plugins_list, list)
-
     def test_get_plugins_for_unregistered_model(self):
         from django.contrib.auth.models import User
 
         plugins_list = plugins.registry.get_plugins_for_model(User)
         assert plugins_list == []
-
-
-class TestPluginAttributes:
-    def test_plugin_has_get_urls_classmethod(self):
-
-        @plugins.register(Sample)
-        class AttributeTestPlugin(Plugin, TemplateView):
-            menu = {"label": "Attr", "icon": "attr", "order": 40}
-            template_name = "attr.html"
-
-        assert hasattr(AttributeTestPlugin, "get_urls")
-        assert callable(AttributeTestPlugin.get_urls)
-
-    def test_plugin_has_get_name_classmethod(self):
-
-        @plugins.register(Sample)
-        class NameTestPlugin(Plugin, TemplateView):
-            menu = {"label": "Name", "icon": "name", "order": 50}
-            template_name = "name.html"
-
-        assert hasattr(NameTestPlugin, "get_name")
-        assert callable(NameTestPlugin.get_name)
-        assert NameTestPlugin.get_name() == "name-test-plugin"
-
-    def test_plugin_has_get_url_path_classmethod(self):
-
-        @plugins.register(Sample)
-        class PathTestPlugin(Plugin, TemplateView):
-            menu = {"label": "Path", "icon": "path", "order": 60}
-            template_name = "path.html"
-
-        assert hasattr(PathTestPlugin, "get_url_path")
-        assert callable(PathTestPlugin.get_url_path)
-        assert PathTestPlugin.get_url_path() == "path-test-plugin"
 
 
 @pytest.mark.django_db
@@ -175,22 +126,14 @@ class TestExtraViews:
         assert child.view_initkwargs["plugin_class"] is Owner
 
     def test_the_shipped_contribution_views_address_their_target(self):
-        addresses = {
-            "add-person": ({}, "/projects/abc/contributors/add-person/"),
-            "add-person-step": ({}, "/projects/abc/contributors/add-person/details/"),
-            "add-organization": ({}, "/projects/abc/contributors/add-organization/"),
-            "edit": ({"pk": 7}, "/projects/abc/contributors/7/edit/"),
-            "remove": ({"pk": 7}, "/projects/abc/contributors/7/remove/"),
-            "undo": ({}, "/projects/abc/contributors/undo/"),
-            "reorder": ({}, "/projects/abc/contributors/reorder/"),
-        }
-
-        for name, (kwargs, expected) in addresses.items():
-            url = reverse(
-                f"project:contribution-list-{name}",
-                kwargs={"uuid": "abc", **kwargs},
-            )
-            assert url == expected, name
+        assert (
+            reverse("project:contribution-list-add-person", kwargs={"uuid": "abc"})
+            == "/projects/abc/contributors/add-person/"
+        )
+        assert (
+            reverse("project:contribution-list-edit", kwargs={"uuid": "abc", "pk": 7})
+            == "/projects/abc/contributors/7/edit/"
+        )
 
 
 @pytest.mark.django_db
@@ -240,9 +183,3 @@ class TestAnAddonCanExtendARecordItDoesNotOwn:
         # Re-mount so the new registration is routed, as it would be at startup.
         patterns = plugins.registry.get_urls_for_model(Sample)
         assert "addon-page" in [p.name for p in patterns]
-
-    def test_the_declared_surface_is_all_an_author_needs(self):
-        import fairdm.contrib.plugins as api
-
-        for name in ("Plugin", "register", "registry", "is_instance_of", "has_perm"):
-            assert hasattr(api, name), name

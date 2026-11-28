@@ -1,7 +1,5 @@
 """Fixtures for the plugin tests."""
 
-import contextlib
-
 import pytest
 from django.contrib.auth import get_user_model
 
@@ -96,36 +94,30 @@ def as_user(rf):
 
 @pytest.fixture(autouse=True)
 def isolate_registry():
+    """Give each test the registry, record menus and URL caches it found."""
+    from django.urls import clear_url_caches
+    from flex_menu import root
+
     from fairdm import plugins
 
-    saved = {
-        model: list(entries) for model, entries in plugins.registry._registry.items()
+    registry = plugins.registry
+    saved_registry = {
+        model: list(entries) for model, entries in registry._registry.items()
     }
+    saved_addressing = dict(registry._addressing)
+    saved_root = list(root.children)
+    saved_menus = {id(menu): (menu, list(menu.children)) for menu in saved_root}
     yield
-    plugins.registry._registry.clear()
-    plugins.registry._registry.update(saved)
-
-
-@pytest.fixture
-def clear_registry():
-    import sys
-    from importlib import import_module, reload
-
-    from fairdm import plugins
-
-    plugins.registry._registry.clear()
-    yield
-    plugins.registry._registry.clear()
-
-    plugin_modules = [name for name in sys.modules if name.endswith(".plugins")]
-
-    for module_name in plugin_modules:
-        if module_name in sys.modules:
-            try:
-                reload(sys.modules[module_name])
-            except Exception:
-                with contextlib.suppress(Exception):
-                    import_module(module_name)
+    registry_changed = registry._registry != saved_registry
+    registry._registry.clear()
+    registry._registry.update(saved_registry)
+    registry._addressing.clear()
+    registry._addressing.update(saved_addressing)
+    for menu, children in saved_menus.values():
+        menu.children = type(menu.children)(children)
+    root.children = type(root.children)(saved_root)
+    if registry_changed:
+        clear_url_caches()
 
 
 @pytest.fixture

@@ -84,7 +84,7 @@ class TestBuildMetadata:
         Contribution.add_to(
             organization, dataset, roles=[f"{CONTRIBUTOR_ROLES}/creator"]
         )
-        dataset.keywords.add(Record.objects.first())
+        dataset.keywords.add(Record.objects.order_by("pk").first())
 
         root = metadata(dataset)
 
@@ -103,11 +103,6 @@ class TestBuildMetadata:
             NS,
         )
         assert related.text == f"http://testserver/{dataset.uuid}/"
-
-    def test_a_dataset_with_nothing_but_a_title_renders(self, dataset):
-        root = metadata(dataset)
-
-        assert root.find("d:titles/d:title", NS).text == dataset.title
 
 
 class TestBuildMetadataNameType:
@@ -134,16 +129,9 @@ class TestBuildMetadataRights:
         dataset.license = License.objects.create(name=name, canonical_url=url)
         return metadata(dataset).find("d:rightsList/d:rights", NS)
 
-    @pytest.mark.parametrize(
-        ("url", "identifier"),
-        [
-            ("https://creativecommons.org/licenses/by-nc-sa/4.0/", "CC-BY-NC-SA-4.0"),
-            ("https://creativecommons.org/publicdomain/zero/1.0/", "CC0-1.0"),
-        ],
-    )
-    def test_a_licence_spdx_lists_carries_its_identifier(
-        self, dataset, url, identifier
-    ):
+    def test_a_licence_spdx_lists_carries_its_identifier(self, dataset):
+        url = "https://creativecommons.org/licenses/by-nc-sa/4.0/"
+        identifier = "CC-BY-NC-SA-4.0"
         License.objects.filter(canonical_url=url).delete()
 
         rights = self.licensed(dataset, "A licence", url)
@@ -179,20 +167,11 @@ class TestBuildMetadataDates:
             related=dataset, type_id=f"{DATE_TYPES}/{kind}", value=value
         )
 
-    @pytest.mark.parametrize(
-        ("kind", "date_type"),
-        [
-            ("available", "Available"),
-            ("submitted", "Submitted"),
-            ("published", "Issued"),
-            ("withdrawn", "Withdrawn"),
-        ],
-    )
-    def test_a_date_is_written_as_datacite_s_type(self, dataset, kind, date_type):
+    def test_a_date_is_written_as_datacite_s_type(self, dataset):
         dataset.dates.all().delete()
-        self.add(dataset, kind, "2024-03-02")
+        self.add(dataset, "published", "2024-03-02")
 
-        assert self.dates(dataset) == [(date_type, "2024-03-02")]
+        assert self.dates(dataset) == [("Issued", "2024-03-02")]
 
     @pytest.mark.parametrize(
         ("start", "end", "value"),

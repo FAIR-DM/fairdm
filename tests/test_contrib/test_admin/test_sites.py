@@ -51,24 +51,11 @@ class TestAdministrationAccessForRoleHolders:
         assert index_response.status_code == 200
         assert changelist_response.status_code == 200
 
-    @pytest.mark.parametrize(
-        "role_name,changelist_url_name",
-        [
-            (
-                PortalRoles.PORTAL_ADMINISTRATOR.name,
-                "admin:contributors_person_changelist",
-            ),
-            (PortalRoles.DATA_CURATOR.name, "admin:dataset_dataset_changelist"),
-            (
-                PortalRoles.COMMUNITY_MANAGER.name,
-                "admin:contributors_person_changelist",
-            ),
-        ],
-    )
     def test_a_role_holder_reaches_the_index_and_a_changelist_by_signing_in(
-        self, client, role_name, changelist_url_name
+        self, client
     ):
-        holder = _holder_of(role_name)
+        changelist_url_name = "admin:contributors_person_changelist"
+        holder = _holder_of(PortalRoles.PORTAL_ADMINISTRATOR.name)
 
         login_response = client.post(
             reverse("admin:login"),

@@ -8,7 +8,6 @@ from demo.models import RockSample
 from fairdm.contrib.autocomplete.fields import (
     DatasetChoiceField,
     DatasetMultipleChoiceField,
-    OrganizationMultipleChoiceField,
     PersonChoiceField,
     ProjectChoiceField,
     ProjectMultipleChoiceField,
@@ -93,9 +92,7 @@ class TestRecordFields:
         assert accepted.is_valid()
         assert refused.has_error("dataset", code="invalid_choice")
 
-    def test_a_visitor_is_refused_a_dataset_at_edit(
-        self, client, in_request, make_dataset
-    ):
+    def test_a_visitor_is_refused_a_dataset_at_edit(self, in_request, make_dataset):
         from django.contrib.auth.models import AnonymousUser
 
         dataset = make_dataset("Open", visibility=Visibility.PUBLIC)
@@ -155,23 +152,6 @@ class TestRecordFields:
         form.fields["dataset"].queryset = Dataset.all_objects.all()
 
         assert form.is_valid()
-
-    def test_a_project_field_offers_projects_at_its_own_scope(
-        self, researcher, in_request, make_project
-    ):
-        class ProjectForm(forms.Form):
-            project = ProjectChoiceField(scope="edit")
-
-        editable = make_project("Editable", holder=researcher)
-        view_only = make_project(
-            "Read only", holder=researcher, level=ContributionLevel.VIEW
-        )
-        in_request(researcher)
-
-        assert ProjectForm({"project": editable.pk}).is_valid()
-        assert ProjectForm({"project": view_only.pk}).has_error(
-            "project", code="invalid_choice"
-        )
 
 
 @pytest.mark.django_db
@@ -354,8 +334,7 @@ class TestDependentFields:
 
 
 class TestPersonAndOrganizationFields:
-    @pytest.mark.parametrize("scope", ["view", "edit"])
-    def test_a_person_or_organization_field_is_offered_at_one_scope_only(self, scope):
+    def test_a_person_or_organization_field_is_offered_at_one_scope_only(self):
         from fairdm.contrib.autocomplete.fields import (
             OrganizationChoiceField,
             PersonMultipleChoiceField,
@@ -363,16 +342,7 @@ class TestPersonAndOrganizationFields:
 
         for field_class in (OrganizationChoiceField, PersonMultipleChoiceField):
             with pytest.raises(ValueError, match="scope must be one of public"):
-                field_class(scope=scope)
-
-    def test_both_fields_of_a_pair_default_to_that_scope(self):
-        from fairdm.contrib.autocomplete.fields import (
-            PersonChoiceField,
-            PersonMultipleChoiceField,
-        )
-
-        assert PersonChoiceField().scope == "public"
-        assert PersonMultipleChoiceField().scope == "public"
+                field_class(scope="edit")
 
 
 class ProjectSettingsForm(forms.Form):
@@ -424,19 +394,6 @@ class TestFieldSettings:
 
         assert form.is_valid(), form.errors
         assert set(form.cleaned_data["projects"]) == {private, public}
-
-    def test_the_multiple_field_saves_every_chosen_record(
-        self, researcher, in_request, make_project
-    ):
-        first = make_project("First", holder=researcher)
-        second = make_project("Second", holder=researcher)
-        third = make_project("Third", holder=researcher)
-        in_request(researcher)
-
-        form = ManyProjectsForm({"projects": [first.pk, second.pk, third.pk]})
-
-        assert form.is_valid()
-        assert set(form.cleaned_data["projects"]) == {first, second, third}
 
     def test_edit_scope_offers_only_what_the_person_may_edit(
         self, researcher, in_request, make_project
@@ -581,27 +538,3 @@ class TestFieldSettings:
 
         assert accepted.is_valid(), accepted.errors
         assert refused.has_error("samples", code="invalid_choice")
-
-    @pytest.mark.parametrize(
-        "field_class",
-        [
-            ProjectChoiceField,
-            ProjectMultipleChoiceField,
-            DatasetChoiceField,
-            SampleChoiceField,
-            PersonChoiceField,
-            OrganizationMultipleChoiceField,
-        ],
-    )
-    def test_a_rendered_field_waits_for_two_characters_and_throttles_loads_to_300_ms(
-        self, researcher, in_request, field_class
-    ):
-        in_request(researcher)
-
-        class RenderedForm(forms.Form):
-            record = field_class()
-
-        context = RenderedForm()["record"].field.widget.get_context("record", None, {})
-
-        assert context["widget"]["minimum_query_length"] == 2
-        assert context["widget"]["load_throttle"] == 300

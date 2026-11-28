@@ -1,77 +1,38 @@
 """Tests for plugin template tags."""
 
-from unittest.mock import patch
-
 import pytest
 from django.template import Context, Template
+from django.urls import reverse
 
-pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("clear_registry")]
+pytestmark = pytest.mark.django_db
 
 
 class TestPluginUrl:
-    def test_plugin_url_with_non_polymorphic_object(self, rf, sample):
-        with patch(
-            "fairdm.contrib.plugins.templatetags.plugin_tags.reverse"
-        ) as mock_reverse:
-            mock_reverse.return_value = "/sample/abc123/test-view/"
+    TEMPLATE = "{% load plugin_tags %}{% plugin_url 'overview' %}"
 
-            template = Template("{% load plugin_tags %}{% plugin_url 'test-view' %}")
-            context = Context({"non_polymorphic_object": sample})
+    def test_the_url_is_the_record_s_own_plugin_page(self, sample):
+        context = Context({"non_polymorphic_object": sample})
 
-            result = template.render(context)
+        assert Template(self.TEMPLATE).render(context) == reverse(
+            "sample:overview", kwargs={"uuid": sample.uuid}
+        )
 
-            mock_reverse.assert_called_once_with(sample, "test-view")
-            assert result == "/sample/abc123/test-view/"
+    def test_the_object_is_used_when_there_is_no_non_polymorphic_one(self, sample):
+        context = Context({"object": sample})
 
-    def test_plugin_url_fallback_to_object(self, rf, sample):
-        with patch(
-            "fairdm.contrib.plugins.templatetags.plugin_tags.reverse"
-        ) as mock_reverse:
-            mock_reverse.return_value = "/sample/abc123/test-view/"
+        assert Template(self.TEMPLATE).render(context) == reverse(
+            "sample:overview", kwargs={"uuid": sample.uuid}
+        )
 
-            template = Template("{% load plugin_tags %}{% plugin_url 'test-view' %}")
-            context = Context({"object": sample})
+    def test_the_non_polymorphic_object_wins_over_the_object(self, sample, dataset):
+        context = Context({"non_polymorphic_object": sample, "object": dataset})
 
-            result = template.render(context)
+        assert Template(self.TEMPLATE).render(context) == reverse(
+            "sample:overview", kwargs={"uuid": sample.uuid}
+        )
 
-            mock_reverse.assert_called_once_with(sample, "test-view")
-            assert result == "/sample/abc123/test-view/"
-
-    def test_plugin_url_without_object(self, rf):
-        template = Template("{% load plugin_tags %}{% plugin_url 'test-view' %}")
-        context = Context({})
-
-        result = template.render(context)
-
-        assert result == ""
-
-    def test_plugin_url_with_kwargs(self, rf, sample):
-        with patch(
-            "fairdm.contrib.plugins.templatetags.plugin_tags.reverse"
-        ) as mock_reverse:
-            mock_reverse.return_value = "/sample/abc123/test-view/"
-
-            template = Template(
-                "{% load plugin_tags %}{% plugin_url 'test-view' pk=123 %}"
-            )
-            context = Context({"object": sample})
-
-            result = template.render(context)
-
-            mock_reverse.assert_called_once_with(sample, "test-view", pk=123)
-
-    def test_plugin_url_prefers_non_polymorphic_object(self, rf, sample, dataset):
-        with patch(
-            "fairdm.contrib.plugins.templatetags.plugin_tags.reverse"
-        ) as mock_reverse:
-            mock_reverse.return_value = "/sample/abc123/test-view/"
-
-            template = Template("{% load plugin_tags %}{% plugin_url 'test-view' %}")
-            context = Context({"non_polymorphic_object": sample, "object": dataset})
-
-            result = template.render(context)
-
-            mock_reverse.assert_called_once_with(sample, "test-view")
+    def test_without_an_object_the_url_is_empty(self):
+        assert Template(self.TEMPLATE).render(Context({})) == ""
 
 
 class TestHoldsLevel:

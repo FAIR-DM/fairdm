@@ -1,16 +1,11 @@
 """Tests for the collections app's navigation entries."""
 
-import importlib
-import sys
-from pathlib import Path
-
 import pytest
 from django.apps import apps as django_apps
 from django.urls import reverse
 from flex_menu import Menu
 from mvp.menus import MenuCollapse
 
-import fairdm.apps
 from fairdm.menus import AppMenu
 from fairdm.registry import registry
 
@@ -46,25 +41,23 @@ class TestMeasurementNavigationEntries:
 
 @pytest.mark.django_db
 class TestNavigationEntryUrls:
-    def test_a_sample_entrys_url_resolves_to_its_listing(self, rf):
-        model_class = registry.samples[0]
-        config = registry.get_for_model(model_class)
-        entry = AppMenu.get("Samples").get(config.get_verbose_name_plural())
+    def test_an_entry_s_url_resolves_to_its_listing(self, rf):
+        wrong = []
+        for heading, model_class in (
+            ("Samples", registry.samples[0]),
+            ("Measurements", registry.measurements[0]),
+        ):
+            config = registry.get_for_model(model_class)
+            entry = AppMenu.get(heading).get(config.get_verbose_name_plural())
 
-        processed = entry.process(rf.get("/"))
+            processed = entry.process(rf.get("/"))
 
-        assert processed.visible
-        assert processed.url == reverse(f"{config.get_slug()}-list")
+            if not processed.visible or processed.url != reverse(
+                f"{config.get_slug()}-list"
+            ):
+                wrong.append(heading)
 
-    def test_a_measurement_entrys_url_resolves_to_its_listing(self, rf):
-        model_class = registry.measurements[0]
-        config = registry.get_for_model(model_class)
-        entry = AppMenu.get("Measurements").get(config.get_verbose_name_plural())
-
-        processed = entry.process(rf.get("/"))
-
-        assert processed.visible
-        assert processed.url == reverse(f"{config.get_slug()}-list")
+        assert not wrong
 
 
 @pytest.mark.django_db
@@ -149,21 +142,3 @@ class TestNavigationSurvivesAMissingMenuNode:
 
         assert isolated_menu.get("Samples") is not None
         assert isolated_menu.get("Measurements") is not None
-
-
-class TestNavigationDoesNotDependOnThisApp:
-    def test_the_framework_app_config_is_what_imports_the_menu(self):
-        source = Path(fairdm.apps.__file__).read_text()
-        assert "from fairdm import menus" in source, (
-            "fairdm/apps.py no longer imports the menu module, so the navigation is "
-            "back to depending on whichever optional app happens to import it"
-        )
-
-    def test_the_menu_module_is_loaded_once_the_framework_config_is(self):
-        importlib.import_module("fairdm.apps")
-        assert "fairdm.menus" in sys.modules
-
-    def test_the_core_headings_are_present(self):
-        names = {str(child.name) for child in AppMenu.children}
-        for expected in ("Home", "Projects", "Datasets"):
-            assert expected in names

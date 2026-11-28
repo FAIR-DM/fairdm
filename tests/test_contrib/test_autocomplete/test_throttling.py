@@ -67,14 +67,51 @@ def statuses(client, url, times, **headers):
     return answers
 
 
+#: The limits are one mixin shared by every address, so one is tested.
+ADDRESS = "autocomplete:project-view"
+
+#: Addresses that are not a record kind at a scope, each of which takes the limits too.
+OTHER_ADDRESSES = [
+    "autocomplete:publication",
+    "autocomplete:tag-view",
+    "autocomplete:tag-public",
+    "autocomplete:ror",
+    "autocomplete:person-public",
+    "autocomplete:organization-public",
+]
+
+
 @pytest.mark.django_db
-@pytest.mark.parametrize("address", every_address())
+class TestEveryAddressIsThrottled:
+    def test_every_address_refuses_a_caller_over_the_burst_rate(
+        self, client, set_rates, counting_cache, monkeypatch
+    ):
+        from fairdm.contrib.contributors.services.registries import Ror
+
+        monkeypatch.setattr(
+            Ror, "search", lambda self, term: {"results": [], "more": False}
+        )
+        set_rates(autocomplete_anon_burst="1/minute")
+
+        not_limited = []
+        for address in [*every_address(), *OTHER_ADDRESSES]:
+            counting_cache.clear()
+            answers = statuses(client, reverse(address), 3)
+            if answers != [200, 429]:
+                not_limited.append((address, answers))
+
+        assert not_limited == []
+
+
+@pytest.mark.django_db
 class TestAutocompleteThrottles:
+    address = ADDRESS
+
     def test_a_visitor_over_the_burst_rate_is_refused_with_a_retry_time(
-        self, client, set_rates, address
+        self, client, set_rates
     ):
         set_rates(autocomplete_anon_burst="3/minute")
-        url = reverse(address)
+        url = reverse(self.address)
 
         answers = statuses(client, url, 6)
         refused = client.get(url)
@@ -84,19 +121,19 @@ class TestAutocompleteThrottles:
         assert int(refused["Retry-After"]) > 0
         assert refused.json()["results"] == []
 
-    def test_a_visitor_over_the_daily_rate_is_refused(self, client, set_rates, address):
+    def test_a_visitor_over_the_daily_rate_is_refused(self, client, set_rates):
         set_rates(autocomplete_anon_day="2/day")
 
-        assert statuses(client, reverse(address), 5) == [200, 200, 429]
+        assert statuses(client, reverse(self.address), 5) == [200, 200, 429]
 
     def test_no_query_runs_once_a_visitor_is_over_the_rate(
-        self, rf, set_rates, django_assert_num_queries, address
+        self, rf, set_rates, django_assert_num_queries
     ):
         # The view is called directly: the test client wraps the request in a transaction, whose
         # savepoints would count as queries of their own.
         set_rates(autocomplete_anon_burst="1/minute")
-        view = resolve(reverse(address)).func
-        request = rf.get(reverse(address))
+        view = resolve(reverse(self.address)).func
+        request = rf.get(reverse(self.address))
         request.user = AnonymousUser()
         view(request)
 
@@ -105,11 +142,11 @@ class TestAutocompleteThrottles:
 
         assert response.status_code == 429
 
-    def test_signed_in_callers_are_counted_by_account(self, client, set_rates, address):
+    def test_signed_in_callers_are_counted_by_account(self, client, set_rates):
         set_rates(
             autocomplete_user_burst="2/minute", autocomplete_anon_burst="1/minute"
         )
-        url = reverse(address)
+        url = reverse(self.address)
         first, second = UserFactory(), UserFactory()
 
         client.force_login(first)
@@ -121,20 +158,20 @@ class TestAutocompleteThrottles:
         assert second_answers == [200, 200, 429]
 
     def test_a_signed_in_caller_is_not_stopped_at_the_visitor_rate(
-        self, client, set_rates, address
+        self, client, set_rates
     ):
         set_rates(
             autocomplete_anon_burst="1/minute", autocomplete_user_burst="5/minute"
         )
         client.force_login(UserFactory())
 
-        assert statuses(client, reverse(address), 5) == [200] * 5
+        assert statuses(client, reverse(self.address), 5) == [200] * 5
 
     def test_another_caller_is_answered_while_one_is_over_the_rate(
-        self, client, set_rates, address
+        self, client, set_rates
     ):
         set_rates(autocomplete_anon_burst="2/minute")
-        url = reverse(address)
+        url = reverse(self.address)
         assert statuses(client, url, 4, REMOTE_ADDR="10.0.0.1") == [200, 200, 429]
 
         other = client.get(url, REMOTE_ADDR="10.0.0.2")
@@ -142,7 +179,7 @@ class TestAutocompleteThrottles:
         assert other.status_code == 200
 
     def test_a_portal_without_the_rates_still_limits_the_fields(
-        self, client, settings, monkeypatch, address
+        self, client, settings, monkeypatch
     ):
         from fairdm.contrib.autocomplete.throttling import AutocompleteAnonBurstThrottle
 
@@ -151,4 +188,4 @@ class TestAutocompleteThrottles:
             monkeypatch.delitem(rates, scope, raising=False)
         monkeypatch.setattr(AutocompleteAnonBurstThrottle, "default_rate", "2/minute")
 
-        assert statuses(client, reverse(address), 5) == [200, 200, 429]
+        assert statuses(client, reverse(self.address), 5) == [200, 200, 429]

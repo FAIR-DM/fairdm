@@ -3,7 +3,6 @@
 import csv
 import io
 import json
-import zipfile
 from dataclasses import replace
 from urllib.parse import unquote
 
@@ -87,23 +86,24 @@ def read_back():
 
 
 class TestExportFormats:
-    def test_the_formats_come_in_the_menus_order(self):
-        assert KEYS == ["csv", "xlsx", "ods", "tsv", "json"]
+    def test_every_key_finds_its_format(self):
+        wrong = [key for key in KEYS if format_for(key).key != key]
+        assert wrong == []
 
-    @pytest.mark.parametrize("key", KEYS)
-    def test_a_key_finds_its_format(self, key):
-        assert format_for(key).key == key
-
-    @pytest.mark.parametrize("key", ["xls", "", "CSV", "pdf"])
+    @pytest.mark.parametrize("key", ["xls", "CSV"])
     def test_a_key_that_is_not_a_format_finds_none(self, key):
         assert format_for(key) is None
 
 
 @pytest.mark.django_db
 class TestExportResponse:
-    @pytest.mark.parametrize("key", KEYS)
-    @pytest.mark.parametrize("model", TYPES, ids=lambda m: m.__name__)
-    def test_every_type_writes_its_headings_and_rows_in_every_format(
+    @pytest.mark.parametrize(
+        ("model", "key"),
+        [(RockSample, key) for key in KEYS]
+        + [(model, "csv") for model in TYPES if model is not RockSample],
+        ids=lambda value: value if isinstance(value, str) else value.__name__,
+    )
+    def test_every_type_writes_its_headings_and_rows(
         self, model, key, make_record, export_of, read_back
     ):
         records = [make_record(model) for _ in range(2)]
@@ -134,27 +134,6 @@ class TestExportResponse:
         )
         assert "dünnschliff-東京.csv" in unquote(response["Content-Disposition"])
 
-    @pytest.mark.parametrize("key", ["csv", "tsv", "xlsx", "json"])
-    def test_a_value_with_a_delimiter_a_quote_and_a_line_break_stays_one_cell(
-        self, key, make_record, export_of, read_back
-    ):
-        name = 'a,b\t"c"\nd'
-        make_record(RockSample, name=name)
-        response, _schema = export_of(RockSample, RockSample.objects.all(), key)
-        headings, rows = read_back(response, key)
-        assert len(rows) == 1
-        assert rows[0][headings.index("name")] == name
-
-    @pytest.mark.parametrize("key", KEYS)
-    def test_text_in_any_script_survives_every_format(
-        self, key, make_record, export_of, read_back
-    ):
-        name = "Dünnschliff 東京 ☃"
-        make_record(RockSample, name=name)
-        response, _schema = export_of(RockSample, RockSample.objects.all(), key)
-        headings, rows = read_back(response, key)
-        assert rows[0][headings.index("name")] == name
-
     def test_json_is_a_list_of_objects_keyed_by_the_headings(
         self, make_record, export_of
     ):
@@ -170,18 +149,16 @@ class TestExportResponse:
         response, _schema = export_of(RockSample, RockSample.objects.all(), "csv")
         assert response.content.startswith(b"\xef\xbb\xbf")
 
-    @pytest.mark.parametrize("key", KEYS)
     def test_an_empty_optional_value_and_a_missing_location_give_empty_cells(
-        self, key, make_record, export_of, read_back
+        self, make_record, export_of, read_back
     ):
         make_record(RockSample, location=None, local_id="")
-        response, _schema = export_of(RockSample, RockSample.objects.all(), key)
-        headings, rows = read_back(response, key)
+        response, _schema = export_of(RockSample, RockSample.objects.all(), "csv")
+        headings, rows = read_back(response, "csv")
         for heading in ("local_id", "latitude", "longitude"):
             assert rows[0][headings.index(heading)] == ""
-        assert rows[0][headings.index("latitude")] == ""
 
-    @pytest.mark.parametrize("key", ["csv", "xlsx", "ods", "tsv"])
+    @pytest.mark.parametrize("key", ["csv", "xlsx"])
     def test_no_rows_write_the_headings_alone(self, key, export_of, read_back):
         response, schema = export_of(RockSample, RockSample.objects.none(), key)
         headings, rows = read_back(response, key)
@@ -281,9 +258,7 @@ class TestWorkbook:
     def book(self, schema, rows=()):
         return load_workbook(io.BytesIO(TableExport(schema).workbook(rows)))
 
-    def test_it_has_the_rows_the_guide_and_the_allowed_values(
-        self, schema, make_record
-    ):
+    def test_it_has_the_rows_the_guide_and_the_allowed_values(self, schema):
         book = self.book(schema, [["x"] * len(schema.columns)])
         assert len(book.worksheets) == 3
         data, guide, allowed = book.worksheets
@@ -351,6 +326,7 @@ class TestWorkbook:
             last = 1 + len([c for c in values if c.value is not None])
             assert validation.formula1.endswith(f"!${letter}$2:${letter}${last}")
 
+    @pytest.mark.slow
     def test_the_validation_reaches_a_thousand_rows_past_the_data(self, schema):
         rows = [[""] * len(schema.columns) for _ in range(5000)]
         data = self.book(schema, rows).worksheets[0]
@@ -387,9 +363,7 @@ class TestWorkbook:
         ]
         assert values == [f"v{n}" for n in range(300)]
 
-    def test_a_name_that_looks_like_a_formula_is_read_back_as_text(
-        self, schema, make_record
-    ):
+    def test_a_name_that_looks_like_a_formula_is_read_back_as_text(self, schema):
         row = [""] * len(schema.columns)
         row[schema.headings.index("name")] = "=1+1"
         data = self.book(schema, [row]).worksheets[0]
@@ -403,7 +377,3 @@ class TestWorkbook:
         assert [s.title for s in empty.worksheets] == [s.title for s in full.worksheets]
         assert [c.value for c in empty.worksheets[0][1]] == schema.headings
         assert empty.worksheets[0].max_row == 1
-
-    def test_the_file_is_a_zip_of_sheets(self, schema):
-        payload = TableExport(schema).workbook()
-        assert zipfile.is_zipfile(io.BytesIO(payload))

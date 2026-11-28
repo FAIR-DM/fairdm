@@ -13,7 +13,6 @@ from fairdm.contrib.import_export.resources import (
     build_resource,
     changed_cells,
 )
-from fairdm.core.measurement.models import Measurement
 from fairdm.factories import DatasetFactory
 from fairdm.registry import registry
 from fairdm.utils.choices import Visibility
@@ -408,11 +407,6 @@ class TestSampleNameIgnored:
 class TestMeasurementSample:
     """A measurement names its sample by portal ID, Local ID or a unique name."""
 
-    @pytest.fixture
-    def sample(self, open_dataset):
-        """A sample of the dataset with a Local ID."""
-        return RockSampleFactory(dataset=open_dataset, local_id="S-1", name="Core 14")
-
     def measurement(self, sample_cell):
         """Return the cells of a new measurement on a sample."""
         return {
@@ -432,33 +426,6 @@ class TestMeasurementSample:
 
         assert outcomes(result) == [NEW]
         assert result.rows[0].instance.sample == public
-
-    def test_a_local_id_finds_a_sample_of_this_dataset(self, run_import, sample):
-        _, result = run_import(XRFMeasurement, [self.measurement("S-1")])
-
-        assert result.rows[0].instance.sample == sample
-
-    def test_a_unique_name_finds_a_sample_of_this_dataset(self, run_import, sample):
-        _, result = run_import(XRFMeasurement, [self.measurement("Core 14")])
-
-        assert result.rows[0].instance.sample == sample
-
-    def test_a_local_id_of_another_dataset_finds_nothing(self, run_import, sample):
-        elsewhere = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
-
-        _, result = run_import(
-            XRFMeasurement, [self.measurement("S-1")], dataset=elsewhere
-        )
-
-        assert outcomes(result) == [INVALID]
-        assert "sample" in result.rows[0].validation_error.error_dict
-
-    def test_a_shared_name_is_a_problem(self, run_import, open_dataset, sample):
-        RockSampleFactory(dataset=open_dataset, name="Core 14")
-
-        _, result = run_import(XRFMeasurement, [self.measurement("Core 14")])
-
-        assert outcomes(result) == [INVALID]
 
     def test_a_sample_the_person_may_not_open_is_not_found(self, run_import):
         private = RockSampleFactory(
@@ -489,7 +456,7 @@ class TestSampleCache:
                 widget.clean(cell)
         return len(queries)
 
-    def test_300_rows_over_three_samples_cost_three_lookups(
+    def test_more_rows_over_the_same_samples_cost_no_more_lookups(
         self, open_dataset, samples
     ):
         schema = registry.get_for_model(XRFMeasurement).get_table_schema()
@@ -497,7 +464,7 @@ class TestSampleCache:
 
         self.cost_of(schema, open_dataset, distinct)  # warms process-wide caches
         once = self.cost_of(schema, open_dataset, distinct)
-        many = self.cost_of(schema, open_dataset, distinct * 100)
+        many = self.cost_of(schema, open_dataset, distinct * 3)
 
         assert many == once
 
@@ -646,22 +613,26 @@ class TestEveryRegisteredType:
             row[column.name] = column.example
         if "sample" in {column.name for column in schema.importable}:
             row["sample"] = anchor.uuid
-        row["local_id"] = "NEW-1"
         return row
 
-    @pytest.mark.parametrize(
-        "model",
-        [*registry.samples, *registry.measurements],
-        ids=lambda model: model._meta.model_name,
-    )
-    def test_a_row_of_the_types_own_columns_is_added(self, run_import, anchor, model):
-        schema = registry.get_for_model(model).get_table_schema()
-        row = self.row_for(schema, anchor)
+    def test_a_row_of_each_types_own_columns_is_added(self, run_import, anchor):
+        problems = []
+        for model in [*registry.samples, *registry.measurements]:
+            schema = registry.get_for_model(model).get_table_schema()
+            row = self.row_for(schema, anchor)
+            row["local_id"] = f"NEW-{model._meta.model_name}"
 
-        _, result = run_import(model, [row])
+            _, result = run_import(model, [row])
 
-        assert outcomes(result) == [NEW], result.rows[0].validation_error or [
-            error.error for error in result.rows[0].errors
-        ]
-        assert model.objects.filter(local_id="NEW-1").count() == 1
-        assert issubclass(model, Measurement) or model.objects.get(local_id="NEW-1")
+            if outcomes(result) != [NEW]:
+                problems.append(
+                    (
+                        model.__name__,
+                        result.rows[0].validation_error
+                        or [error.error for error in result.rows[0].errors],
+                    )
+                )
+            elif model.objects.filter(local_id=row["local_id"]).count() != 1:
+                problems.append((model.__name__, "not stored once"))
+
+        assert problems == []

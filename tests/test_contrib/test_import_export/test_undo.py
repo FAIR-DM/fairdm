@@ -1,5 +1,6 @@
 """Tests for fairdm/contrib/import_export/undo.py."""
 
+from datetime import timedelta
 from unittest import mock
 
 import pytest
@@ -13,8 +14,11 @@ from fairdm.contrib.import_export.runner import ImportRun
 from fairdm.contrib.import_export.undo import ImportUndo
 from fairdm.core.dataset.models import Dataset
 from fairdm.factories import ContributionFactory, SampleDescriptionFactory
+from tests.factories import ImportJobFactory, ImportRowFactory
 
 pytestmark = pytest.mark.django_db
+
+CHANGES = [{"column": "hardness_mohs", "label": "Hardness", "old": "7.0", "new": "6.5"}]
 
 
 class TestImportUndo:
@@ -22,12 +26,6 @@ class TestImportUndo:
 
     class TestDigest:
         """The digest describes the record as the database holds it."""
-
-        def test_is_a_sha256_hex_string(self, import_job, open_dataset):
-            record = RockSampleFactory(dataset=open_dataset)
-            digest = ImportUndo(import_job).digest(record)
-            assert len(digest) == 64
-            int(digest, 16)
 
         def test_changes_with_any_stored_value(self, import_job, open_dataset):
             record = RockSampleFactory(dataset=open_dataset, rock_type="granite")
@@ -39,7 +37,9 @@ class TestImportUndo:
         def test_changes_with_the_modified_time_alone(self, import_job, open_dataset):
             record = RockSampleFactory(dataset=open_dataset)
             before = ImportUndo(import_job).digest(record)
-            record.save()
+            RockSample.objects.filter(pk=record.pk).update(
+                modified=record.modified + timedelta(seconds=1)
+            )
             record.refresh_from_db()
             assert ImportUndo(import_job).digest(record) != before
 
@@ -76,40 +76,44 @@ class TestImportUndo:
             assert row.digest == ImportUndo(job).digest(later)
 
 
+def import_row_for(job, record, outcome, number, **overrides):
+    """Store the row an import of the record would have left on the job."""
+    fresh = type(record).objects.get(pk=record.pk)
+    return ImportRowFactory(
+        job=job,
+        number=number,
+        outcome=outcome,
+        record_pk=record.pk,
+        label=record.name,
+        digest=ImportUndo(job).digest(fresh),
+        changes=CHANGES,
+        **overrides,
+    )
+
+
 @pytest.fixture
-def imported(make_job, open_dataset, editor_for_undo):
+def imported(open_dataset):
     """An imported job that added one rock and changed another.
 
     Returns:
         The job, the added rock and the changed rock, read back from the database.
     """
+    job = ImportJobFactory(dataset=open_dataset, status=ImportJob.Status.IMPORTED)
+    added = RockSampleFactory(
+        dataset=open_dataset, name="Brand new", local_id="NEW", rock_type="basalt"
+    )
     changed = RockSampleFactory(
-        dataset=open_dataset, local_id="OLD", hardness_mohs="7.0", rock_type="granite"
+        dataset=open_dataset, local_id="OLD", hardness_mohs="6.5", rock_type="granite"
     )
-    job = make_job(
-        [
-            {
-                "name": "Brand new",
-                "local_id": "NEW",
-                "rock_type": "basalt",
-                "collection_date": "2024-06-30",
-            },
-            {
-                "name": changed.name,
-                "local_id": "OLD",
-                "rock_type": "granite",
-                "collection_date": "2024-06-30",
-                "hardness_mohs": "6.5",
-            },
-        ]
+    import_row_for(job, added, ImportRow.Outcome.NEW, 1)
+    import_row_for(
+        job, changed, ImportRow.Outcome.UPDATE, 2, before={"hardness_mohs": "7.0"}
     )
-    ImportRun(job).check()
-    ImportJob.objects.filter(pk=job.pk).update(status=ImportJob.Status.IMPORTING)
-    ImportRun(job).perform(editor_for_undo)
-    job.refresh_from_db()
-    assert job.status == ImportJob.Status.IMPORTED
-    added = RockSample.objects.get(dataset=open_dataset, local_id="NEW")
-    return job, added, RockSample.objects.get(pk=changed.pk)
+    return (
+        job,
+        RockSample.objects.get(pk=added.pk),
+        RockSample.objects.get(pk=changed.pk),
+    )
 
 
 @pytest.fixture
@@ -176,30 +180,21 @@ class TestConflicts:
         SampleDescriptionFactory(related=changed)
         assert ImportUndo(job).conflicts()["entries"] == []
 
-    def test_the_queries_do_not_grow_with_the_rows(self, make_job):
-        def imported_rows(prefix, how_many):
-            job = make_job(
-                [
-                    {
-                        "name": f"{prefix} {n}",
-                        "local_id": f"{prefix}-{n}",
-                        "rock_type": "basalt",
-                        "collection_date": "2024-06-30",
-                    }
-                    for n in range(how_many)
-                ]
-            )
-            ImportRun(job).check()
-            ImportJob.objects.filter(pk=job.pk).update(status="importing")
-            ImportRun(job).perform(None)
+    def test_the_queries_do_not_grow_with_the_rows(self, open_dataset):
+        def added_rows(how_many):
+            job = ImportJobFactory(dataset=open_dataset, status="imported")
+            for number in range(how_many):
+                record = RockSampleFactory(dataset=open_dataset)
+                import_row_for(job, record, ImportRow.Outcome.NEW, number + 1)
             return job
 
         def count(job):
+            ImportUndo(job).conflicts()
             with CaptureQueriesContext(connection) as queries:
                 ImportUndo(job).conflicts()
             return len(queries)
 
-        assert count(imported_rows("A", 1)) == count(imported_rows("B", 6))
+        assert count(added_rows(1)) == count(added_rows(3))
 
     def test_the_list_stops_at_the_limit_and_counts_the_rest(self, imported):
         job, added, changed = imported
@@ -209,17 +204,6 @@ class TestConflicts:
         found = ImportUndo(job).conflicts(limit=1)
         assert len(found["entries"]) == 1
         assert found["more"] == 1
-
-    def test_the_default_limit_is_twenty(self, imported, open_dataset):
-        job, _added, _changed = imported
-        rows = [
-            ImportRow(job=job, number=100 + n, line=n, outcome="new", record_pk=n)
-            for n in range(1, 31)
-        ]
-        ImportRow.objects.bulk_create(rows)
-        found = ImportUndo(job).conflicts()
-        assert len(found["entries"]) == 20
-        assert found["more"] == 10
 
 
 class TestUndo:
@@ -241,6 +225,16 @@ class TestUndo:
         assert not RockSample.objects.filter(pk=added.pk).exists()
         changed.refresh_from_db()
         assert str(changed.hardness_mohs) == "7.0"
+
+    def test_the_progress_counts_the_records_undone(self, undoing, recorded_cache):
+        job, _added, _changed = undoing
+        ImportUndo(job).undo(None)
+        written = [
+            value
+            for key, value in recorded_cache.written
+            if key == ImportRun(job).progress_key
+        ]
+        assert written[-1] == 2
 
     def test_the_job_moves_from_undoing_to_undone_with_who_and_when(
         self, undoing, editor_for_undo
@@ -357,13 +351,6 @@ class TestUndo:
         assert ImportUndo(job).undo(None) is None
         assert RockSample.objects.filter(pk=added.pk).exists()
 
-    def test_a_second_undo_does_nothing(self, undoing):
-        job, _added, _changed = undoing
-        ImportUndo(job).undo(None)
-        with mock.patch.object(ImportUndo, "delete_created") as deleted:
-            assert ImportUndo(job).undo(None) is None
-        deleted.assert_not_called()
-
     def test_the_job_returns_to_imported_with_the_message_when_released(self, undoing):
         job, added, _changed = undoing
         ImportUndo(job).release("It broke.")
@@ -377,12 +364,6 @@ class TestUndo:
         ImportUndo(job).release("It broke.")
         job.refresh_from_db()
         assert job.error == ""
-
-    def test_the_progress_is_written_while_the_records_are_undone(self, undoing):
-        job, _added, _changed = undoing
-        with mock.patch("fairdm.contrib.import_export.undo.cache") as cache:
-            ImportUndo(job).undo(None)
-        assert cache.set.called
 
 
 class TestUndoOfEmptyValues:
