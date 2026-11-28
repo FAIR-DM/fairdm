@@ -258,6 +258,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li><a class="daisy-toc-link reference internal" href="#fast-tests">10. Fast tests</a></li>
 <li><a class="daisy-toc-link reference internal" href="#project-additions">Project additions</a><ul class="daisy-toc-list">
 <li><a class="daisy-toc-link reference internal" href="#quick-suite">Quick suite</a></li>
+<li><a class="daisy-toc-link reference internal" href="#browser-tests">Browser tests</a></li>
 <li><a class="daisy-toc-link reference internal" href="#warnings-fail">Warnings fail</a></li>
 <li><a class="daisy-toc-link reference internal" href="#url-smoke-tests">URL smoke tests</a></li>
 </ul>
@@ -519,15 +520,47 @@ time on every one of them.</p></li>
 <!-- Rules that apply to this repository only. Leave empty when there are none. -->
 <section id="quick-suite">
 <h3>Quick suite<a class="headerlink" aria-label="Link to this heading: Quick suite" href="#quick-suite" title="Link to this heading">¶</a></h3>
-<p>This repository has no browser tests, so the <code class="docutils literal notranslate"><span class="pre">slow</span></code> marker is the only one in use. Run the quick
-suite while working:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pytest<span class="w"> </span>-m<span class="w"> </span><span class="s2">"not slow"</span>
+<p>Run the quick suite while working:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pytest<span class="w"> </span>-m<span class="w"> </span><span class="s2">"not e2e and not slow"</span>
 </pre></div>
 </div>
-<p>It skips the slowest tests: the migration tests, the backup and restore tests and the Docker
-script tests. A test that takes over a second or starts a subprocess carries the <code class="docutils literal notranslate"><span class="pre">slow</span></code> marker,
-and a few older ones still start a Python process without it. The full suite, <code class="docutils literal notranslate"><span class="pre">pytest</span></code>, runs
-before a pull request and in CI.</p>
+<p>It skips every browser test and every test that takes over a second or starts a subprocess:
+the migration tests, the backup and restore tests and the Docker script tests. The <code class="docutils literal notranslate"><span class="pre">e2e</span></code> marker
+is added to any test that uses the Playwright <code class="docutils literal notranslate"><span class="pre">browser</span></code> fixture (<code class="docutils literal notranslate"><span class="pre">page</span></code> included), in
+<code class="docutils literal notranslate"><span class="pre">tests/conftest.py</span></code>, so a new browser test cannot miss it. A test that is slow
+without a browser carries <code class="docutils literal notranslate"><span class="pre">&#64;pytest.mark.slow</span></code>, and a few older ones still start a Python process
+without it. The full suite, <code class="docutils literal notranslate"><span class="pre">pytest</span></code>, runs before a pull request and in CI.</p>
+</section>
+<section id="browser-tests">
+<h3>Browser tests<a class="headerlink" aria-label="Link to this heading: Browser tests" href="#browser-tests" title="Link to this heading">¶</a></h3>
+<p>Write a browser test only for behaviour that needs a browser: JavaScript, focus, keyboard, drag,
+storage and htmx swaps. Markup the server renders is tested with the test client, and layout,
+colour and size are not tested at all. Browser tests live in <code class="docutils literal notranslate"><span class="pre">tests/test_browser/</span></code>, which is
+declared a non-mirror path because their subject is a script or a page, not a Python module.</p>
+<ul class="simple">
+<li><p><strong>Install the browser once</strong>: <code class="docutils literal notranslate"><span class="pre">playwright</span> <span class="pre">install</span> <span class="pre">chromium</span></code>. Without it the browser tests skip
+on a developer’s machine. In CI a missing browser is a failure, so the checks page never shows
+a skip as a pass.</p></li>
+<li><p><strong>Run them</strong> with <code class="docutils literal notranslate"><span class="pre">pytest</span> <span class="pre">-m</span> <span class="pre">e2e</span></code>. They use pytest-playwright’s <code class="docutils literal notranslate"><span class="pre">page</span></code> fixture and pytest-django’s
+<code class="docutils literal notranslate"><span class="pre">live_server</span></code>. A test that asks for <code class="docutils literal notranslate"><span class="pre">live_server</span></code> runs against a database that commits, so the
+server’s own threads see what the test wrote, and the licences and vocabularies are written
+back when it ends. Sign in with the <code class="docutils literal notranslate"><span class="pre">sign_in</span></code> fixture in
+<code class="docutils literal notranslate"><span class="pre">tests/test_browser/conftest.py</span></code>.</p></li>
+<li><p><strong>A browser test never reaches the network.</strong> The browser answers the CDN addresses a page asks
+for from files in <code class="docutils literal notranslate"><span class="pre">tests/fixtures/vendor/</span></code>: htmx and the Bootstrap Icons stylesheet and font.
+Add a pattern to <code class="docutils literal notranslate"><span class="pre">STAND_INS</span></code> in <code class="docutils literal notranslate"><span class="pre">tests/conftest.py</span></code> for a new address, with the exact release
+the template names, so its integrity hash still matches. Any other request to a host that is
+not this machine is refused, and the test fails at its end with the addresses it asked for.</p></li>
+<li><p><strong>Wait for state, never for a number of milliseconds.</strong> <code class="docutils literal notranslate"><span class="pre">wait_until_still(page)</span></code> waits until no
+htmx request is in flight and nothing is moving. <code class="docutils literal notranslate"><span class="pre">expect(...)</span></code> from <code class="docutils literal notranslate"><span class="pre">playwright.sync_api</span></code> waits
+for an element. <code class="docutils literal notranslate"><span class="pre">wait_until(condition)</span></code> waits for something the server does.</p></li>
+<li><p><strong>A test puts a changed value back only when the server is idle.</strong> The live server answers in
+its own threads and reads the same settings and configuration dictionaries. Change one with
+<code class="docutils literal notranslate"><span class="pre">monkeypatch</span></code> before the first request: the test’s pages are closed and the server has finished
+its requests before <code class="docutils literal notranslate"><span class="pre">monkeypatch</span></code> undoes the change, so one test’s configuration is never seen
+by another. Values set through the <code class="docutils literal notranslate"><span class="pre">settings</span></code> fixture are put back earlier and do not have this
+guarantee.</p></li>
+</ul>
 </section>
 <section id="warnings-fail">
 <h3>Warnings fail<a class="headerlink" aria-label="Link to this heading: Warnings fail" href="#warnings-fail" title="Link to this heading">¶</a></h3>
@@ -588,6 +621,7 @@ queryset exceptions, middleware and authentication problems, and bad redirects.<
 <li><a class="daisy-toc-link reference internal" href="#fast-tests">10. Fast tests</a></li>
 <li><a class="daisy-toc-link reference internal" href="#project-additions">Project additions</a><ul class="daisy-toc-list">
 <li><a class="daisy-toc-link reference internal" href="#quick-suite">Quick suite</a></li>
+<li><a class="daisy-toc-link reference internal" href="#browser-tests">Browser tests</a></li>
 <li><a class="daisy-toc-link reference internal" href="#warnings-fail">Warnings fail</a></li>
 <li><a class="daisy-toc-link reference internal" href="#url-smoke-tests">URL smoke tests</a></li>
 </ul>
