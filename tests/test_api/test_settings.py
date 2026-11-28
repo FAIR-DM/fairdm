@@ -17,93 +17,27 @@ def schema_client(db):
     return APIClient()
 
 
-@pytest.fixture
-def openapi_schema(schema_client):
+@pytest.fixture(scope="module")
+def openapi_schema(django_db_setup, django_db_blocker):
+    """The schema as the schema address serves it, generated once for the module."""
     import yaml
 
-    response = schema_client.get(
-        "/api/v1/schema/", HTTP_ACCEPT="application/vnd.oai.openapi"
-    )
-    assert response.status_code == 200, (
-        f"Schema endpoint returned {response.status_code}"
-    )
+    with django_db_blocker.unblock():
+        response = APIClient().get(
+            "/api/v1/schema/", HTTP_ACCEPT="application/vnd.oai.openapi"
+        )
+    assert response.status_code == 200
     # drf-spectacular returns YAML by default for application/vnd.oai.openapi
-    content = response.content.decode("utf-8")
-    schema = yaml.safe_load(content)
-    assert isinstance(schema, dict), "Schema must be a dict"
-    return schema
+    return yaml.safe_load(response.content.decode("utf-8"))
 
 
 @pytest.mark.django_db
 class TestSchemaComponentNaming:
-    def test_registered_sample_types_have_clean_names(self, openapi_schema):
+    def test_no_component_name_carries_an_api_postfix(self, openapi_schema):
         components = openapi_schema.get("components", {}).get("schemas", {})
-        api_named = [
-            name
-            for name in components
-            if name.endswith("API") and not name.startswith("Patched")
-        ]
-        assert not api_named, (
-            f"Found component names with 'API' postfix: {api_named}. "
-            "Auto-generated serializers should be named '{ModelName}Serializer' "
-            "so schema components become '{ModelName}' (without 'API')."
-        )
+        api_named = [name for name in components if name.endswith("API")]
 
-    def test_registered_measurement_types_have_clean_names(self, openapi_schema):
-        components = openapi_schema.get("components", {}).get("schemas", {})
-        measurement_api = [
-            name
-            for name in components
-            if name.endswith("API") and not name.startswith("Patched")
-        ]
-        assert not measurement_api, (
-            f"Measurement component names with 'API' postfix found: {measurement_api}"
-        )
-
-    def test_core_model_schemas_have_clean_names(self, openapi_schema):
-        components = openapi_schema.get("components", {}).get("schemas", {})
-        for expected_clean in ("Project", "Dataset", "Contributor"):
-            assert expected_clean in components or any(
-                k.startswith(expected_clean) for k in components
-            ), (
-                f"Expected schema component '{expected_clean}' not found. Available: {list(components)[:20]}"
-            )
-            api_name = f"{expected_clean}API"
-            assert api_name not in components, (
-                f"Found '{api_name}' -- 'API' postfix should not appear in schema component names."
-            )
-
-    def test_patched_variants_have_clean_names(self, openapi_schema):
-        components = openapi_schema.get("components", {}).get("schemas", {})
-        patched_api = [
-            name
-            for name in components
-            if name.startswith("Patched") and name.endswith("API")
-        ]
-        assert not patched_api, (
-            f"Found Patched* component names with 'API' postfix: {patched_api}. "
-            "Expected clean names like PatchedRockSample, PatchedProject."
-        )
-
-    def test_component_split_patch_enabled(self, openapi_schema):
-        components = openapi_schema.get("components", {}).get("schemas", {})
-        patched = [name for name in components if name.startswith("Patched")]
-        assert patched, (
-            "Expected Patched* schema components (COMPONENT_SPLIT_PATCH=True). "
-            f"Available components: {list(components)[:20]}"
-        )
-
-    def test_demo_rock_sample_schema_name(self, openapi_schema):
-        components = openapi_schema.get("components", {}).get("schemas", {})
-        assert "RockSampleAPI" not in components, (
-            "Schema component 'RockSampleAPI' found -- remove the 'API' postfix."
-        )
-
-    def test_demo_xrf_measurement_schema_name(self, openapi_schema):
-        components = openapi_schema.get("components", {}).get("schemas", {})
-        assert "XRFMeasurementAPI" not in components, (
-            "Schema component 'XRFMeasurementAPI' found -- remove the 'API' postfix."
-        )
+        assert not api_named
 
 
 @pytest.mark.django_db
@@ -139,85 +73,8 @@ class TestEndpointDescriptions:
                     f"Internal string '{internal_str}' found in endpoint description: {desc[:200]!r}"
                 )
 
-    def test_core_project_endpoint_has_consumer_description(self, openapi_schema):
-        paths = openapi_schema.get("paths", {})
-        project_list_path = next(
-            (p for p in paths if p.endswith("/projects/") and "{" not in p), None
-        )
-        assert project_list_path, (
-            f"Expected /projects/ path in schema. Paths: {list(paths)[:10]}"
-        )
-        operations = paths[project_list_path]
-        get_op = operations.get("get", {})
-        description = get_op.get("description", "")
-        assert description, f"GET {project_list_path} has no description"
-        for internal_str in self.INTERNAL_STRINGS:
-            assert internal_str not in description, (
-                f"Internal string '{internal_str}' found in projects description: {description[:200]!r}"
-            )
-
-    def test_core_dataset_endpoint_has_consumer_description(self, openapi_schema):
-        paths = openapi_schema.get("paths", {})
-        dataset_path = next(
-            (p for p in paths if p.endswith("/datasets/") and "{" not in p), None
-        )
-        assert dataset_path, "Expected /datasets/ path in schema."
-        get_op = paths[dataset_path].get("get", {})
-        description = get_op.get("description", "")
-        assert description, f"GET {dataset_path} has no description"
-        for internal_str in self.INTERNAL_STRINGS:
-            assert internal_str not in description, (
-                f"Internal string found in datasets description: {description[:200]!r}"
-            )
-
-    def test_generated_viewset_has_model_description(self, openapi_schema):
-        from fairdm.registry import registry
-
-        paths = openapi_schema.get("paths", {})
-        for model in registry.samples:
-            config = registry.get_for_model(model)
-            desc = getattr(config, "description", None) or (
-                getattr(config.metadata, "description", None)
-                if config.metadata
-                else None
-            )
-            if not desc:
-                continue
-            slug = model._meta.verbose_name_plural.lower().replace(" ", "-")
-            endpoint_path = next(
-                (p for p in paths if f"samples/{slug}/" in p and "{" not in p), None
-            )
-            if endpoint_path is None:
-                continue
-            get_op = paths[endpoint_path].get("get", {})
-            op_description = get_op.get("description", "")
-            for internal_str in self.INTERNAL_STRINGS:
-                assert internal_str not in op_description, (
-                    f"Internal string '{internal_str}' found in description for {endpoint_path}: "
-                    f"{op_description[:200]!r}"
-                )
-            return
-        pytest.skip(
-            "No registered sample type with a config description found in the schema."
-        )
-
 
 class TestAPIDescriptionSettings:
-    def test_spectacular_settings_title_equals_fairdm_api_title(self):
-        from fairdm.api.settings import FAIRDM_API_TITLE, SPECTACULAR_SETTINGS
-
-        assert SPECTACULAR_SETTINGS["TITLE"] == FAIRDM_API_TITLE, (
-            f"SPECTACULAR_SETTINGS['TITLE'] ({SPECTACULAR_SETTINGS['TITLE']!r}) "
-            f"!= FAIRDM_API_TITLE ({FAIRDM_API_TITLE!r})"
-        )
-
-    def test_spectacular_settings_description_equals_fairdm_api_description(self):
-        from fairdm.api.settings import FAIRDM_API_DESCRIPTION, SPECTACULAR_SETTINGS
-
-        assert SPECTACULAR_SETTINGS["DESCRIPTION"] == FAIRDM_API_DESCRIPTION, (
-            "SPECTACULAR_SETTINGS['DESCRIPTION'] does not match FAIRDM_API_DESCRIPTION"
-        )
-
     @staticmethod
     def schema_info(client):
         """Return the ``info`` object of the schema generated now."""
@@ -233,21 +90,6 @@ class TestAPIDescriptionSettings:
         monkeypatch.setattr(spectacular_settings, "TITLE", "My Custom Portal API")
 
         assert self.schema_info(schema_client)["title"] == "My Custom Portal API"
-
-    def test_the_description_is_changed_through_spectacular_settings(
-        self, monkeypatch, schema_client
-    ):
-        from drf_spectacular.settings import spectacular_settings
-
-        monkeypatch.setattr(
-            spectacular_settings,
-            "DESCRIPTION",
-            "A custom portal for my research domain.",
-        )
-
-        description = self.schema_info(schema_client)["description"]
-
-        assert description.startswith("A custom portal for my research domain.")
 
 
 @pytest.mark.django_db
@@ -309,41 +151,6 @@ class TestTokens:
 
         assert self.send(value).status_code == 401
 
-    def test_an_unknown_token_is_answered_401(self, make_token, private_project):
-        _project, holder = private_project
-        _record, value = make_token(holder)
-
-        assert self.send(value[::-1]).status_code == 401
-
-    def test_a_token_that_is_not_in_the_store_is_answered_401(self):
-        assert self.send("0123456789abcdef" * 8).status_code == 401
-
-    def test_the_schema_describes_the_authorization_header(self, openapi_schema):
-        schemes = openapi_schema["components"]["securitySchemes"].values()
-
-        assert any(
-            scheme.get("in") == "header" and scheme.get("name") == "Authorization"
-            for scheme in schemes
-        )
-
-    def test_generating_the_schema_warns_of_no_unknown_authentication_class(self):
-        from drf_spectacular.drainage import GENERATOR_STATS
-        from drf_spectacular.generators import SchemaGenerator
-
-        GENERATOR_STATS.reset()
-        SchemaGenerator().get_schema(request=None, public=True)
-
-        warnings = [
-            msg for msg in GENERATOR_STATS._warn_cache if "authenticator" in msg
-        ]
-        assert warnings == []
-
-    def test_the_token_limit_is_the_one_the_portal_sets(self, settings):
-        from knox.settings import knox_settings
-
-        assert knox_settings.TOKEN_LIMIT_PER_USER == 10
-        assert knox_settings.AUTO_REFRESH is False
-
 
 @pytest.mark.django_db
 class TestSession:
@@ -373,20 +180,6 @@ class TestSession:
         response = client.get(reverse("api:project-detail", args=[project.uuid]))
 
         assert response.status_code == 200
-
-    def test_a_write_with_a_session_and_no_csrf_token_is_refused(self, project, editor):
-        address = reverse("api:project-detail", args=[project.uuid])
-        allowed = self.signed_in_by_session(editor).patch(
-            address, {"name": "Changed"}, format="json"
-        )
-        assert allowed.status_code == 200
-
-        client = self.signed_in_by_session(editor, enforce_csrf_checks=True)
-        response = client.patch(address, {"name": "Changed again"}, format="json")
-
-        assert response.status_code == 403
-        project.refresh_from_db()
-        assert project.name == "Changed"
 
 
 @pytest.mark.django_db

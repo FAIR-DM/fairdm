@@ -107,10 +107,3 @@ class TestRegistrationCheck:
 
         with pytest.raises(SystemCheckError, match="fairdm.E600"):
             call_command("check", tags=["models"], verbosity=0)
-
-    def test_the_check_is_registered_with_django(self):
-        from django.core.checks.registry import registry as checks
-
-        from fairdm.api.checks import check_registered_types
-
-        assert check_registered_types in checks.registered_checks

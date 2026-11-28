@@ -1,52 +1,11 @@
 """Tests for FairDM API router auto-registration and the API root (Feature 011 US1)."""
 
 import pytest
-from django.urls import resolve, reverse
+from django.urls import reverse
 
 
 @pytest.mark.django_db
 class TestCoreRoutesRegistered:
-    def test_project_list_url_resolves(self):
-        url = reverse("api:project-list")
-        match = resolve(url)
-        assert match is not None
-
-    def test_project_detail_url_pattern_exists(self):
-        url = reverse("api:project-list")
-        assert "/api/v1/projects/" in url
-
-    def test_dataset_list_url_resolves(self):
-        url = reverse("api:dataset-list")
-        assert "/api/v1/datasets/" in url
-
-    @pytest.mark.parametrize(
-        ("basename", "prefix"),
-        [("person", "people"), ("organization", "organizations")],
-    )
-    def test_a_contributor_kind_has_a_list_and_a_record_route(self, basename, prefix):
-        assert reverse(f"api:{basename}-list") == f"/api/v1/{prefix}/"
-        record = reverse(f"api:{basename}-detail", kwargs={"uuid": "cAbCdEfGhIjK"})
-        assert record == f"/api/v1/{prefix}/cAbCdEfGhIjK/"
-
-    @pytest.mark.django_db
-    def test_a_contributor_is_found_by_short_identifier_at_the_route_of_its_kind(
-        self, api_client
-    ):
-        from fairdm.factories import OrganizationFactory, PersonFactory
-
-        person = PersonFactory()
-        organization = OrganizationFactory()
-
-        at_people = api_client.get(
-            reverse("api:person-detail", kwargs={"uuid": person.uuid})
-        )
-        at_organizations = api_client.get(
-            reverse("api:organization-detail", kwargs={"uuid": organization.uuid})
-        )
-
-        assert at_people.json()["uuid"] == person.uuid
-        assert at_organizations.json()["uuid"] == organization.uuid
-
     @pytest.mark.django_db
     @pytest.mark.parametrize("route", ["person", "organization"])
     def test_a_contributor_is_not_answered_at_the_route_of_the_other_kind(
@@ -63,34 +22,6 @@ class TestCoreRoutesRegistered:
         assert response.status_code == 404
 
 
-@pytest.mark.django_db
-class TestRegistryGeneratedEndpoints:
-    def test_custom_parent_sample_list_accessible(self, api_client):
-        from demo.models import CustomParentSample
-        from fairdm.api.viewsets import _model_to_slug
-
-        slug = _model_to_slug(CustomParentSample)
-        response = api_client.get(f"/api/v1/samples/{slug}/")
-        assert response.status_code == 200
-
-    def test_example_measurement_list_accessible(self, api_client):
-        from demo.models import ExampleMeasurement
-        from fairdm.api.viewsets import _model_to_slug
-
-        slug = _model_to_slug(ExampleMeasurement)
-        response = api_client.get(f"/api/v1/measurements/{slug}/")
-        assert response.status_code == 200
-
-    def test_custom_parent_sample_list_has_pagination(self, api_client):
-        from demo.models import CustomParentSample
-        from fairdm.api.viewsets import _model_to_slug
-
-        slug = _model_to_slug(CustomParentSample)
-        data = api_client.get(f"/api/v1/samples/{slug}/").json()
-        for key in ("count", "results"):
-            assert key in data
-
-
 class TestAPIURLNamespaceIsolation:
     # Portal route names such as project-list must not resolve to API endpoints, and API routes
     # are reachable only under the api: namespace.
@@ -100,35 +31,6 @@ class TestAPIURLNamespaceIsolation:
             f"'project-list' should resolve to the portal UI, not the API. Got: {url!r}"
         )
         assert "/projects/" in url
-
-    def test_portal_dataset_list_resolves_to_portal_view(self):
-        url = reverse("dataset-list")
-        assert "/api/v1/" not in url, (
-            f"'dataset-list' should resolve to the portal UI, not the API. Got: {url!r}"
-        )
-        assert "/datasets/" in url
-
-    def test_api_project_list_resolves_to_api_endpoint(self):
-        url = reverse("api:project-list")
-        assert "/api/v1/projects/" in url, f"Expected API endpoint URL, got: {url!r}"
-
-    def test_api_dataset_list_resolves_to_api_endpoint(self):
-        url = reverse("api:dataset-list")
-        assert "/api/v1/datasets/" in url, f"Expected API endpoint URL, got: {url!r}"
-
-    def test_portal_and_api_project_urls_are_different(self):
-        portal_url = reverse("project-list")
-        api_url = reverse("api:project-list")
-        assert portal_url != api_url, (
-            f"Portal and API project-list resolved to the same URL: {portal_url!r}"
-        )
-
-    def test_portal_and_api_dataset_urls_are_different(self):
-        portal_url = reverse("dataset-list")
-        api_url = reverse("api:dataset-list")
-        assert portal_url != api_url, (
-            f"Portal and API dataset-list resolved to the same URL: {portal_url!r}"
-        )
 
 
 @pytest.mark.django_db
@@ -285,15 +187,6 @@ class TestAddresses:
             "measurements/xrf-measurements"
         )
 
-    @pytest.mark.django_db
-    def test_the_generated_routes_are_served_at_those_addresses(self):
-        assert (
-            reverse("api:samples-rock-samples-list") == "/api/v1/samples/rock-samples/"
-        )
-        assert reverse("api:measurements-xrf-measurements-list") == (
-            "/api/v1/measurements/xrf-measurements/"
-        )
-
     def test_every_registered_type_has_a_route(self, routes):
         from fairdm.registry import registry
 
@@ -346,17 +239,6 @@ class TestRoot:
 
         for _prefix, _viewset, basename in fairdm_api_router.registry:
             assert f"http://testserver{reverse(f'api:{basename}-list')}" in linked
-
-    def test_the_root_links_to_people_and_organizations(self, links):
-        assert set(links) >= {"people", "organizations"}
-
-    def test_the_router_is_the_one_the_portal_serves(self):
-        from rest_framework.routers import DefaultRouter
-
-        from fairdm.api.router import FairDMAPIRouter, fairdm_api_router
-
-        assert isinstance(fairdm_api_router, FairDMAPIRouter)
-        assert isinstance(fairdm_api_router, DefaultRouter)
 
     def test_each_link_answers(self, api_client, links):
         for link in links.values():

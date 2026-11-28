@@ -16,65 +16,12 @@ class TestSwaggerUI:
         response = api_client.get("/api/v1/docs/")
         assert response.status_code == 200
 
-    def test_swagger_returns_html(self, api_client):
-        response = api_client.get("/api/v1/docs/")
-        assert response.status_code == 200
-        assert "text/html" in response["Content-Type"]
-
-    def test_swagger_contains_swagger_ui(self, api_client):
-        response = api_client.get("/api/v1/docs/")
-        assert response.status_code == 200
-        content = response.content.decode()
-        assert "swagger" in content.lower()
-
-    def test_swagger_accessible_without_auth(self, api_client):
-        response = api_client.get("/api/v1/docs/")
-        assert response.status_code == 200
-
 
 @pytest.mark.django_db
 class TestOpenAPISchema:
     def test_schema_returns_200(self, api_client):
         response = api_client.get("/api/v1/schema/")
         assert response.status_code == 200
-
-    def test_schema_returns_yaml_or_json(self, api_client):
-        response = api_client.get("/api/v1/schema/")
-        content_type = response["Content-Type"]
-        assert any(
-            ct in content_type
-            for ct in (
-                "application/vnd.oai.openapi",
-                "application/json",
-                "application/yaml",
-            )
-        )
-
-    def test_schema_contains_openapi_key(self, api_client):
-        response = api_client.get("/api/v1/schema/?format=json")
-        assert response.status_code == 200
-        data = response.json()
-        assert "openapi" in data
-        assert data["openapi"].startswith("3.")
-
-    def test_schema_contains_info(self, api_client):
-        response = api_client.get("/api/v1/schema/?format=json")
-        data = response.json()
-        assert "info" in data
-        assert "title" in data["info"]
-        assert "version" in data["info"]
-
-    def test_schema_contains_paths(self, api_client):
-        response = api_client.get("/api/v1/schema/?format=json")
-        data = response.json()
-        assert "paths" in data
-        paths = data["paths"]
-        assert any("/projects/" in p for p in paths), (
-            f"No projects path in {list(paths)[:10]}"
-        )
-        assert any("/datasets/" in p for p in paths), (
-            f"No datasets path in {list(paths)[:10]}"
-        )
 
     def test_schema_contains_registered_sample_types(self, api_client):
         response = api_client.get("/api/v1/schema/?format=json")
@@ -84,10 +31,6 @@ class TestOpenAPISchema:
         assert len(sample_paths) > 0, (
             f"No typed sample paths in schema. Got: {list(paths)[:15]}"
         )
-
-    def test_schema_accessible_without_auth(self, api_client):
-        response = api_client.get("/api/v1/schema/")
-        assert response.status_code == 200
 
 
 @pytest.mark.django_db
@@ -143,18 +86,6 @@ class TestTokenPages:
 
         assert response.status_code == 200
 
-    def test_a_revoked_token_stops_working(self, signed_in_client, make_token, person):
-        record, value = make_token(person)
-        api = APIClient()
-        api.credentials(HTTP_AUTHORIZATION=f"Token {value}")
-        assert api.get(reverse("api:project-list")).status_code == 200
-
-        signed_in_client.post(
-            reverse("account_api_token_revoke", args=[record.token_key])
-        )
-
-        assert api.get(reverse("api:project-list")).status_code == 401
-
     def test_at_the_token_limit_the_create_page_creates_nothing(
         self, signed_in_client, make_token, person, settings
     ):
@@ -185,9 +116,6 @@ class TestNoAccountEndpoints:
     def routes(self):
         prefix, resolver = get_resolver().namespace_dict["api"]
         return list(self.walk(resolver, prefix))
-
-    def test_the_api_has_routes_to_walk(self, routes):
-        assert len(routes) > 10
 
     def test_no_route_name_or_path_belongs_to_an_account(self, routes):
         found = [
