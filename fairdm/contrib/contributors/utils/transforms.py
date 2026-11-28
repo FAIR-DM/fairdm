@@ -724,7 +724,10 @@ class RORTransform(BaseTransform):
 
         ror = contributor.get_default_identifier()
         ror_value = ror.value if ror and ror.type_id == ROR else None
-        ror_url = f"https://ror.org/{ror_value}" if ror_value else None
+        # The stored value is a bare identifier or already the full address.
+        ror_url = (
+            f"https://ror.org/{self.clean_ror_id(ror_value)}" if ror_value else None
+        )
 
         data = {
             "id": ror_url,

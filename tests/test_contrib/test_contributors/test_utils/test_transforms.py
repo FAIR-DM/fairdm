@@ -154,6 +154,17 @@ class TestRORRoundTrip:
         assert ror_data["name"] == organization.name
         assert ror_data["id"] == "https://ror.org/04z8jg394"
 
+    def test_ror_export_does_not_double_the_address_of_a_stored_link(
+        self, organization
+    ):
+        ContributorIdentifier.objects.create(
+            related=organization,
+            type_id=f"{IDENTIFIER_TYPES}/ror",
+            value="https://ror.org/04z8jg394",
+        )
+
+        assert RORTransform().export(organization)["id"] == "https://ror.org/04z8jg394"
+
     def test_ror_import_organization(self, recorded):
         org = RORTransform().import_data(recorded("ror-record"))
 
