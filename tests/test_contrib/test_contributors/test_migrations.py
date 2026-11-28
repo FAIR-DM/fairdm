@@ -113,8 +113,8 @@ class TestConvertStoredPermissions:
     def test_every_query_names_the_database_being_migrated(
         self, upgrade, record_chain, somebody, settings
     ):
-        # A query that leaves the choice to the router reads `default`, whatever database the
-        # migration was started on.
+        # A query that leaves the choice to the router reads `default`, whatever
+        # database the migration was started on.
         group = Group.objects.create(name="field team")
         group.user_set.add(somebody)
         store(somebody, "view_dataset", record_chain.dataset)

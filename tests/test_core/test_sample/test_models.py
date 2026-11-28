@@ -704,7 +704,7 @@ class TestSampleNoRights:
 
 @pytest.mark.django_db
 class TestMoveKeepsManager:
-    """A sample's ``clean`` applies the shared rule, which ``RecordAccess`` tests in full."""
+    """A sample's ``clean`` applies the shared rule that ``RecordAccess`` tests."""
 
     def test_a_move_to_a_dataset_that_gives_no_manager_is_refused(
         self, make_manager, dataset

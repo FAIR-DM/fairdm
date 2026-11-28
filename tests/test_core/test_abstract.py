@@ -295,8 +295,10 @@ class TestIdentifierUniqueness:
 
 @pytest.mark.django_db
 class TestEndDateNotBeforeStart:
-    """The rule every record's dates share. ``ProjectDate`` stands for any record that sets
-    ``START_TYPE`` and ``END_TYPE``."""
+    """The rule every record's dates share.
+
+    ``ProjectDate`` stands for any record that sets ``START_TYPE`` and ``END_TYPE``.
+    """
 
     @pytest.fixture
     def project(self):

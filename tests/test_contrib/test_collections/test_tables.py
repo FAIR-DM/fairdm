@@ -166,7 +166,7 @@ class TestOrdering:
 
 
 @pytest.mark.django_db
-# The suite ignores warnings it does not name, so a dotted accessor would be read silently.
+# The suite ignores warnings it does not name, so a dotted accessor would go unseen.
 @pytest.mark.filterwarnings("error:Use '__' to separate path components")
 class TestLocationColumns:
     """AS 2.12 to 2.14 and FR-027: latitude and longitude read the record's location."""

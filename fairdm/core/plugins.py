@@ -147,7 +147,8 @@ class RecordOverviewPlugin(OverviewPlugin):
         people_named: How many credits the People panel names, with their roles.
         people_faces: How many faces it draws after them before it counts the rest.
         resolvable_identifier_types: The identifier types that link to doi.org.
-        map_counts_datasets: Whether the map panel counts the datasets its samples come from.
+        map_counts_datasets: Whether the map panel counts the datasets its samples
+            come from.
     """
 
     people_named = 6
@@ -658,8 +659,9 @@ class RecordOverviewPlugin(OverviewPlugin):
         ``overview-sample-points`` route, so a project and a dataset share this wiring.
 
         Args:
-            page: The context dictionary being built. ``sample_map`` is set, and ``has_map``
-                when a sample is located, so the page loads the map library only then.
+            page: The context dictionary being built. ``sample_map`` is set, and
+                ``has_map`` when a sample is located, so the page loads the map library
+                only then.
             samples: The samples the map draws.
         """
         record = self.base_object

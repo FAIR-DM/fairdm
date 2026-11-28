@@ -86,7 +86,8 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
             page.
         lead_roles: The addresses of the roles that name the people a visitor should see first,
             in this order.
-        map_counts_datasets: True, so the map panel counts the datasets the samples come from.
+        map_counts_datasets: True, so the map panel counts the datasets the samples
+            come from.
     """
 
     url_path = None

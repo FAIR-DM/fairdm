@@ -9,7 +9,7 @@ from django.core.validators import MaxLengthValidator
 from django.db.models import Manager, Model, QuerySet
 from django.urls import reverse
 from django.utils.decorators import classonlymethod
-from django.utils.functional import cached_property
+from django.utils.functional import Promise, cached_property
 from django.utils.html import strip_tags
 from django.utils.text import Truncator
 from django.utils.translation import gettext_lazy as _
@@ -398,7 +398,7 @@ class AbstractDate(GenericModel):
 
     START_TYPE: str | None = None
     END_TYPE: str | None = None
-    END_BEFORE_START_MESSAGE = None
+    END_BEFORE_START_MESSAGE: str | Promise | None = None
 
     value = PartialDateField(_("date"))
 

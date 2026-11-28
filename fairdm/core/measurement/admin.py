@@ -46,7 +46,7 @@ class OneRowPerTypeInline(admin.StackedInline):
 
 
 class MeasurementDescriptionInline(OneRowPerTypeInline):
-    """Inline admin for measurement descriptions, capped at one row per vocabulary type."""
+    """Inline admin for measurement descriptions: one row at most per type."""
 
     model = MeasurementDescription
 

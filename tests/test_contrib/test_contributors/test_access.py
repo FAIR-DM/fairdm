@@ -356,11 +356,11 @@ class TestManagers:
 
 @pytest.mark.django_db
 class TestRefuseMoveWithoutManager:
-    """The rule every record type applies in its ``clean``: a move may not leave nobody to manage."""
+    """The rule every record type applies in ``clean``: no stranding a record."""
 
     @pytest.fixture
     def moved_dataset(self, record_chain, signed_in, grant):
-        """The chain's dataset, managed through its project, pointed at a project nobody manages."""
+        """A dataset managed through its project, moved to an unmanaged one."""
         grant(record_chain.project, signed_in, MANAGE)
         dataset = record_chain.dataset
         dataset.project = ProjectFactory()
