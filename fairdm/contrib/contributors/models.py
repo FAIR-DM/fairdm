@@ -2206,7 +2206,7 @@ class ClaimingAuditLog(models.Model):
     Attributes:
         objects: The audit log manager.
         timestamp: When the event happened.
-        method: How the profile was claimed.
+        method: How the claim was made.
         source_person: The unclaimed person being claimed.
         target_person: The resulting claimed person.
         initiated_by: The admin who started the claim, when admin-driven.
@@ -2218,12 +2218,17 @@ class ClaimingAuditLog(models.Model):
 
     objects = ClaimingAuditLogManager()
 
-    timestamp = models.DateTimeField(auto_now_add=True, verbose_name=_("timestamp"))
+    timestamp = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name=_("timestamp"),
+        help_text=_("When the claim was attempted."),
+    )
 
     method = models.CharField(
         max_length=20,
         choices=ClaimMethod.choices,
         verbose_name=_("method"),
+        help_text=_("How the claim was made."),
     )
 
     source_person = models.ForeignKey(
@@ -2258,18 +2263,27 @@ class ClaimingAuditLog(models.Model):
         null=True,
         blank=True,
         verbose_name=_("IP address"),
+        help_text=_("The address the claim request came from."),
     )
 
-    success = models.BooleanField(verbose_name=_("success"))
+    success = models.BooleanField(
+        verbose_name=_("success"),
+        help_text=_("Whether the claim went through."),
+    )
 
     failure_reason = models.CharField(
         max_length=255,
         blank=True,
         default="",
         verbose_name=_("failure reason"),
+        help_text=_("Why the claim was refused, when it failed."),
     )
 
-    details = models.JSONField(default=dict, verbose_name=_("details"))
+    details = models.JSONField(
+        default=dict,
+        verbose_name=_("details"),
+        help_text=_("Further details of the attempt, kept for the record."),
+    )
 
     class Meta:
         verbose_name = _("claiming audit log")

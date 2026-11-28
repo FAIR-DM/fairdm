@@ -92,7 +92,7 @@ class Sample(BasePolymorphicModel):
         editable=False,
         unique=True,
         prefix="s",
-        verbose_name="UUID",
+        verbose_name=_("UUID"),
         help_text=_(
             "A unique identifier generated automatically when the sample is created. It cannot "
             "be edited."
@@ -144,6 +144,8 @@ class Sample(BasePolymorphicModel):
 
     related = models.ManyToManyField(
         "self",
+        verbose_name=_("related samples"),
+        help_text=_("The samples this sample is related to, such as its parent."),
         through="SampleRelation",
         symmetrical=False,
         related_name="related_from",
@@ -309,7 +311,12 @@ class SampleDescription(AbstractDescription):
         verbose_name=_("type"),
         help_text=_("What the description covers, from the sample description types."),
     )
-    related = models.ForeignKey("Sample", on_delete=models.CASCADE)
+    related = models.ForeignKey(
+        "Sample",
+        verbose_name=_("sample"),
+        help_text=_("The sample this description belongs to."),
+        on_delete=models.CASCADE,
+    )
 
 
 class SampleDate(AbstractDate):
@@ -322,7 +329,12 @@ class SampleDate(AbstractDate):
         verbose_name=_("type"),
         help_text=_("What the date marks, from the sample date types."),
     )
-    related = models.ForeignKey("Sample", on_delete=models.CASCADE)
+    related = models.ForeignKey(
+        "Sample",
+        verbose_name=_("sample"),
+        help_text=_("The sample this date belongs to."),
+        on_delete=models.CASCADE,
+    )
 
 
 class SampleIdentifier(AbstractIdentifier):
@@ -335,7 +347,12 @@ class SampleIdentifier(AbstractIdentifier):
         verbose_name=_("type"),
         help_text=_("The kind of identifier, from the sample identifier types."),
     )
-    related = models.ForeignKey("Sample", on_delete=models.CASCADE)
+    related = models.ForeignKey(
+        "Sample",
+        verbose_name=_("sample"),
+        help_text=_("The sample this identifier belongs to."),
+        on_delete=models.CASCADE,
+    )
 
     def clean(self):
         """Refuse an invalid IGSN."""
@@ -401,17 +418,22 @@ class SampleRelation(models.Model):
         ("child_of", _("child of")),
     ]
     type = models.CharField(
-        max_length=255, verbose_name=_("type"), choices=RELATION_TYPES
+        max_length=255,
+        verbose_name=_("type"),
+        help_text=_("How the source sample relates to the target sample."),
+        choices=RELATION_TYPES,
     )
     source = models.ForeignKey(
         "Sample",
         verbose_name=_("source"),
+        help_text=_("The sample the relationship starts from."),
         related_name="related_samples",
         on_delete=models.CASCADE,
     )
     target = models.ForeignKey(
         "Sample",
         verbose_name=_("target"),
+        help_text=_("The sample the relationship points to."),
         related_name="related_to",
         on_delete=models.CASCADE,
     )

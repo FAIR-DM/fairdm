@@ -145,7 +145,7 @@ code to make a test pass.
 |---|---|
 | No N+1 queries on list and detail pages | Evaluate the queryset or render the page once to warm caches, then render with one record and with several and assert the same query count under `django_assert_num_queries`. The only absolute count allowed is a constant 1. Never pin a count that grows with rows, and never time a request. |
 | Migrations are complete | `python manage.py makemigrations --check` is clean after the change. |
-| Every model field has `verbose_name` and `help_text` | One test that walks every field of every model, collects the fields that lack either and reports them together (section 7). Never one test per field, and never asserting the wording. |
+| Every model field has `verbose_name` and `help_text` | One test that walks every field of every model, collects the fields that lack either and reports them together (section 7). Package fields need both as lazy translations, demo fields as plain text because the demo app is never translated. A field a dependency declares is listed in the test with the dependency named. Never one test per field, and never asserting the wording. |
 | Template output for component changes | Render the template, not only the context. A context key can be right while the template never renders it. |
 | Translated strings compare correctly | Compare `str(value)`. A lazy translation proxy can pass or fail `==` for the wrong reason. |
 

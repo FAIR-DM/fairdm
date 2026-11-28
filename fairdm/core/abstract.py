@@ -33,12 +33,18 @@ class BaseModel(models.Model):
 
     image = ThumbnailerImageField(
         verbose_name=_("image"),
+        help_text=_("A picture that represents the record on its page and in lists."),
         blank=True,
         null=True,
         upload_to=default_image_path,
         resize_source={"size": (2400, 1600), "crop": False},
     )
-    name = models.CharField(_("name"), max_length=300, db_index=True)
+    name = models.CharField(
+        _("name"),
+        max_length=300,
+        db_index=True,
+        help_text=_("The name the record is listed and linked under."),
+    )
 
     keywords = MultiConceptField(
         verbose_name=_("keywords"),
@@ -49,6 +55,7 @@ class BaseModel(models.Model):
 
     options = models.JSONField(
         verbose_name=_("options"),
+        help_text=_("Settings a portal stores on the record for its own use."),
         null=True,
         blank=True,
     )
@@ -373,7 +380,11 @@ DESCRIPTION_MAX_LENGTH = 20000
 class AbstractDescription(GenericModel):
     """Abstract base for a typed free-text description of a record."""
 
-    value = models.TextField(validators=[MaxLengthValidator(DESCRIPTION_MAX_LENGTH)])
+    value = models.TextField(
+        _("description"),
+        help_text=_("The description, written as plain text or Markdown."),
+        validators=[MaxLengthValidator(DESCRIPTION_MAX_LENGTH)],
+    )
 
     class Meta:
         abstract = True
@@ -400,7 +411,10 @@ class AbstractDate(GenericModel):
     END_TYPE: str | None = None
     END_BEFORE_START_MESSAGE: str | Promise | None = None
 
-    value = PartialDateField(_("date"))
+    value = PartialDateField(
+        _("date"),
+        help_text=_("The date, as precise as you know it: a year, a month or a day."),
+    )
 
     class Meta:
         abstract = True
@@ -465,7 +479,11 @@ class AbstractIdentifier(GenericModel):
     """
 
     value = models.CharField(
-        _("identifier"), max_length=255, db_index=True, unique=True
+        _("identifier"),
+        max_length=255,
+        db_index=True,
+        unique=True,
+        help_text=_("The identifier as the issuing service writes it."),
     )
 
     class Meta:

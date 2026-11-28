@@ -84,11 +84,22 @@ class Authority(BrandAssets, SingletonModel, TranslatableModel):
     )
 
     translations = TranslatedFields(
-        name=models.CharField(_("Name"), max_length=255),
-        short_name=models.CharField(
-            _("Short Name"), max_length=255, blank=True, null=True
+        name=models.CharField(
+            _("Name"),
+            max_length=255,
+            help_text=_("The full name of the governing authority."),
         ),
-        description=models.TextField(_("Description")),
+        short_name=models.CharField(
+            _("Short Name"),
+            max_length=255,
+            blank=True,
+            null=True,
+            help_text=_("A shorter name for places where the full name will not fit."),
+        ),
+        description=models.TextField(
+            _("Description"),
+            help_text=_("A few sentences on what the authority does."),
+        ),
     )
 
     class Meta:
@@ -107,11 +118,22 @@ class Identity(BrandAssets, SingletonModel, TranslatableModel):
     )
 
     translations = TranslatedFields(
-        name=models.CharField(_("Name"), max_length=255),
-        short_name=models.CharField(
-            _("Short Name"), max_length=255, blank=True, null=True
+        name=models.CharField(
+            _("Name"),
+            max_length=255,
+            help_text=_("The name of the portal."),
         ),
-        description=models.TextField(_("Description")),
+        short_name=models.CharField(
+            _("Short Name"),
+            max_length=255,
+            blank=True,
+            null=True,
+            help_text=_("A shorter name for places where the full name will not fit."),
+        ),
+        description=models.TextField(
+            _("Description"),
+            help_text=_("A few sentences on what the portal is for."),
+        ),
     )
 
     class Meta:

@@ -110,7 +110,11 @@ class Project(BaseModel):
         editable=False,
         unique=True,
         prefix="p",
-        verbose_name="UUID",
+        verbose_name=_("UUID"),
+        help_text=_(
+            "A short, unique identifier generated automatically when the "
+            "project is created. Cannot be edited afterwards."
+        ),
     )
 
     visibility = models.IntegerField(
@@ -262,7 +266,12 @@ class ProjectDescription(AbstractDescription):
         verbose_name=_("type"),
         help_text=_("What the description covers, from the project description types."),
     )
-    related = models.ForeignKey("Project", on_delete=models.CASCADE)
+    related = models.ForeignKey(
+        "Project",
+        verbose_name=_("project"),
+        help_text=_("The project this description belongs to."),
+        on_delete=models.CASCADE,
+    )
 
     class Meta(AbstractDescription.Meta):
         unique_together = [("related", "type")]
@@ -302,7 +311,12 @@ class ProjectDate(AbstractDate):
         verbose_name=_("type"),
         help_text=_("What the date marks, from the project date types."),
     )
-    related = models.ForeignKey("Project", on_delete=models.CASCADE)
+    related = models.ForeignKey(
+        "Project",
+        verbose_name=_("project"),
+        help_text=_("The project this date belongs to."),
+        on_delete=models.CASCADE,
+    )
 
     START_TYPE = PROJECT_START
     END_TYPE = PROJECT_END
@@ -325,7 +339,12 @@ class ProjectIdentifier(AbstractIdentifier):
         verbose_name=_("type"),
         help_text=_("The kind of identifier, from the project identifier types."),
     )
-    related = models.ForeignKey("Project", on_delete=models.CASCADE)
+    related = models.ForeignKey(
+        "Project",
+        verbose_name=_("project"),
+        help_text=_("The project this identifier belongs to."),
+        on_delete=models.CASCADE,
+    )
 
     class Meta(AbstractIdentifier.Meta):
         verbose_name = _("project identifier")

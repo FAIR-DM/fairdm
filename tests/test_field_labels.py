@@ -1,4 +1,7 @@
-"""Every field of every model has a translatable ``verbose_name`` and ``help_text``."""
+"""Every model field has a ``verbose_name`` and ``help_text``.
+
+They are translatable everywhere but in the demo app, which is never translated.
+"""
 
 from pathlib import Path
 
@@ -8,222 +11,38 @@ from django.utils.functional import Promise
 
 TESTS_DIRECTORY = Path(settings.BASE_DIR) / "tests"
 
-# Fields that have no lazy label or help text, by model label. The list holds what is
-# still missing. Some are fields a dependency defines, such as the ones Django's user
-# model brings, and close only when the model redeclares them. Adding a field to the
-# list hides a defect, so add the label to the field instead and take its entry out: the
-# second test fails for an entry that no longer has a gap.
-KNOWN_GAPS: dict[str, set[str]] = {
-    "contributors.ClaimingAuditLog": {
-        "details",
-        "failure_reason",
-        "ip_address",
-        "method",
-        "success",
-        "timestamp",
-    },
-    "contributors.Contribution": {
-        "order",
-    },
-    "contributors.Contributor": {
-        "polymorphic_ctype",
-    },
-    "contributors.ContributorIdentifier": {
-        "value",
-    },
-    "contributors.Person": {
-        "date_joined",
-        "first_name",
-        "last_login",
-        "last_name",
-        "password",
-    },
-    "dataset.Dataset": {
-        "image",
-        "name",
-        "options",
-        "related_literature",
-    },
-    "dataset.DatasetDate": {
-        "related",
-        "value",
-    },
-    "dataset.DatasetDescription": {
-        "related",
-        "value",
-    },
-    "dataset.DatasetIdentifier": {
-        "related",
-        "value",
-    },
-    "dataset.DatasetLiteratureRelation": {
-        "dataset",
-        "literature_item",
-    },
-    "demo.CustomParentSample": {
-        "char_field",
-    },
-    "demo.CustomSample": {
-        "big_integer_field",
-        "boolean_field",
-        "char_field",
-        "date_field",
-        "date_time_field",
-        "decimal_field",
-        "float_field",
-        "integer_field",
-        "positive_integer_field",
-        "positive_small_integer_field",
-        "small_integer_field",
-        "text_field",
-        "time_field",
-    },
-    "demo.ExampleMeasurement": {
-        "big_integer_field",
-        "boolean_field",
-        "char_field",
-        "date_field",
-        "date_time_field",
-        "decimal_field",
-        "float_field",
-        "integer_field",
-        "positive_integer_field",
-        "positive_small_integer_field",
-        "small_integer_field",
-        "text_field",
-        "time_field",
-    },
-    "demo.ICP_MS_Measurement": {
-        "analysis_date",
-        "concentration_ppb",
-        "counts_per_second",
-        "dilution_factor",
-        "internal_standard",
-        "isotope",
-        "uncertainty",
-        "uncertainty_percent",
-        "value",
-    },
-    "demo.RockSample": {
-        "collection_date",
-        "hardness_mohs",
-        "mineral_content",
-        "rock_type",
-        "weight_grams",
-    },
-    "demo.SoilSample": {
-        "depth_cm",
-        "moisture_content",
-        "organic_matter_percent",
-        "ph_level",
-        "soil_type",
-        "texture",
-    },
-    "demo.WaterSample": {
-        "conductivity_us_cm",
-        "dissolved_oxygen_mg_l",
-        "ph_level",
-        "temperature_celsius",
-        "turbidity_ntu",
-        "water_source",
-    },
-    "demo.XRFMeasurement": {
-        "concentration_ppm",
-        "detection_limit_ppm",
-        "element",
-        "instrument_model",
-        "measurement_conditions",
-    },
-    "fairdm.TaggedItem": {
-        "content_type",
-        "object_id",
-        "tag",
-    },
-    "identity.AuthorityTranslation": {
-        "description",
-        "language_code",
-        "master",
-        "name",
-        "short_name",
-    },
-    "identity.IdentityTranslation": {
-        "description",
-        "language_code",
-        "master",
-        "name",
-        "short_name",
-    },
-    "measurement.Measurement": {
-        "image",
-        "name",
-        "options",
-        "polymorphic_ctype",
-        "uuid",
-    },
-    "measurement.MeasurementDate": {
-        "related",
-        "value",
-    },
-    "measurement.MeasurementDescription": {
-        "related",
-        "value",
-    },
-    "measurement.MeasurementIdentifier": {
-        "related",
-        "value",
-    },
-    "project.Project": {
-        "image",
-        "name",
-        "options",
-        "uuid",
-    },
-    "project.ProjectDate": {
-        "related",
-        "value",
-    },
-    "project.ProjectDescription": {
-        "related",
-        "value",
-    },
-    "project.ProjectIdentifier": {
-        "related",
-        "value",
-    },
-    "sample.Sample": {
-        "image",
-        "name",
-        "options",
-        "polymorphic_ctype",
-        "related",
-        "uuid",
-    },
-    "sample.SampleDate": {
-        "related",
-        "value",
-    },
-    "sample.SampleDescription": {
-        "related",
-        "value",
-    },
-    "sample.SampleIdentifier": {
-        "related",
-        "value",
-    },
-    "sample.SampleRelation": {
-        "source",
-        "target",
-        "type",
-    },
+# Fields a dependency declares and the model inherits, which this repository cannot
+# give labels without redeclaring them. Each entry names the dependency. The second
+# test fails for an entry that gained both labels, so take it out then.
+THIRD_PARTY_FIELDS: dict[tuple[str, str], str] = {
+    ("contributors.Contribution", "order"): "django-ordered-model",
+    ("contributors.Contributor", "polymorphic_ctype"): "django-polymorphic",
+    ("contributors.Person", "date_joined"): "Django's AbstractUser",
+    ("contributors.Person", "first_name"): "Django's AbstractUser",
+    ("contributors.Person", "last_login"): "Django's AbstractBaseUser",
+    ("contributors.Person", "last_name"): "Django's AbstractUser",
+    ("contributors.Person", "password"): "Django's AbstractBaseUser",
+    ("fairdm.TaggedItem", "content_type"): "django-taggit",
+    ("fairdm.TaggedItem", "tag"): "django-taggit",
+    ("identity.AuthorityTranslation", "language_code"): "django-parler",
+    ("identity.AuthorityTranslation", "master"): "django-parler",
+    ("identity.IdentityTranslation", "language_code"): "django-parler",
+    ("identity.IdentityTranslation", "master"): "django-parler",
+    ("measurement.Measurement", "polymorphic_ctype"): "django-polymorphic",
+    ("sample.Sample", "polymorphic_ctype"): "django-polymorphic",
 }
+
+DEMO_DIRECTORY = Path(settings.BASE_DIR) / "demo"
 
 
 def labelled_wrongly():
-    """Return the first-party fields missing a lazy label or help text.
+    """Return the fields missing a label or help text.
 
-    A field counts when its own declaration gives both ``verbose_name`` and
-    ``help_text`` as lazy translations. The name Django derives from the field name does
-    not count, and neither does an automatic primary key or a parent link.
+    A package field counts when its own declaration gives both ``verbose_name`` and
+    ``help_text`` as lazy translations. A field of the demo app counts when it gives
+    both as text, because the demo app is never translated. The name Django derives
+    from the field name does not count, and neither does an automatic primary key or a
+    parent link.
 
     Returns:
         A dict of model label to the set of field names that lack one or both.
@@ -233,37 +52,51 @@ def labelled_wrongly():
         directory = Path(model._meta.app_config.path)
         if TESTS_DIRECTORY in directory.parents or "site-packages" in directory.parts:
             continue
+        in_demo = directory == DEMO_DIRECTORY
         fields = [*model._meta.local_fields, *model._meta.local_many_to_many]
         for field in fields:
             if field.auto_created:
                 continue
-            labelled = isinstance(field._verbose_name, Promise) and isinstance(
-                field.help_text, Promise
-            )
+            if in_demo:
+                labelled = (
+                    isinstance(field._verbose_name, str)
+                    and bool(field._verbose_name)
+                    and isinstance(field.help_text, str)
+                    and bool(field.help_text)
+                )
+            else:
+                labelled = isinstance(field._verbose_name, Promise) and isinstance(
+                    field.help_text, Promise
+                )
             if not labelled:
                 missing.setdefault(model._meta.label, set()).add(field.name)
     return missing
 
 
 class TestFieldLabels:
-    def test_every_field_has_a_lazy_verbose_name_and_help_text(self):
+    def test_every_field_has_a_verbose_name_and_help_text(self):
         new = {
-            label: sorted(names - KNOWN_GAPS.get(label, set()))
+            label: sorted(
+                name for name in names if (label, name) not in THIRD_PARTY_FIELDS
+            )
             for label, names in labelled_wrongly().items()
-            if names - KNOWN_GAPS.get(label, set())
+            if any((label, name) not in THIRD_PARTY_FIELDS for name in names)
         }
 
         assert not new, (
-            "These fields have no lazy verbose_name or help_text "
-            f"(gettext_lazy, written on the field): {new}"
+            "These fields have no verbose_name or help_text "
+            "(gettext_lazy in the package, plain text in the demo app), written on "
+            f"the field: {new}"
         )
 
-    def test_a_field_that_gained_its_labels_is_taken_off_the_known_gaps(self):
+    def test_a_field_that_gained_its_labels_is_taken_off_the_exclusions(self):
         missing = labelled_wrongly()
-        fixed = {
-            label: sorted(names - missing.get(label, set()))
-            for label, names in KNOWN_GAPS.items()
-            if names - missing.get(label, set())
-        }
+        fixed = sorted(
+            f"{label}.{name}"
+            for label, name in THIRD_PARTY_FIELDS
+            if name not in missing.get(label, set())
+        )
 
-        assert not fixed, f"Remove these from KNOWN_GAPS, they now have both: {fixed}"
+        assert not fixed, (
+            f"Remove these from THIRD_PARTY_FIELDS, they now have both: {fixed}"
+        )
